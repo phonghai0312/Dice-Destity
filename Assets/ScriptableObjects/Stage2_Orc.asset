@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4837a3899cc4474d81c019ecefa34ad, type: 3}
+  m_Name: Stage2_Orc
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Armored Orc
+  maxHP: 35
+  startingShield: 5
+  enemySprite: {fileID: 6362832775884612094, guid: 38eec17d375e44483a8f67aff09359d6, type: 3}
+  backgroundSprite: {fileID: 5841160106669567513, guid: f7c9bab5dbe82483e9d55f4ffd9690aa, type: 3}
