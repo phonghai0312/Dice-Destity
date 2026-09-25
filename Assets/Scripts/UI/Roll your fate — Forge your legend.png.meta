@@ -1,0 +1,834 @@
+fileFormatVersion: 2
+guid: 49f85631ea4ec49f6b06e0c3c44bddcb
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7920366487080028778
+    second: "Roll your fate \u2014 Forge your legend_0"
+  - first:
+      213: -8949842300743051977
+    second: "Roll your fate \u2014 Forge your legend_1"
+  - first:
+      213: 8824669103124028477
+    second: "Roll your fate \u2014 Forge your legend_2"
+  - first:
+      213: -8947529208573300972
+    second: "Roll your fate \u2014 Forge your legend_3"
+  - first:
+      213: -8863813163429647846
+    second: "Roll your fate \u2014 Forge your legend_4"
+  - first:
+      213: -5935169996956739385
+    second: "Roll your fate \u2014 Forge your legend_5"
+  - first:
+      213: -3360865891076403799
+    second: "Roll your fate \u2014 Forge your legend_6"
+  - first:
+      213: 5001207631364002200
+    second: "Roll your fate \u2014 Forge your legend_7"
+  - first:
+      213: -5443625081610928200
+    second: "Roll your fate \u2014 Forge your legend_8"
+  - first:
+      213: 784041798213029359
+    second: "Roll your fate \u2014 Forge your legend_9"
+  - first:
+      213: 4991100986706054722
+    second: "Roll your fate \u2014 Forge your legend_10"
+  - first:
+      213: 1896128456932771783
+    second: "Roll your fate \u2014 Forge your legend_11"
+  - first:
+      213: 8298115199915981345
+    second: "Roll your fate \u2014 Forge your legend_12"
+  - first:
+      213: -4605324743616696907
+    second: "Roll your fate \u2014 Forge your legend_13"
+  - first:
+      213: -4443431908278743407
+    second: "Roll your fate \u2014 Forge your legend_14"
+  - first:
+      213: 8759734213069673997
+    second: "Roll your fate \u2014 Forge your legend_15"
+  - first:
+      213: -2455311028117993738
+    second: "Roll your fate \u2014 Forge your legend_16"
+  - first:
+      213: 1939543219648483516
+    second: "Roll your fate \u2014 Forge your legend_17"
+  - first:
+      213: 8744949863025492776
+    second: "Roll your fate \u2014 Forge your legend_18"
+  - first:
+      213: -2569384856687024041
+    second: "Roll your fate \u2014 Forge your legend_19"
+  - first:
+      213: 1016906275776421188
+    second: "Roll your fate \u2014 Forge your legend_20"
+  - first:
+      213: -8554735221035785560
+    second: "Roll your fate \u2014 Forge your legend_21"
+  - first:
+      213: 6896995607297145927
+    second: "Roll your fate \u2014 Forge your legend_22"
+  - first:
+      213: 1201116944960636564
+    second: "Roll your fate \u2014 Forge your legend_23"
+  - first:
+      213: -3869408760842474344
+    second: "Roll your fate \u2014 Forge your legend_24"
+  - first:
+      213: -5712304933832842244
+    second: "Roll your fate \u2014 Forge your legend_25"
+  - first:
+      213: -2004242011502986874
+    second: "Roll your fate \u2014 Forge your legend_26"
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_0"
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 695bfa6d4a4351290800000000000000
+      internalID: -7920366487080028778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_1"
+      rect:
+        serializedVersion: 2
+        x: 10
+        y: 0
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 735127488d5cbc380800000000000000
+      internalID: -8949842300743051977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_2"
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 0
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3c92105bc5877a70800000000000000
+      internalID: 8824669103124028477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_3"
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 0
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41f6e81479df3d380800000000000000
+      internalID: -8947529208573300972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_4"
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 0
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1a285ee3e86df480800000000000000
+      internalID: -8863813163429647846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_5"
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 0
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c856d9655a02ada0800000000000000
+      internalID: -5935169996956739385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_6"
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 0
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ad0aa8574ecb51d0800000000000000
+      internalID: -3360865891076403799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_7"
+      rect:
+        serializedVersion: 2
+        x: 93
+        y: 0
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8919c6bd7dbd76540800000000000000
+      internalID: 5001207631364002200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_8"
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 0
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bf7c2074db5474b0800000000000000
+      internalID: -5443625081610928200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_9"
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 0
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fedcb878cd971ea00800000000000000
+      internalID: 784041798213029359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_10"
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 0
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24e47b647e3f34540800000000000000
+      internalID: 4991100986706054722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_11"
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 0
+        width: 30
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c7ccf319c6605a10800000000000000
+      internalID: 1896128456932771783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_12"
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 0
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12af24c1fc3d82370800000000000000
+      internalID: 8298115199915981345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_13"
+      rect:
+        serializedVersion: 2
+        x: 196
+        y: 0
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bde865bb899610c0800000000000000
+      internalID: -4605324743616696907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_14"
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 0
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19ec863c832c552c0800000000000000
+      internalID: -4443431908278743407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_15"
+      rect:
+        serializedVersion: 2
+        x: 221
+        y: 0
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d069ad01bd3d09970800000000000000
+      internalID: 8759734213069673997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_16"
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 0
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f68de3f0abfcedd0800000000000000
+      internalID: -2455311028117993738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_17"
+      rect:
+        serializedVersion: 2
+        x: 253
+        y: 0
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb05aa93844aaea10800000000000000
+      internalID: 1939543219648483516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_18"
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 0
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8234c34519d4c5970800000000000000
+      internalID: 8744949863025492776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_19"
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 0
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 758e6e50616b75cd0800000000000000
+      internalID: -2569384856687024041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_20"
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 0
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44dd489bed6cc1e00800000000000000
+      internalID: 1016906275776421188
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_21"
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 0
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a2a3a234a9774980800000000000000
+      internalID: -8554735221035785560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_22"
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 0
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74c306686fc07bf50800000000000000
+      internalID: 6896995607297145927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_23"
+      rect:
+        serializedVersion: 2
+        x: 334
+        y: 0
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 496c4166f793ba010800000000000000
+      internalID: 1201116944960636564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_24"
+      rect:
+        serializedVersion: 2
+        x: 347
+        y: 0
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89c2337ab391d4ac0800000000000000
+      internalID: -3869408760842474344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_25"
+      rect:
+        serializedVersion: 2
+        x: 358
+        y: 0
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf3ae228de0d9b0b0800000000000000
+      internalID: -5712304933832842244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Roll your fate \u2014 Forge your legend_26"
+      rect:
+        serializedVersion: 2
+        x: 372
+        y: 0
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 689337c62808f24e0800000000000000
+      internalID: -2004242011502986874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      "Roll your fate \u2014 Forge your legend_0": -7920366487080028778
+      "Roll your fate \u2014 Forge your legend_1": -8949842300743051977
+      "Roll your fate \u2014 Forge your legend_10": 4991100986706054722
+      "Roll your fate \u2014 Forge your legend_11": 1896128456932771783
+      "Roll your fate \u2014 Forge your legend_12": 8298115199915981345
+      "Roll your fate \u2014 Forge your legend_13": -4605324743616696907
+      "Roll your fate \u2014 Forge your legend_14": -4443431908278743407
+      "Roll your fate \u2014 Forge your legend_15": 8759734213069673997
+      "Roll your fate \u2014 Forge your legend_16": -2455311028117993738
+      "Roll your fate \u2014 Forge your legend_17": 1939543219648483516
+      "Roll your fate \u2014 Forge your legend_18": 8744949863025492776
+      "Roll your fate \u2014 Forge your legend_19": -2569384856687024041
+      "Roll your fate \u2014 Forge your legend_2": 8824669103124028477
+      "Roll your fate \u2014 Forge your legend_20": 1016906275776421188
+      "Roll your fate \u2014 Forge your legend_21": -8554735221035785560
+      "Roll your fate \u2014 Forge your legend_22": 6896995607297145927
+      "Roll your fate \u2014 Forge your legend_23": 1201116944960636564
+      "Roll your fate \u2014 Forge your legend_24": -3869408760842474344
+      "Roll your fate \u2014 Forge your legend_25": -5712304933832842244
+      "Roll your fate \u2014 Forge your legend_26": -2004242011502986874
+      "Roll your fate \u2014 Forge your legend_3": -8947529208573300972
+      "Roll your fate \u2014 Forge your legend_4": -8863813163429647846
+      "Roll your fate \u2014 Forge your legend_5": -5935169996956739385
+      "Roll your fate \u2014 Forge your legend_6": -3360865891076403799
+      "Roll your fate \u2014 Forge your legend_7": 5001207631364002200
+      "Roll your fate \u2014 Forge your legend_8": -5443625081610928200
+      "Roll your fate \u2014 Forge your legend_9": 784041798213029359
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
