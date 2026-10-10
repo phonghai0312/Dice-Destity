@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
@@ -14,7 +15,7 @@ public class ForgeAnimator : MonoBehaviour
 
     [Header("Glow Pulse Settings")]
     public bool enableGlowPulse = false;  // Bật/tắt hiệu ứng sáng nhấp nháy
-    public UnityEngine.UI.Image targetImage;
+    public Image targetImage;
     public Color glowColor = new Color(0.72f, 0.53f, 0.05f, 1f);
     public Color normalColor = new Color(0.38f, 0.05f, 0.05f, 0.9f);
     public float pulseSpeed = 1.5f;
@@ -43,8 +44,8 @@ public class ForgeAnimator : MonoBehaviour
             Vector2 offscreen = startPos + new Vector2(0, -60f);
             rt.anchoredPosition = offscreen;
 
-            UnityEngine.UI.CanvasGroup cg = GetComponent<UnityEngine.UI.CanvasGroup>() 
-                ?? gameObject.AddComponent<UnityEngine.UI.CanvasGroup>();
+            UnityEngine.CanvasGroup cg = GetComponent<UnityEngine.CanvasGroup>() 
+                ?? gameObject.AddComponent<UnityEngine.CanvasGroup>();
             cg.alpha = 0f;
 
             yield return new WaitForSeconds(entryDelay);
