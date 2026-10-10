@@ -11,6 +11,7 @@ public class BattleEntity : MonoBehaviour
     // Observer Pattern: Event thay đổi trạng thái
     public event Action<int, int> OnHPChanged; // <Current, Max>
     public event Action<int> OnShieldChanged;  // <CurrentShield>
+    public event Action<int> OnDamageTaken;    // <DamageAmount>
 
     private void Start()
     {
@@ -48,6 +49,7 @@ public class BattleEntity : MonoBehaviour
         if (damage > 0)
         {
             currentHP = Mathf.Max(0, currentHP - damage);
+            OnDamageTaken?.Invoke(damage);
             OnHPChanged?.Invoke(currentHP, maxHP);
 
             if (currentHP <= 0 && gameObject.name.Contains("Enemy"))
