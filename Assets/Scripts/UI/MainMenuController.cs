@@ -1,6 +1,10 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// MainMenuController — Tự tìm nút và wire up khi scene load, đồng thời cung cấp các handler cho cả 4 nút UI.
+/// </summary>
 public class MainMenuController : MonoBehaviour
 {
     [Header("Audio")]
@@ -9,6 +13,60 @@ public class MainMenuController : MonoBehaviour
 
     [Header("Panels / Modals (Optional)")]
     [SerializeField] private GameObject settingsPanel;
+
+    private void Start()
+    {
+        // Tự tìm nút StartRunButton / NewGameButton và wire up
+        GameObject startGo = GameObject.Find("StartRunButton") ?? GameObject.Find("NewGameButton");
+        if (startGo != null)
+        {
+            Button btn = startGo.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(OnNewGameClicked);
+            }
+        }
+
+        // Tự tìm CONTINUE
+        GameObject contGo = GameObject.Find("ContinueButton");
+        if (contGo != null)
+        {
+            Button btn = contGo.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(OnContinueClicked);
+            }
+        }
+
+        // Tự tìm SETTINGS
+        GameObject settingGo = GameObject.Find("SettingButton") ?? GameObject.Find("SettingsButton");
+        if (settingGo != null)
+        {
+            Button btn = settingGo.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(OnSettingClicked);
+            }
+        }
+
+        // Tự tìm QUIT / EXIT
+        GameObject exitGo = GameObject.Find("ExitButton") ?? GameObject.Find("QuitButton");
+        if (exitGo != null)
+        {
+            Button btn = exitGo.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(OnExitClicked);
+            }
+        }
+
+        GameObject codexGo = GameObject.Find("CodexButton");
+        if (codexGo != null) codexGo.GetComponent<Button>()?.onClick.AddListener(() => Debug.Log("Codex: Coming soon!"));
+    }
 
     private void PlayClickSound()
     {
@@ -22,14 +80,24 @@ public class MainMenuController : MonoBehaviour
     public void OnNewGameClicked()
     {
         PlayClickSound();
-        Debug.Log("Starting New Game / Run...");
+        Debug.Log("[MainMenu] Starting New Game / Run...");
+
+        // Tạo GameManager nếu chưa có
+        if (GameManager.Instance == null)
+        {
+            GameObject gm = new GameObject("GameManager");
+            gm.AddComponent<GameManager>();
+        }
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.StartNewRun();
         }
         else
         {
-            Debug.LogWarning("GameManager.Instance not found! Attempting direct scene load or fallback...");
+            // Fallback cứng
+            Debug.LogError("[MainMenu] GameManager still null! Loading CombatScene directly.");
+            SceneManager.LoadScene("CombatScene");
         }
     }
 
@@ -40,15 +108,14 @@ public class MainMenuController : MonoBehaviour
     public void OnContinueClicked()
     {
         PlayClickSound();
-        Debug.Log("Continue previous save...");
-        // Add save game load logic when ready
+        Debug.Log("[MainMenu] Continue previous save...");
     }
 
     // 3. Settings
     public void OnSettingClicked()
     {
         PlayClickSound();
-        Debug.Log("Settings button clicked!");
+        Debug.Log("[MainMenu] Settings button clicked!");
         if (settingsPanel != null)
         {
             settingsPanel.SetActive(!settingsPanel.activeSelf);
@@ -62,7 +129,7 @@ public class MainMenuController : MonoBehaviour
     public void OnExitClicked()
     {
         PlayClickSound();
-        Debug.Log("Quit game requested.");
+        Debug.Log("[MainMenu] Quit game requested.");
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
