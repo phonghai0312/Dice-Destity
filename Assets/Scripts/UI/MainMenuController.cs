@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// MainMenuController — Tự tìm nút và wire up khi scene load, đồng thời cung cấp các handler cho cả 4 nút UI.
@@ -82,23 +81,17 @@ public class MainMenuController : MonoBehaviour
         PlayClickSound();
         Debug.Log("[MainMenu] Starting New Game / Run...");
 
-        // Tạo GameManager nếu chưa có
-        if (GameManager.Instance == null)
+        // Prefer the persistent singleton, but recover a configured manager from
+        // the active MainMenu scene if its Awake did not register it.
+        GameManager gameManager = GameManager.ResolveInstance();
+
+        if (gameManager == null)
         {
-            GameObject gm = new GameObject("GameManager");
-            gm.AddComponent<GameManager>();
+            Debug.LogError("[MainMenu] No GameManager found in the active scene. Add the configured GameManager from MainMenu.unity.");
+            return;
         }
 
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.StartNewRun();
-        }
-        else
-        {
-            // Fallback cứng
-            Debug.LogError("[MainMenu] GameManager still null! Loading CombatScene directly.");
-            SceneManager.LoadScene("CombatScene");
-        }
+        gameManager.StartNewRun();
     }
 
     // Backward compatibility for existing OnStartRunClicked hookup

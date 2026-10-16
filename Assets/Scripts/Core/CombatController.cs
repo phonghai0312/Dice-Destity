@@ -19,22 +19,31 @@ public class CombatController : MonoBehaviour
 
         int stage = GameManager.Instance.currentStageIndex;
 
-        // Ensure we don't go out of bounds
-        if (GameManager.Instance.stageEnemies == null || stage > GameManager.Instance.stageEnemies.Length)
+        EnemyData[] stages = GameManager.Instance.stageEnemies;
+        if (stages == null || stages.Length == 0)
+        {
+            Debug.LogError("[CombatController] Cannot start combat: no stage enemies are configured on GameManager.");
+            return;
+        }
+
+        // A configured run is victorious only after the final stage has been cleared.
+        if (stage > stages.Length)
         {
             Debug.Log("Game Cleared! YOU WIN!");
             GameManager.Instance.LoadMainMenu();
             return;
         }
 
-        EnemyData data = GameManager.Instance.stageEnemies[stage - 1]; // stage is 1-indexed
-
-        if (data != null)
+        EnemyData data = stages[stage - 1]; // stage is 1-indexed
+        if (data == null)
         {
-            if (background != null) background.sprite = data.backgroundSprite;
-            if (enemySpriteRenderer != null) enemySpriteRenderer.sprite = data.enemySprite;
-            if (enemyEntity != null) enemyEntity.Initialize(data);
+            Debug.LogError($"[CombatController] Enemy data for stage {stage} is not assigned on GameManager.");
+            return;
         }
+
+        if (background != null) background.sprite = data.backgroundSprite;
+        if (enemySpriteRenderer != null) enemySpriteRenderer.sprite = data.enemySprite;
+        if (enemyEntity != null) enemyEntity.Initialize(data);
 
         // Apply Player HP from GameManager
         if (playerEntity != null)
