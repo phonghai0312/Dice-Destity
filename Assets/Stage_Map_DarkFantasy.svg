@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <!-- Background Dungeon Stone Texture -->
+    <radialGradient id="mapVignette" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1e1b2e"/>
+      <stop offset="60%" stop-color="#0f0e17"/>
+      <stop offset="100%" stop-color="#050508"/>
+    </radialGradient>
+
+    <!-- Glowing Path Filter -->
+    <filter id="pathGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="heroAura" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <linearGradient id="nodeGoldGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+
+    <linearGradient id="bossGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#881337"/>
+    </linearGradient>
+  </defs>
+
+  <!-- MAP BACKGROUND -->
+  <rect width="1600" height="900" fill="url(#mapVignette)"/>
+
+  <!-- DUNGEON COBBLESTONE & CRACKS -->
+  <g stroke="#262438" stroke-width="2" opacity="0.4">
+    <path d="M 100 200 L 250 220 L 320 350 L 150 400 Z" fill="none"/>
+    <path d="M 400 150 L 600 180 L 580 320 L 390 280 Z" fill="none"/>
+    <path d="M 700 300 L 950 280 L 980 450 L 730 480 Z" fill="none"/>
+    <path d="M 1100 220 L 1350 250 L 1380 420 L 1120 400 Z" fill="none"/>
+    <path d="M 300 550 L 520 580 L 490 750 L 280 700 Z" fill="none"/>
+    <path d="M 800 600 L 1050 620 L 1020 780 L 780 750 Z" fill="none"/>
+  </g>
+
+  <!-- TITLE BANNER -->
+  <g transform="translate(100, 70)">
+    <rect width="480" height="64" rx="12" fill="#000000" fill-opacity="0.7" stroke="#a855f7" stroke-width="2"/>
+    <text x="24" y="42" fill="#e9d5ff" font-family="sans-serif" font-size="26" font-weight="900" letter-spacing="1">CHƯƠNG 1: HẦM NGỤC HOANG TÀN</text>
+  </g>
+
+  <!-- CONNECTING MAP ROADS / PATHS -->
+  <g fill="none" stroke="#a855f7" stroke-width="6" stroke-linecap="round" stroke-dasharray="16 12" filter="url(#pathGlow)">
+    <!-- Node 1 -> Node 2 (Top) -->
+    <path d="M 220 450 C 320 450, 360 280, 480 280"/>
+    <!-- Node 1 -> Node 3 (Bottom) -->
+    <path d="M 220 450 C 320 450, 360 620, 480 620"/>
+    <!-- Node 2 -> Node 4 (Mid) -->
+    <path d="M 480 280 C 620 280, 680 450, 800 450"/>
+    <!-- Node 3 -> Node 4 (Mid) -->
+    <path d="M 480 620 C 620 620, 680 450, 800 450"/>
+    <!-- Node 4 -> Node 5 (Shop Top) -->
+    <path d="M 800 450 C 940 450, 980 280, 1120 280"/>
+    <!-- Node 4 -> Node 6 (Rest Bottom) -->
+    <path d="M 800 450 C 940 450, 980 620, 1120 620"/>
+    <!-- Node 5 -> Boss -->
+    <path d="M 1120 280 C 1260 280, 1300 450, 1420 450"/>
+    <!-- Node 6 -> Boss -->
+    <path d="M 1120 620 C 1260 620, 1300 450, 1420 450"/>
+  </g>
+
+  <!-- MAP NODES -->
+  
+  <!-- NODE 1: ENTRANCE (COMPLETED) -->
+  <g transform="translate(220, 450)">
+    <circle r="46" fill="#064e3b" stroke="#10b981" stroke-width="5" filter="url(#pathGlow)"/>
+    <text text-anchor="middle" dy="12" font-size="34">⚔️</text>
+    <rect x="-80" y="58" width="160" height="32" rx="8" fill="#000000" fill-opacity="0.85" stroke="#10b981" stroke-width="1.5"/>
+    <text text-anchor="middle" y="80" fill="#6ee7b7" font-family="sans-serif" font-size="15" font-weight="bold">1. CỬA HẦM NGỤC</text>
+  </g>
+
+  <!-- NODE 2: GOBLIN AMBUSH -->
+  <g transform="translate(480, 280)">
+    <circle r="46" fill="#3b0764" stroke="#a855f7" stroke-width="5" filter="url(#pathGlow)"/>
+    <text text-anchor="middle" dy="12" font-size="34">🗡️</text>
+    <rect x="-90" y="58" width="180" height="32" rx="8" fill="#000000" fill-opacity="0.85" stroke="#a855f7" stroke-width="1.5"/>
+    <text text-anchor="middle" y="80" fill="#d8b4fe" font-family="sans-serif" font-size="15" font-weight="bold">2A. QUÁI GOBLIN</text>
+  </g>
+
+  <!-- NODE 3: DICE ALTAR -->
+  <g transform="translate(480, 620)">
+    <circle r="46" fill="#451a03" stroke="#f59e0b" stroke-width="5"/>
+    <text text-anchor="middle" dy="12" font-size="34">❓</text>
+    <rect x="-90" y="58" width="180" height="32" rx="8" fill="#000000" fill-opacity="0.85" stroke="#f59e0b" stroke-width="1.5"/>
+    <text text-anchor="middle" y="80" fill="#fde68a" font-family="sans-serif" font-size="15" font-weight="bold">2B. ĐIỆN THỜ CỔ</text>
+  </g>
+
+  <!-- NODE 4: ORC ELITE CAMP -->
+  <g transform="translate(800, 450)">
+    <circle r="48" fill="#450a0a" stroke="#ef4444" stroke-width="5"/>
+    <text text-anchor="middle" dy="12" font-size="34">🧌</text>
+    <rect x="-90" y="60" width="180" height="32" rx="8" fill="#000000" fill-opacity="0.85" stroke="#ef4444" stroke-width="1.5"/>
+    <text text-anchor="middle" y="82" fill="#fca5a5" font-family="sans-serif" font-size="15" font-weight="bold">3. TRẠI ORC ELITE</text>
+  </g>
+
+  <!-- NODE 5: MERCHANT SHOP -->
+  <g transform="translate(1120, 280)">
+    <circle r="46" fill="#422006" stroke="#eab308" stroke-width="5"/>
+    <text text-anchor="middle" dy="12" font-size="34">🛒</text>
+    <rect x="-90" y="58" width="180" height="32" rx="8" fill="#000000" fill-opacity="0.85" stroke="#eab308" stroke-width="1.5"/>
+    <text text-anchor="middle" y="80" fill="#fef08a" font-family="sans-serif" font-size="15" font-weight="bold">4A. THƯƠNG NHÂN</text>
+  </g>
+
+  <!-- NODE 6: CAMPFIRE REST -->
+  <g transform="translate(1120, 620)">
+    <circle r="46" fill="#172554" stroke="#38bdf8" stroke-width="5"/>
+    <text text-anchor="middle" dy="12" font-size="34">🏕️</text>
+    <rect x="-90" y="58" width="180" height="32" rx="8" fill="#000000" fill-opacity="0.85" stroke="#38bdf8" stroke-width="1.5"/>
+    <text text-anchor="middle" y="80" fill="#bae6fd" font-family="sans-serif" font-size="15" font-weight="bold">4B. LỬA TRẠI HỒI MÁU</text>
+  </g>
+
+  <!-- NODE 7: FINAL BOSS MINOTAUR -->
+  <g transform="translate(1420, 450)">
+    <circle r="60" fill="url(#bossGrad)" stroke="#f43f5e" stroke-width="7" filter="url(#heroAura)"/>
+    <text text-anchor="middle" dy="16" font-size="44">👑</text>
+    <rect x="-105" y="74" width="210" height="36" rx="8" fill="#000000" fill-opacity="0.9" stroke="#f43f5e" stroke-width="2"/>
+    <text text-anchor="middle" y="98" fill="#fecdd3" font-family="sans-serif" font-size="16" font-weight="900">BOSS: MINOTAUR</text>
+  </g>
+
+  <!-- HERO AVATAR TOKEN (CURRENTLY AT STAGE 1) -->
+  <g transform="translate(220, 450)" filter="url(#heroAura)">
+    <!-- Golden Pulse Halo -->
+    <circle r="56" fill="none" stroke="#fbbf24" stroke-width="4" stroke-dasharray="10 6"/>
+    <!-- Hero Token Head Silhouette -->
+    <circle r="44" fill="#1e1b2e" stroke="#f59e0b" stroke-width="4"/>
+    <!-- Knight Helmet Icon Representation -->
+    <path d="M -18 -15 Q 0 -30 18 -15 L 18 15 L -18 15 Z" fill="#475569" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="-12" y="-2" width="24" height="4" rx="2" fill="#ef4444"/>
+    <polygon points="0 -36 -6 -24 6 -24" fill="#94a3b8"/>
+    <!-- Pointer Marker -->
+    <polygon points="0 -65 -10 -48 10 -48" fill="#fbbf24"/>
+    <!-- Label -->
+    <rect x="-38" y="-95" width="76" height="24" rx="6" fill="#000000" stroke="#fbbf24" stroke-width="1.5"/>
+    <text text-anchor="middle" y="-78" fill="#fef08a" font-family="sans-serif" font-size="12" font-weight="900">HERO</text>
+  </g>
+</svg>

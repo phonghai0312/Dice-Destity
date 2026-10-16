@@ -26,6 +26,8 @@ public class ForgeAnimator : MonoBehaviour
     private RectTransform rt;
     private Vector2 startPos;
     private bool ready = false;
+    private float bounceOffset;
+    private Coroutine bounceCoroutine;
 
     void Start()
     {
@@ -43,8 +45,8 @@ public class ForgeAnimator : MonoBehaviour
             Vector2 offscreen = startPos + new Vector2(0, -60f);
             rt.anchoredPosition = offscreen;
 
-            UnityEngine.UI.CanvasGroup cg = GetComponent<UnityEngine.UI.CanvasGroup>() 
-                ?? gameObject.AddComponent<UnityEngine.UI.CanvasGroup>();
+            CanvasGroup cg = GetComponent<CanvasGroup>()
+                ?? gameObject.AddComponent<CanvasGroup>();
             cg.alpha = 0f;
 
             yield return new WaitForSeconds(entryDelay);
@@ -73,7 +75,7 @@ public class ForgeAnimator : MonoBehaviour
 
         // Float animation
         float y = Mathf.Sin((Time.time + floatOffset) * floatSpeed) * floatAmplitude;
-        rt.anchoredPosition = new Vector2(startPos.x, startPos.y + y);
+        rt.anchoredPosition = new Vector2(startPos.x, startPos.y + y + bounceOffset);
 
         // Glow pulse
         if (enableGlowPulse && targetImage != null)
@@ -85,25 +87,30 @@ public class ForgeAnimator : MonoBehaviour
 
     public void Bounce()
     {
-        StopAllCoroutines();
-        StartCoroutine(DoBounce());
+        if (rt == null)
+        {
+            rt = transform as RectTransform;
+            if (rt == null) return;
+            startPos = rt.anchoredPosition;
+        }
+
+        if (bounceCoroutine != null) StopCoroutine(bounceCoroutine);
+        bounceCoroutine = StartCoroutine(DoBounce());
     }
 
     IEnumerator DoBounce()
     {
         float elapsed = 0f;
         float dur = 0.3f;
-        Vector2 origin = startPos;
-
         while (elapsed < dur)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / dur;
             float bounce = Mathf.Sin(t * Mathf.PI) * 20f;
-            rt.anchoredPosition = new Vector2(origin.x, origin.y + bounce);
+            bounceOffset = bounce;
             yield return null;
         }
-        rt.anchoredPosition = origin;
-        ready = true;
+        bounceOffset = 0f;
+        bounceCoroutine = null;
     }
 }

@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 480" width="1920" height="480">
+  <defs>
+    <!-- Sky Gradient: Dark Blood Moon Twilight -->
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#19071f"/>
+      <stop offset="50%" stop-color="#340e2b"/>
+      <stop offset="100%" stop-color="#4e1628"/>
+    </linearGradient>
+
+    <!-- Main Ground Surface -->
+    <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2433"/>
+      <stop offset="40%" stop-color="#1f1a26"/>
+      <stop offset="100%" stop-color="#131018"/>
+    </linearGradient>
+
+    <!-- Cliff Steppes -->
+    <linearGradient id="cliffWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3b2528"/>
+      <stop offset="100%" stop-color="#180e10"/>
+    </linearGradient>
+
+    <!-- Toxic Abyssal Water -->
+    <linearGradient id="abyssWater" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0c252a"/>
+      <stop offset="60%" stop-color="#07171a"/>
+      <stop offset="100%" stop-color="#02080a"/>
+    </linearGradient>
+
+    <!-- Crimson Blood Moon -->
+    <radialGradient id="bloodMoon" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="35%" stop-color="#fb7185"/>
+      <stop offset="70%" stop-color="#e11d48"/>
+      <stop offset="100%" stop-color="#881337" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="runeGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="moonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 1. SKY & DISTANT MOUNTAINS -->
+  <rect width="1920" height="200" fill="url(#skyGrad)"/>
+
+  <!-- Blood Moon -->
+  <circle cx="1520" cy="70" r="55" fill="url(#bloodMoon)" filter="url(#moonGlow)"/>
+
+  <!-- Distant Jagged Mountains (Mario Pyramids converted to Gothic Peaks) -->
+  <polygon points="80,200 200,60 320,200" fill="#200d23" opacity="0.9"/>
+  <polygon points="260,200 400,40 540,200" fill="#170918" opacity="0.95"/>
+  <polygon points="650,200 780,80 910,200" fill="#200d23" opacity="0.85"/>
+  <polygon points="1060,200 1220,35 1380,200" fill="#170918" opacity="0.95"/>
+  <polygon points="1320,200 1450,70 1580,200" fill="#240f26" opacity="0.85"/>
+  <polygon points="1650,200 1780,90 1910,200" fill="#170918" opacity="0.9"/>
+
+  <!-- 2. ABYSSAL WATER (BOTTOM SEAS) -->
+  <rect y="400" width="1920" height="80" fill="url(#abyssWater)"/>
+  <!-- Toxic water ripples -->
+  <path d="M 0 415 Q 60 410 120 415 T 240 415 T 360 415 T 480 415 T 600 415 T 720 415 T 840 415 T 960 415 T 1080 415 T 1200 415 T 1320 415 T 1440 415 T 1560 415 T 1680 415 T 1800 415 T 1920 415" stroke="#14b8a6" stroke-width="2" opacity="0.3" fill="none"/>
+  <path d="M 0 440 Q 60 435 120 440 T 240 440 T 360 440 T 480 440 T 600 440 T 720 440 T 840 440 T 960 440 T 1080 440 T 1200 440 T 1320 440 T 1440 440 T 1560 440 T 1680 440 T 1800 440 T 1920 440" stroke="#0d9488" stroke-width="1.5" opacity="0.25" fill="none"/>
+
+  <!-- 3. CLIFF EDGES (STEPPED CLIFF WALLS) -->
+  <path d="M 0 350 L 0 410 Q 250 418 500 410 Q 750 418 1000 410 Q 1350 418 1700 410 L 1920 410 L 1920 350 Z" fill="url(#cliffWall)"/>
+  <!-- Cliff struts -->
+  <path d="M 120 350 L 115 410 M 340 350 L 335 410 M 560 350 L 565 410 M 800 350 L 795 410 M 1050 350 L 1045 410 M 1320 350 L 1325 410 M 1580 350 L 1575 410 M 1800 350 L 1805 410" stroke="#221215" stroke-width="4"/>
+
+  <!-- 4. MAIN OVERWORLD GROUND SURFACE -->
+  <path d="M 0 170 L 1920 170 L 1920 350 L 0 350 Z" fill="url(#groundGrad)"/>
+  
+  <!-- Back Steppe Plateaus (Replacing Mario Sand Dunes) -->
+  <ellipse cx="300" cy="170" rx="140" ry="25" fill="#383044"/>
+  <ellipse cx="680" cy="170" rx="160" ry="28" fill="#383044"/>
+  <ellipse cx="1100" cy="170" rx="150" ry="26" fill="#383044"/>
+  <ellipse cx="1500" cy="170" rx="180" ry="30" fill="#383044"/>
+
+  <!-- 5. MARIO-STYLE LEVEL ROAD & PATHS (Runic Obsidian Stone Road) -->
+  <!-- Main Highway -->
+  <path d="M 120 280 L 320 280 L 520 280 L 740 280 L 960 280 L 1180 280 L 1400 280 L 1620 280 L 1780 280" stroke="#120e17" stroke-width="34" stroke-linecap="round" fill="none"/>
+  <path d="M 120 280 L 320 280 L 520 280 L 740 280 L 960 280 L 1180 280 L 1400 280 L 1620 280 L 1780 280" stroke="#7e22ce" stroke-width="12" stroke-linecap="round" stroke-dasharray="16 10" fill="none" filter="url(#runeGlow)"/>
+
+  <!-- Branch Paths -->
+  <!-- Branch Up: 320 -> 420 (Altar) -->
+  <path d="M 320 280 C 320 230, 420 230, 420 200" stroke="#120e17" stroke-width="26" fill="none"/>
+  <path d="M 320 280 C 320 230, 420 230, 420 200" stroke="#a855f7" stroke-width="8" stroke-dasharray="10 8" fill="none"/>
+
+  <!-- Branch Down: 740 -> 740 (Treasure Crypt) -->
+  <path d="M 740 280 L 740 350" stroke="#120e17" stroke-width="26" fill="none"/>
+  <path d="M 740 280 L 740 350" stroke="#a855f7" stroke-width="8" stroke-dasharray="10 8" fill="none"/>
+
+  <!-- Branch Up: 1180 -> 1180 (Witch Hut) -->
+  <path d="M 1180 280 L 1180 200" stroke="#120e17" stroke-width="26" fill="none"/>
+  <path d="M 1180 280 L 1180 200" stroke="#a855f7" stroke-width="8" stroke-dasharray="10 8" fill="none"/>
+
+  <!-- Branch Down: 1400 -> 1400 (Campfire) -->
+  <path d="M 1400 280 L 1400 350" stroke="#120e17" stroke-width="26" fill="none"/>
+  <path d="M 1400 280 L 1400 350" stroke="#a855f7" stroke-width="8" stroke-dasharray="10 8" fill="none"/>
+
+  <!-- 6. MARIO WORLD STYLE ENVIRONMENTAL PROPS (Dark Fantasy conversion) -->
+  <!-- Dead Twisted Gnarled Trees (Replacing Palm Trees) -->
+  <g transform="translate(200, 210) scale(0.75)" stroke="#17121c" stroke-width="7" stroke-linecap="round">
+    <line x1="0" y1="50" x2="0" y2="0"/>
+    <line x1="0" y1="20" x2="-28" y2="-15"/>
+    <line x1="0" y1="10" x2="32" y2="-20"/>
+  </g>
+  <g transform="translate(620, 205) scale(0.8)" stroke="#17121c" stroke-width="7" stroke-linecap="round">
+    <line x1="0" y1="50" x2="0" y2="0"/>
+    <line x1="0" y1="20" x2="-30" y2="-10"/>
+    <line x1="0" y1="10" x2="28" y2="-25"/>
+  </g>
+  <g transform="translate(1040, 210) scale(0.8)" stroke="#17121c" stroke-width="7" stroke-linecap="round">
+    <line x1="0" y1="50" x2="0" y2="0"/>
+    <line x1="0" y1="18" x2="-26" y2="-18"/>
+    <line x1="0" y1="24" x2="26" y2="-16"/>
+  </g>
+  <g transform="translate(1530, 210) scale(0.85)" stroke="#17121c" stroke-width="7" stroke-linecap="round">
+    <line x1="0" y1="50" x2="0" y2="0"/>
+    <line x1="0" y1="20" x2="-35" y2="-20"/>
+    <line x1="0" y1="10" x2="30" y2="-30"/>
+  </g>
+
+  <!-- Gravestones (Replacing Brick Blocks) -->
+  <g transform="translate(240, 315)"><rect width="16" height="22" rx="8" fill="#443f50"/><text x="4" y="16" fill="#a855f7" font-size="12">†</text></g>
+  <g transform="translate(660, 315)"><rect width="16" height="22" rx="8" fill="#443f50"/><text x="4" y="16" fill="#a855f7" font-size="12">†</text></g>
+  <g transform="translate(1300, 315)"><rect width="16" height="22" rx="8" fill="#443f50"/><text x="4" y="16" fill="#a855f7" font-size="12">†</text></g>
+
+  <!-- MID-POINT TOWER: Dark Obsidian Spire (Replacing Mario Tower) -->
+  <g transform="translate(960, 160)">
+    <polygon points="-32,60 32,60 22,-30 -22,-30" fill="#1b1422" stroke="#6b21a8" stroke-width="3"/>
+    <polygon points="-26,-30 26,-30 0,-75" fill="#120c18" stroke="#c084fc" stroke-width="2"/>
+    <rect x="-8" y="-10" width="16" height="8" rx="2" fill="#ef4444" filter="url(#runeGlow)"/>
+    <rect x="-8" y="20" width="16" height="8" rx="2" fill="#ef4444" filter="url(#runeGlow)"/>
+  </g>
+
+  <!-- END-POINT FORTRESS: THE DREAD CITADEL (Replacing Bowser's Castle) -->
+  <g transform="translate(1780, 160)">
+    <rect x="-60" y="0" width="120" height="90" fill="#180e21" stroke="#e11d48" stroke-width="4"/>
+    <polygon points="-80,90 -50,90 -45,-40 -75,-40" fill="#130a1c" stroke="#e11d48" stroke-width="3"/>
+    <polygon points="80,90 50,90 45,-40 75,-40" fill="#130a1c" stroke="#e11d48" stroke-width="3"/>
+    <polygon points="-80,-40 -40,-40 -60,-95" fill="#0d0514" stroke="#fb7185" stroke-width="2"/>
+    <polygon points="80,-40 40,-40 60,-95" fill="#0d0514" stroke="#fb7185" stroke-width="2"/>
+    <polygon points="-35,0 35,0 0,-70" fill="#0d0514" stroke="#fb7185" stroke-width="2"/>
+    <path d="M -24 90 L -24 45 Q 0 25 24 45 L 24 90 Z" fill="#000000"/>
+    <ellipse cx="-60" cy="-10" rx="5" ry="3" fill="#f43f5e" filter="url(#runeGlow)"/>
+    <ellipse cx="60" cy="-10" rx="5" ry="3" fill="#f43f5e" filter="url(#runeGlow)"/>
+  </g>
+
+  <!-- 7. MARIO-STYLE LEVEL NODES (Circle Stones with Yellow/Purple Borders) -->
+  
+  <!-- NODE 0: START ARROW -->
+  <g transform="translate(120, 280)">
+    <circle r="24" fill="#064e3b" stroke="#10b981" stroke-width="4" filter="url(#runeGlow)"/>
+    <path d="M -8 -8 L 4 0 L -8 8" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- NODE 1: Ải 1 -->
+  <g transform="translate(320, 280)">
+    <circle r="18" fill="#000000" stroke="#facc15" stroke-width="4" filter="url(#runeGlow)"/>
+    <circle r="10" fill="#7e22ce"/>
+  </g>
+
+  <!-- NODE 2: Đền thờ (Nhánh trên) -->
+  <g transform="translate(420, 200)">
+    <circle r="22" fill="#3b0764" stroke="#c084fc" stroke-width="4" filter="url(#runeGlow)"/>
+    <text text-anchor="middle" dy="6" font-size="16">🎲</text>
+  </g>
+
+  <!-- NODE 3: Ải 2 -->
+  <g transform="translate(520, 280)">
+    <circle r="18" fill="#000000" stroke="#facc15" stroke-width="4" filter="url(#runeGlow)"/>
+    <circle r="10" fill="#7e22ce"/>
+  </g>
+
+  <!-- NODE 4: Ải 3 -->
+  <g transform="translate(740, 280)">
+    <circle r="18" fill="#000000" stroke="#ef4444" stroke-width="4" filter="url(#runeGlow)"/>
+    <circle r="10" fill="#991b1b"/>
+  </g>
+
+  <!-- NODE 5: Hầm mộ kho báu (Nhánh dưới) -->
+  <g transform="translate(740, 350)">
+    <circle r="22" fill="#451a03" stroke="#f59e0b" stroke-width="4" filter="url(#runeGlow)"/>
+    <text text-anchor="middle" dy="6" font-size="16">🪙</text>
+  </g>
+
+  <!-- NODE 6: Tháp canh giữa map -->
+  <g transform="translate(960, 280)">
+    <circle r="22" fill="#2e1065" stroke="#a855f7" stroke-width="4" filter="url(#runeGlow)"/>
+    <text text-anchor="middle" dy="6" font-size="16">🏰</text>
+  </g>
+
+  <!-- NODE 7: Ải 4 -->
+  <g transform="translate(1180, 280)">
+    <circle r="18" fill="#000000" stroke="#facc15" stroke-width="4" filter="url(#runeGlow)"/>
+    <circle r="10" fill="#7e22ce"/>
+  </g>
+
+  <!-- NODE 8: Lều phù thủy (Nhánh trên) -->
+  <g transform="translate(1180, 200)">
+    <circle r="22" fill="#500724" stroke="#f472b6" stroke-width="4" filter="url(#runeGlow)"/>
+    <text text-anchor="middle" dy="6" font-size="16">🧙</text>
+  </g>
+
+  <!-- NODE 9: Lửa trại (Nhánh dưới) -->
+  <g transform="translate(1400, 350)">
+    <circle r="22" fill="#172554" stroke="#38bdf8" stroke-width="4" filter="url(#runeGlow)"/>
+    <text text-anchor="middle" dy="6" font-size="16">🏕️</text>
+  </g>
+
+  <!-- NODE 10: Cận trùm -->
+  <g transform="translate(1620, 280)">
+    <circle r="18" fill="#000000" stroke="#ef4444" stroke-width="4" filter="url(#runeGlow)"/>
+    <circle r="10" fill="#991b1b"/>
+  </g>
+
+  <!-- NODE 11: BOSS CHƯƠNG -->
+  <g transform="translate(1780, 280)">
+    <circle r="26" fill="#881337" stroke="#f43f5e" stroke-width="5" filter="url(#runeGlow)"/>
+    <text text-anchor="middle" dy="8" font-size="20">👑</text>
+  </g>
+
+</svg>
