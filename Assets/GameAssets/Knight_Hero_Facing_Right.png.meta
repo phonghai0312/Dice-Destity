@@ -105,12 +105,12 @@ TextureImporter:
       name: Knight_Hero_Facing_Right_0
       rect:
         serializedVersion: 2
-        x: 42
+        x: 0
         y: 0
-        width: 378
-        height: 474
+        width: 1024
+        height: 1024
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
