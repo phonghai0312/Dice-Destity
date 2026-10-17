@@ -76,7 +76,8 @@ public class ForgeController : MonoBehaviour
             rewardCards.Add(rw);
 
             // Thêm ForgeAnimator cho hiệu ứng trôi nổi
-            ForgeAnimator fa = rw.GetComponent<ForgeAnimator>() ?? rw.AddComponent<ForgeAnimator>();
+            ForgeAnimator fa = rw.GetComponent<ForgeAnimator>();
+            if (fa == null) fa = rw.AddComponent<ForgeAnimator>();
             fa.floatAmplitude = 10f;
             fa.floatSpeed = 0.9f + i * 0.15f;
             fa.floatOffset = i * 1.2f;
@@ -84,7 +85,8 @@ public class ForgeController : MonoBehaviour
             fa.entryDelay = 0.15f + i * 0.12f;
 
             int idx = i;
-            Button btn = rw.GetComponent<Button>() ?? rw.AddComponent<Button>();
+            Button btn = rw.GetComponent<Button>();
+            if (btn == null) btn = rw.AddComponent<Button>();
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => OnRewardSelected(idx));
         }
@@ -170,7 +172,8 @@ public class ForgeController : MonoBehaviour
     {
         GameObject go = GameObject.Find(objName);
         if (go == null) return;
-        ForgeAnimator fa = go.GetComponent<ForgeAnimator>() ?? go.AddComponent<ForgeAnimator>();
+        ForgeAnimator fa = go.GetComponent<ForgeAnimator>();
+        if (fa == null) fa = go.AddComponent<ForgeAnimator>();
         fa.playEntryAnim = true;
         fa.entryDelay = delay;
         fa.floatAmplitude = 0f;

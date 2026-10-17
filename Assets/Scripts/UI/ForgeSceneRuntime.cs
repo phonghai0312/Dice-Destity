@@ -42,7 +42,8 @@ public class ForgeSceneRuntime : MonoBehaviour
             if (rw == null) continue;
 
             rewardObjects.Add(rw);
-            ForgeAnimator fa = rw.GetComponent<ForgeAnimator>() ?? rw.AddComponent<ForgeAnimator>();
+            ForgeAnimator fa = rw.GetComponent<ForgeAnimator>();
+            if (fa == null) fa = rw.AddComponent<ForgeAnimator>();
             fa.floatAmplitude = 10f;
             fa.floatSpeed = 0.9f + i * 0.15f;   // Mỗi dice nổi ở tốc độ khác nhau → không đồng bộ, tự nhiên hơn
             fa.floatOffset = i * 1.2f;            // Phase offset
@@ -67,7 +68,8 @@ public class ForgeSceneRuntime : MonoBehaviour
     {
         GameObject go = GameObject.Find(objName);
         if (go == null) return;
-        ForgeAnimator fa = go.GetComponent<ForgeAnimator>() ?? go.AddComponent<ForgeAnimator>();
+        ForgeAnimator fa = go.GetComponent<ForgeAnimator>();
+        if (fa == null) fa = go.AddComponent<ForgeAnimator>();
         fa.playEntryAnim = true;
         fa.entryDelay = delay;
         fa.floatAmplitude = 0f; // Không nổi, chỉ entry

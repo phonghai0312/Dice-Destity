@@ -46,9 +46,15 @@ public class ForgeAnimator : MonoBehaviour
             Vector2 offscreen = startPos + new Vector2(0, -60f);
             rt.anchoredPosition = offscreen;
 
-            UnityEngine.CanvasGroup cg = GetComponent<UnityEngine.CanvasGroup>() 
-                ?? gameObject.AddComponent<UnityEngine.CanvasGroup>();
-            cg.alpha = 0f;
+            CanvasGroup cg = GetComponent<CanvasGroup>();
+            if (cg == null)
+            {
+                cg = gameObject.AddComponent<CanvasGroup>();
+            }
+            if (cg != null)
+            {
+                cg.alpha = 0f;
+            }
 
             yield return new WaitForSeconds(entryDelay);
 
@@ -60,11 +66,11 @@ public class ForgeAnimator : MonoBehaviour
                 float p = t / dur;
                 p = 1f - Mathf.Pow(1f - p, 3f); // Ease-out cubic
                 rt.anchoredPosition = Vector2.Lerp(offscreen, startPos, p);
-                cg.alpha = p;
+                if (cg != null) cg.alpha = p;
                 yield return null;
             }
             rt.anchoredPosition = startPos;
-            cg.alpha = 1f;
+            if (cg != null) cg.alpha = 1f;
         }
 
         ready = true;
