@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Block
   m_EditorClassIdentifier: Assembly-CSharp::DiceFaceData
   faceName: Block
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   type: 1
   valueV: 4
   rarity: 0
+  skillKind: 4
+  description: Cộng +4 Giáp ảo (Tự hủy khi hết lượt).

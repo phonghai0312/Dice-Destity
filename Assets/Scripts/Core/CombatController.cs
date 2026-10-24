@@ -10,48 +10,62 @@ public class CombatController : MonoBehaviour
 
     private void Start()
     {
+        // Nếu SimpleCombatManager đang điều phối CombatScene thì để SimpleCombatManager quản lý khởi tạo
+        if (FindAnyObjectByType<SimpleCombatManager>() != null)
+        {
+            return;
+        }
+
         InitializeCombat();
     }
 
-    private void InitializeCombat()
+    public void InitializeCombat()
     {
         if (GameManager.Instance == null) return;
 
         int stage = GameManager.Instance.currentStageIndex;
-
         EnemyData[] stages = GameManager.Instance.stageEnemies;
-        if (stages == null || stages.Length == 0)
-        {
-            Debug.LogError("[CombatController] Cannot start combat: no stage enemies are configured on GameManager.");
-            return;
-        }
+        int totalStages = (stages != null && stages.Length > 0) ? stages.Length : 3;
 
-        // A configured run is victorious only after the final stage has been cleared.
-        if (stage > stages.Length)
+        if (stage > totalStages)
         {
             Debug.Log("Game Cleared! YOU WIN!");
             GameManager.Instance.LoadMainMenu();
             return;
         }
 
-        EnemyData data = stages[stage - 1]; // stage is 1-indexed
-        if (data == null)
+        EnemyData data = (stages != null && stage - 1 < stages.Length) ? stages[stage - 1] : null;
+        if (data != null)
         {
-            Debug.LogError($"[CombatController] Enemy data for stage {stage} is not assigned on GameManager.");
-            return;
+            if (background != null && data.backgroundSprite != null) background.sprite = data.backgroundSprite;
+            if (enemySpriteRenderer != null && data.enemySprite != null) enemySpriteRenderer.sprite = data.enemySprite;
         }
 
-        if (background != null) background.sprite = data.backgroundSprite;
-        if (enemySpriteRenderer != null) enemySpriteRenderer.sprite = data.enemySprite;
-        if (enemyEntity != null) enemyEntity.Initialize(data);
+        if (enemyEntity != null)
+        {
+            if (data != null)
+            {
+                data.GetCanonicalStats(stage, out int resolvedHP, out int resolvedShield);
+                enemyEntity.maxHP = resolvedHP;
+                enemyEntity.Initialize(data);
+                if (resolvedShield > enemyEntity.CurrentShield)
+                {
+                    enemyEntity.AddShield(resolvedShield - enemyEntity.CurrentShield);
+                }
+            }
+            else
+            {
+                int[] defaultHps = { 20, 35, 60 };
+                enemyEntity.maxHP = stage <= defaultHps.Length ? defaultHps[stage - 1] : 20;
+                enemyEntity.Initialize(null);
+                if (stage == 2) enemyEntity.AddShield(5);
+            }
+        }
 
-        // Apply Player HP from GameManager
         if (playerEntity != null)
         {
             playerEntity.maxHP = GameManager.Instance.playerMaxHP;
-            // Force reset stats but keep current HP logic if we had it, but for now reset to Max
-            // In a full roguelike, we'd sync playerEntity.currentHP = GameManager.Instance.playerCurrentHP;
-            playerEntity.Initialize(null); 
+            playerEntity.Initialize(null);
         }
     }
 }

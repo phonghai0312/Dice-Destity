@@ -13,28 +13,50 @@ public class FloatingText : MonoBehaviour
     {
         tmpro = GetComponent<TextMeshProUGUI>();
         rectTransform = GetComponent<RectTransform>();
-        
+        if (tmpro == null) return;
+
         tmpro.text = "-" + damage;
-        if (isPierce) {
+        if (isPierce)
+        {
             tmpro.color = Color.magenta;
-            tmpro.text += " (Pierce!)";
-        } else {
-            tmpro.color = Color.red;
+            tmpro.text += " (Độc!)";
         }
+        else
+        {
+            tmpro.color = new Color(0.94f, 0.27f, 0.27f); // Đỏ tươi
+        }
+
+        StartCoroutine(AnimateText());
+    }
+
+    public void SetupCustom(string message, Color textColor)
+    {
+        tmpro = GetComponent<TextMeshProUGUI>();
+        rectTransform = GetComponent<RectTransform>();
+        if (tmpro == null) return;
+
+        tmpro.text = message;
+        tmpro.color = textColor;
 
         StartCoroutine(AnimateText());
     }
 
     private IEnumerator AnimateText()
     {
-        float timer = 0;
-        Color startColor = tmpro.color;
+        float timer = 0f;
+        Color startColor = tmpro != null ? tmpro.color : Color.white;
 
         while (timer < fadeDuration)
         {
-            rectTransform.anchoredPosition += Vector2.up * floatSpeed * Time.deltaTime;
-            float alpha = Mathf.Lerp(1f, 0f, timer / fadeDuration);
-            tmpro.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+            if (rectTransform != null)
+            {
+                rectTransform.anchoredPosition += Vector2.up * floatSpeed * Time.deltaTime;
+            }
+            if (tmpro != null)
+            {
+                float alpha = Mathf.Lerp(1f, 0f, timer / fadeDuration);
+                tmpro.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+            }
             timer += Time.deltaTime;
             yield return null;
         }

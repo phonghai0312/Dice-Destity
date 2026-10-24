@@ -1762,7 +1762,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -3043224226977589649, guid: d992dbd3de4ea42e1839cba5fbd49bf8, type: 3}
+  m_Sprite: {fileID: -8909066534757107491, guid: f9b0908232e7e6d47ac7d2ef5fc2a7ae, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2174,13 +2174,18 @@ MonoBehaviour:
   enemyNameLabel: {fileID: 1120872684}
   backgroundImage: {fileID: 556565801}
   enemyPortraitImage: {fileID: 1235093128}
-  playerPortraitImage: {fileID: 0}
+  playerPortraitImage: {fileID: 1686344287}
   diceSlots:
   - {fileID: 591635827}
   - {fileID: 2028977078}
   - {fileID: 731543018}
   endTurnButton: {fileID: 366858993}
   rerollButton: {fileID: 1656579074}
+  undoButton: {fileID: 0}
+  diceFaceAttackSprite: {fileID: 21300000, guid: a4a885b1abf24a24aa794adaa6933db0, type: 3}
+  diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
+  diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
+  diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
 --- !u!4 &599374761
 Transform:
   m_ObjectHideFlags: 0
@@ -4777,7 +4782,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8334651344603559088, guid: fd41230e8d3ae4f6eb92e49128793774, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6302,7 +6307,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 5865670524570963042, guid: 5e9f22a4e5b0f4683ae34f67d492e310, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6922,7 +6927,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -5777657545968363414, guid: 546c93daed47542899645f12545e437e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a4a885b1abf24a24aa794adaa6933db0, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -7978,11 +7983,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a5153d895b074545b90e01063233f8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  playerMaxHP: 20
-  playerCurrentHP: 20
-  currentDiceFaces: []
+  playerMaxHP: 70
+  playerCurrentHP: 70
+  currentDiceFaces:
+  - {fileID: 11400000, guid: e477a8d99acbe44c2b6b3eaaff323b6d, type: 2}
+  - {fileID: 11400000, guid: 89acd7fdf74644a0e91484de4bacdcfc, type: 2}
+  - {fileID: 11400000, guid: 86a2ec953fa184738a9a49506b105759, type: 2}
   currentStageIndex: 1
-  stageEnemies: []
+  stageEnemies:
+  - {fileID: 11400000, guid: 1ab2982321af744efa623965427a601b, type: 2}
+  - {fileID: 11400000, guid: 4c5cb8bb5476f43ff80b2a586545f143, type: 2}
+  - {fileID: 11400000, guid: e4fb22aa8a71b4819a29f0ecde2ef5dc, type: 2}
 --- !u!4 &1997768614
 Transform:
   m_ObjectHideFlags: 0

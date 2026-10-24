@@ -4,8 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// ForgeSceneRuntime — Gắn vào ForgeController object, tự động thêm animation vào tất cả UI.
-/// Kích hoạt tự động khi vào scene The Forge.
+/// ForgeSceneRuntime — Giữ tương thích với Scene TheForge.
+/// Nếu ForgeController đã có mặt trong Scene, ForgeController sẽ trực tiếp điều phối toàn bộ UI và hiệu ứng.
 /// </summary>
 public class ForgeSceneRuntime : MonoBehaviour
 {
@@ -13,29 +13,32 @@ public class ForgeSceneRuntime : MonoBehaviour
     public List<Button> rewardDiceButtons = new List<Button>();
 
     private int selectedRewardIndex = -1;
-    private List<GameObject> rewardObjects = new List<GameObject>();
+    private readonly List<GameObject> rewardObjects = new List<GameObject>();
 
-    void Start()
+    private void Start()
     {
+        // Nếu ForgeController đang hoạt động trong Scene thì nhường quyền điều khiển cho ForgeController
+        if (FindAnyObjectByType<ForgeController>() != null)
+        {
+            return;
+        }
+
         StartCoroutine(SetupScene());
     }
 
-    IEnumerator SetupScene()
+    private IEnumerator SetupScene()
     {
-        yield return null; // Đợi 1 frame để tất cả objects được init
+        yield return null;
 
-        // Thêm animation trôi nổi cho reward dice
         AddFloatingToRewards();
-        // Thêm animation entry cho tất cả sections
         AddEntryAnimations();
-        // Wire up reward selection
         SetupRewardSelection();
     }
 
-    void AddFloatingToRewards()
+    private void AddFloatingToRewards()
     {
         string[] rewardNames = { "Reward_Cleave", "Reward_Inferno", "Reward_Doom" };
-        
+
         for (int i = 0; i < rewardNames.Length; i++)
         {
             GameObject rw = GameObject.Find(rewardNames[i]);
@@ -45,26 +48,22 @@ public class ForgeSceneRuntime : MonoBehaviour
             ForgeAnimator fa = rw.GetComponent<ForgeAnimator>();
             if (fa == null) fa = rw.AddComponent<ForgeAnimator>();
             fa.floatAmplitude = 10f;
-            fa.floatSpeed = 0.9f + i * 0.15f;   // Mỗi dice nổi ở tốc độ khác nhau → không đồng bộ, tự nhiên hơn
-            fa.floatOffset = i * 1.2f;            // Phase offset
+            fa.floatSpeed = 0.9f + i * 0.15f;
+            fa.floatOffset = i * 1.2f;
             fa.playEntryAnim = true;
-            fa.entryDelay = 0.1f + i * 0.12f;    // Xuất hiện lần lượt
+            fa.entryDelay = 0.1f + i * 0.12f;
         }
     }
 
-    void AddEntryAnimations()
+    private void AddEntryAnimations()
     {
-        // Current dice box trượt vào từ trái
-        AddEntrySlide("CurrentDiceBox", 0.05f);
-        // Divider fade in
+        AddEntrySlide("CurrentDiceContainer", 0.05f);
         AddEntrySlide("Divider", 0.2f);
-        // Header
         AddEntrySlide("ForgeTitle", 0f);
-        // Confirm button
         AddEntrySlide("ConfirmButton", 0.5f);
     }
 
-    void AddEntrySlide(string objName, float delay)
+    private void AddEntrySlide(string objName, float delay)
     {
         GameObject go = GameObject.Find(objName);
         if (go == null) return;
@@ -72,20 +71,19 @@ public class ForgeSceneRuntime : MonoBehaviour
         if (fa == null) fa = go.AddComponent<ForgeAnimator>();
         fa.playEntryAnim = true;
         fa.entryDelay = delay;
-        fa.floatAmplitude = 0f; // Không nổi, chỉ entry
+        fa.floatAmplitude = 0f;
     }
 
-    void SetupRewardSelection()
+    private void SetupRewardSelection()
     {
-        // Lấy tất cả reward button bằng cách tìm theo tên
         string[] rewardNames = { "Reward_Cleave", "Reward_Inferno", "Reward_Doom" };
-        
+
         for (int i = 0; i < rewardNames.Length; i++)
         {
             GameObject rw = GameObject.Find(rewardNames[i]);
             if (rw == null) continue;
 
-            int idx = i; // Capture
+            int idx = i;
             Button btn = rw.GetComponent<Button>();
             if (btn == null) continue;
 
@@ -94,22 +92,20 @@ public class ForgeSceneRuntime : MonoBehaviour
         }
     }
 
-    void OnRewardSelected(int index)
+    private void OnRewardSelected(int index)
     {
         selectedRewardIndex = index;
 
-        // Visual feedback: làm sáng selected, tối các cái còn lại
         for (int i = 0; i < rewardObjects.Count; i++)
         {
             if (rewardObjects[i] == null) continue;
-            
+
             Image img = rewardObjects[i].GetComponent<Image>();
             ForgeAnimator fa = rewardObjects[i].GetComponent<ForgeAnimator>();
             Outline ol = rewardObjects[i].GetComponent<Outline>();
-            
+
             if (i == index)
             {
-                // Selected: viền vàng sáng + bounce animation
                 if (ol != null)
                 {
                     ol.effectColor = new Color(0.72f, 0.53f, 0.05f, 1f);
@@ -124,7 +120,6 @@ public class ForgeSceneRuntime : MonoBehaviour
             }
             else
             {
-                // Not selected: tối đi
                 if (ol != null)
                 {
                     ol.effectColor = new Color(0.16f, 0.14f, 0.18f, 0.6f);
@@ -134,18 +129,11 @@ public class ForgeSceneRuntime : MonoBehaviour
             }
         }
 
-        // Enable confirm button (nếu nó bị disabled)
         GameObject confirmGo = GameObject.Find("ConfirmButton");
         if (confirmGo != null)
         {
             Button confirmBtn = confirmGo.GetComponent<Button>();
             if (confirmBtn != null) confirmBtn.interactable = true;
-        }
-
-        // Lưu lựa chọn vào GameManager để phase sau dùng
-        if (GameManager.Instance != null)
-        {
-            Debug.Log($"[Forge] Selected reward dice index: {index}");
         }
     }
 

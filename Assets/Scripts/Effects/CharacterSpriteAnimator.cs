@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// CharacterSpriteAnimator — Tạo hoạt ảnh "Nhún Nhún" (Squash & Stretch / Idle Bobbing) 
-/// và các đòn đánh "Chém / Lướt" (Slash Attack) mượt mà cho Sprite 2D trong game Turn-Based.
+/// và các đòn đánh "Chém / Lướt" (Slash Attack) mượt mà cho cả SpriteRenderer 2D lẫn UI Image (RectTransform).
 /// Áp dụng tốt cho cả Hero và Quái vật (Orc, Minotaur, Goblin).
 /// </summary>
 public class CharacterSpriteAnimator : MonoBehaviour
@@ -13,11 +14,11 @@ public class CharacterSpriteAnimator : MonoBehaviour
     [Tooltip("Bật/tắt hiệu ứng nhún nhún khi đứng chờ lượt")]
     public bool enableIdleBobbing = true;
     [Tooltip("Tốc độ thở / nhún")]
-    public float bobSpeed = 3.0f;
-    [Tooltip("Biên độ nhấc người lên xuống (Y)")]
+    public float bobSpeed = 2.6f;
+    [Tooltip("Biên độ nhấc người lên xuống (Y) — tự nhân theo UI nếu là RectTransform")]
     public float bobHeight = 0.08f;
     [Tooltip("Độ co giãn cơ bắp (Squash & Stretch)")]
-    public float squashStretchFactor = 0.04f;
+    public float squashStretchFactor = 0.03f;
     [Tooltip("Độ lệch pha ngẫu nhiên để các quái vật không nhún cùng một lúc")]
     public float timeOffset = 0f;
 
@@ -32,12 +33,15 @@ public class CharacterSpriteAnimator : MonoBehaviour
     public float recoverTime = 0.2f;
 
     [Header("3. Hiệu Ứng Bị Chém / Chịu Sát Thương (Take Damage)")]
-    public Color hitFlashColor = new Color(1f, 0.2f, 0.2f, 1f);
-    public float hitFlashDuration = 0.12f;
+    public Color hitFlashColor = new Color(1f, 0.25f, 0.25f, 1f);
+    public float hitFlashDuration = 0.15f;
     public float knockbackDistance = 0.25f;
 
-    // Component References
+    // Component References (Supports both SpriteRenderer and UI Image)
     private SpriteRenderer spriteRenderer;
+    private Image uiImage;
+    private Transform targetVisualTransform;
+    private bool isUIElement = false;
     private Vector3 originalLocalPos;
     private Vector3 originalLocalScale;
     private bool isExecutingAction = false;
@@ -46,18 +50,31 @@ public class CharacterSpriteAnimator : MonoBehaviour
     private void Awake()
     {
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        uiImage = GetComponent<Image>();
+        if (uiImage == null)
+        {
+            uiImage = GetComponentInChildren<Image>();
+        }
+
         if (spriteRenderer != null)
         {
-            originalLocalPos = spriteRenderer.transform.localPosition;
-            originalLocalScale = spriteRenderer.transform.localScale;
+            targetVisualTransform = spriteRenderer.transform;
+            isUIElement = false;
+        }
+        else if (uiImage != null)
+        {
+            targetVisualTransform = uiImage.transform;
+            isUIElement = true;
         }
         else
         {
-            originalLocalPos = transform.localPosition;
-            originalLocalScale = transform.localScale;
+            targetVisualTransform = transform;
+            isUIElement = GetComponent<RectTransform>() != null;
         }
 
-        // Tạo phase offset ngẫu nhiên nếu chưa gán
+        originalLocalPos = targetVisualTransform.localPosition;
+        originalLocalScale = targetVisualTransform.localScale;
+
         if (timeOffset == 0f)
         {
             timeOffset = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
@@ -71,40 +88,29 @@ public class CharacterSpriteAnimator : MonoBehaviour
 
     private void Update()
     {
-        // Khi không bận chém hoặc bị đánh, tự động chạy hoạt ảnh "nhún nhún"
-        if (enableIdleBobbing && !isExecutingAction && spriteRenderer != null)
+        if (enableIdleBobbing && !isExecutingAction && targetVisualTransform != null)
         {
             ApplyIdleBobbing();
         }
     }
 
-    /// <summary>
-    /// Diễn hoạt "nhún nhún": Kết hợp nâng hạ trục Y và co giãn tỉ lệ (Squash & Stretch)
-    /// </summary>
     private void ApplyIdleBobbing()
     {
         float wave = Mathf.Sin((Time.time * bobSpeed) + timeOffset);
 
-        // Nâng hạ vị trí Y
-        Vector3 newPos = originalLocalPos;
-        newPos.y += wave * bobHeight;
-        spriteRenderer.transform.localPosition = newPos;
+        // Nếu là UI RectTransform, biên độ tính bằng pixel (khoảng 4.5px), còn World Space là 0.08 unit
+        float effectiveBobHeight = isUIElement ? (bobHeight * 55f) : bobHeight;
 
-        // Co giãn trục Y (dãn khi nhấc lên, co lại khi nhún xuống)
-        // và trục X biến thiên ngược lại để bảo toàn thể tích cơ thể
+        Vector3 newPos = originalLocalPos;
+        newPos.y += wave * effectiveBobHeight;
+        targetVisualTransform.localPosition = newPos;
+
         Vector3 newScale = originalLocalScale;
         newScale.y += wave * (originalLocalScale.y * squashStretchFactor);
         newScale.x -= wave * (originalLocalScale.x * (squashStretchFactor * 0.5f));
-        spriteRenderer.transform.localScale = newScale;
+        targetVisualTransform.localScale = newScale;
     }
 
-    // ==========================================
-    // ⚔️ ĐÒN CHÉM (SLASH ATTACK)
-    // ==========================================
-
-    /// <summary>
-    /// Thực hiện đòn chém: Lấy đà -> Lao tới mục tiêu -> Bật vệt chém -> Thu đao lùi về
-    /// </summary>
     public void PlaySlashAttack(Transform targetTransform, Action onHitCallback = null)
     {
         if (isExecutingAction && currentActionCoroutine != null)
@@ -117,71 +123,59 @@ public class CharacterSpriteAnimator : MonoBehaviour
     private IEnumerator SlashAttackRoutine(Transform target, Action onHit)
     {
         isExecutingAction = true;
-        Transform mover = transform;
-        Vector3 startWorldPos = mover.position;
-        Vector3 targetWorldPos = target != null ? target.position : (startWorldPos + transform.right * 2f);
+        Transform mover = targetVisualTransform != null ? targetVisualTransform : transform;
+        Vector3 startLocalPos = originalLocalPos;
 
-        // Hướng chém (Hero quay phải thì hướng dương, Quái quay trái thì ngược lại)
-        Vector3 attackDir = (targetWorldPos - startWorldPos).normalized;
-        Vector3 lungeDestination = targetWorldPos - (attackDir * 0.8f); // Dừng trước mục tiêu 1 khoảng ngắn
+        float dirSign = 1f;
+        if (target != null)
+        {
+            dirSign = (target.position.x >= mover.position.x) ? 1f : -1f;
+        }
 
-        // BƯỚC 1: LẤY ĐÀ (Anticipation / Windup) — Lùi nhẹ người ra sau & nén người xuống
+        float stepMultiplier = isUIElement ? 65f : 1f;
+        Vector3 windupLocalPos = startLocalPos - new Vector3(dirSign * 0.35f * stepMultiplier, 0f, 0f);
+        Vector3 lungeLocalPos = startLocalPos + new Vector3(dirSign * 1.15f * stepMultiplier, 0f, 0f);
+
         float elapsed = 0f;
-        Vector3 windupPos = startWorldPos - (attackDir * 0.35f);
         while (elapsed < windupTime)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / windupTime;
-            mover.position = Vector3.Lerp(startWorldPos, windupPos, t);
-            
-            // Nén người (squash)
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.transform.localScale = new Vector3(
-                    originalLocalScale.x * 1.1f,
-                    originalLocalScale.y * 0.9f,
-                    originalLocalScale.z
-                );
-            }
+            mover.localPosition = Vector3.Lerp(startLocalPos, windupLocalPos, t);
+            mover.localScale = new Vector3(
+                originalLocalScale.x * 1.08f,
+                originalLocalScale.y * 0.92f,
+                originalLocalScale.z
+            );
             yield return null;
         }
 
-        // BƯỚC 2: PHÓNG TỚI CỰC NHANH (Strike / Lunge)
         elapsed = 0f;
         while (elapsed < strikeTime)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / strikeTime;
-            // Dùng hàm SmoothStep hoặc EaseOut để lao tới xé gió
             float smoothT = Mathf.SmoothStep(0f, 1f, t);
-            mover.position = Vector3.Lerp(windupPos, lungeDestination, smoothT);
-
-            // Giãn người dài ra khi lao tới (stretch)
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.transform.localScale = new Vector3(
-                    originalLocalScale.x * 0.95f,
-                    originalLocalScale.y * 1.15f,
-                    originalLocalScale.z
-                );
-            }
+            mover.localPosition = Vector3.Lerp(windupLocalPos, lungeLocalPos, smoothT);
+            mover.localScale = new Vector3(
+                originalLocalScale.x * 0.94f,
+                originalLocalScale.y * 1.12f,
+                originalLocalScale.z
+            );
             yield return null;
         }
-        mover.position = lungeDestination;
+        mover.localPosition = lungeLocalPos;
 
-        // BƯỚC 3: KÍCH HOẠT VỆT CHÉM (Slash VFX) & GÂY DAMAGE
         if (slashVFXObject != null)
         {
             slashVFXObject.SetActive(true);
         }
 
-        // Gọi hàm gây dame cho mục tiêu (khiến mục tiêu giật lùi, chớp đỏ)
         if (onHit != null)
         {
             onHit.Invoke();
         }
 
-        // Giữ thế chém một tích tắc ngắn để người chơi kịp thấy đòn đánh
         yield return new WaitForSeconds(0.08f);
 
         if (slashVFXObject != null)
@@ -189,43 +183,22 @@ public class CharacterSpriteAnimator : MonoBehaviour
             slashVFXObject.SetActive(false);
         }
 
-        // BƯỚC 4: THU VŨ KHÍ LÙI VỀ (Recovery)
         elapsed = 0f;
         while (elapsed < recoverTime)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / recoverTime;
-            float easeT = 1f - Mathf.Pow(1f - t, 3f); // Ease-out cubic
-            mover.position = Vector3.Lerp(lungeDestination, startWorldPos, easeT);
-
-            // Phục hồi lại scale chuẩn
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.transform.localScale = Vector3.Lerp(
-                    spriteRenderer.transform.localScale,
-                    originalLocalScale,
-                    t
-                );
-            }
+            float easeT = 1f - Mathf.Pow(1f - t, 3f);
+            mover.localPosition = Vector3.Lerp(lungeLocalPos, startLocalPos, easeT);
+            mover.localScale = Vector3.Lerp(mover.localScale, originalLocalScale, t);
             yield return null;
         }
 
-        mover.position = startWorldPos;
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.transform.localPosition = originalLocalPos;
-            spriteRenderer.transform.localScale = originalLocalScale;
-        }
+        mover.localPosition = originalLocalPos;
+        mover.localScale = originalLocalScale;
         isExecutingAction = false;
     }
 
-    // ==========================================
-    // 💥 CHỊU SÁT THƯƠNG (TAKE DAMAGE)
-    // ==========================================
-
-    /// <summary>
-    /// Hiệu ứng trúng đòn: Giật lùi ra sau, rung lắc và chớp đỏ Sprite
-    /// </summary>
     public void PlayTakeDamage()
     {
         if (isExecutingAction && currentActionCoroutine != null)
@@ -238,13 +211,12 @@ public class CharacterSpriteAnimator : MonoBehaviour
     private IEnumerator TakeDamageRoutine()
     {
         isExecutingAction = true;
-        Transform mover = transform;
-        Vector3 startPos = mover.position;
-        Color normalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
+        Transform mover = targetVisualTransform != null ? targetVisualTransform : transform;
+        Color normalColor = GetVisualColor();
 
-        // Giật lùi ra sau
-        Vector3 recoilPos = startPos - (transform.right * knockbackDistance);
-        if (spriteRenderer != null) spriteRenderer.color = hitFlashColor;
+        float stepMultiplier = isUIElement ? 55f : 1f;
+        Vector3 recoilLocalPos = originalLocalPos - new Vector3(knockbackDistance * stepMultiplier, 0f, 0f);
+        SetVisualColor(hitFlashColor);
 
         float elapsed = 0f;
         float dur = hitFlashDuration;
@@ -253,20 +225,27 @@ public class CharacterSpriteAnimator : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / dur;
-            // Rung chấn nhẹ
-            float shakeOffset = Mathf.Sin(elapsed * 50f) * 0.05f;
-            mover.position = Vector3.Lerp(recoilPos, startPos, t) + new Vector3(0, shakeOffset, 0);
+            float shakeOffset = Mathf.Sin(elapsed * 55f) * (0.06f * stepMultiplier);
+            mover.localPosition = Vector3.Lerp(recoilLocalPos, originalLocalPos, t) + new Vector3(0f, shakeOffset, 0f);
             yield return null;
         }
 
-        mover.position = startPos;
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = normalColor;
-            spriteRenderer.transform.localPosition = originalLocalPos;
-            spriteRenderer.transform.localScale = originalLocalScale;
-        }
+        SetVisualColor(normalColor);
+        mover.localPosition = originalLocalPos;
+        mover.localScale = originalLocalScale;
         isExecutingAction = false;
     }
-}
 
+    private Color GetVisualColor()
+    {
+        if (spriteRenderer != null) return spriteRenderer.color;
+        if (uiImage != null) return uiImage.color;
+        return Color.white;
+    }
+
+    private void SetVisualColor(Color c)
+    {
+        if (spriteRenderer != null) spriteRenderer.color = c;
+        if (uiImage != null) uiImage.color = c;
+    }
+}

@@ -15,5 +15,5 @@ MonoBehaviour:
   enemyName: Minotaur Boss
   maxHP: 60
   startingShield: 0
-  enemySprite: {fileID: -4600137674983574095, guid: e8308f30e98044ea5b26faf0d9bcd241, type: 3}
-  backgroundSprite: {fileID: 3802440129201502062, guid: cda7615c261114883bb1cb9a1435ab40, type: 3}
+  enemySprite: {fileID: 669754188079128083, guid: d778c7f92d489e7409320d8ca95a9547, type: 3}
+  backgroundSprite: {fileID: 5417032853216440033, guid: 0f9f6c9ced943df40a857eb7d19836e7, type: 3}

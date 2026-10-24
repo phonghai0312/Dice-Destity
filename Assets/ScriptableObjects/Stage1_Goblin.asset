@@ -15,5 +15,5 @@ MonoBehaviour:
   enemyName: Goblin Scout
   maxHP: 20
   startingShield: 0
-  enemySprite: {fileID: 2572365745140355499, guid: 8b130f2e947c84a5bad1e7c3d025d892, type: 3}
-  backgroundSprite: {fileID: -3043224226977589649, guid: d992dbd3de4ea42e1839cba5fbd49bf8, type: 3}
+  enemySprite: {fileID: 5959680874715522592, guid: 55312091932af8040be5dc04f8f42d54, type: 3}
+  backgroundSprite: {fileID: -8909066534757107491, guid: f9b0908232e7e6d47ac7d2ef5fc2a7ae, type: 3}

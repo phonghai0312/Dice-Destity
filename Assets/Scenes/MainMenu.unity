@@ -390,7 +390,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: f3184d68edff8aa48a4774825928679a, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -564,7 +564,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: ca6fa75323863e74d921bdeb39941226, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -1429,7 +1429,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1222387343}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 90156393}
+        m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
+        m_MethodName: OnContinueClicked
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1222387343
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1452,7 +1464,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 520aa63518d2e7c4eb7283ef52035104, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -1481,7 +1493,7 @@ GameObject:
   - component: {fileID: 1298307152}
   - component: {fileID: 1298307151}
   m_Layer: 0
-  m_Name: CodexButton
+  m_Name: SettingButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1549,7 +1561,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1298307152}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 90156393}
+        m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
+        m_MethodName: OnSettingClicked
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1298307152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1572,7 +1596,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 5c94cac0cde54af4baa058266469e3af, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -1743,8 +1767,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.04, g: 0.035, b: 0.05, a: 0.72}
-  m_RaycastTarget: 1
+  m_Color: {r: 0.04, g: 0.035, b: 0.05, a: 0.25}
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1883,7 +1907,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 2a5a17513f014a64ca599fefdedacfb1, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -1987,7 +2011,7 @@ GameObject:
   - component: {fileID: 1755700725}
   - component: {fileID: 1755700724}
   m_Layer: 0
-  m_Name: Exitbutton
+  m_Name: ExitButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2055,7 +2079,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1755700725}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 90156393}
+        m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
+        m_MethodName: OnExitClicked
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1755700725
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2078,7 +2114,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 17c5860998e87d94cbfb25fc276577e9, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -2123,9 +2159,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a5153d895b074545b90e01063233f8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  playerMaxHP: 20
-  playerCurrentHP: 20
-  currentDiceFaces: []
+  playerMaxHP: 70
+  playerCurrentHP: 70
+  currentDiceFaces:
+  - {fileID: 11400000, guid: e477a8d99acbe44c2b6b3eaaff323b6d, type: 2}
+  - {fileID: 11400000, guid: e477a8d99acbe44c2b6b3eaaff323b6d, type: 2}
+  - {fileID: 11400000, guid: e477a8d99acbe44c2b6b3eaaff323b6d, type: 2}
+  - {fileID: 11400000, guid: 89acd7fdf74644a0e91484de4bacdcfc, type: 2}
+  - {fileID: 11400000, guid: 89acd7fdf74644a0e91484de4bacdcfc, type: 2}
+  - {fileID: 11400000, guid: 86a2ec953fa184738a9a49506b105759, type: 2}
   currentStageIndex: 1
   stageEnemies:
   - {fileID: 11400000, guid: 1ab2982321af744efa623965427a601b, type: 2}

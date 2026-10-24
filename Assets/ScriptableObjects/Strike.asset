@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Strike
   m_EditorClassIdentifier: Assembly-CSharp::DiceFaceData
   faceName: Strike
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a4a885b1abf24a24aa794adaa6933db0, type: 3}
   type: 0
   valueV: 4
   rarity: 0
+  skillKind: 1
+  description: Gây 4 sát thương chuẩn lên mục tiêu.

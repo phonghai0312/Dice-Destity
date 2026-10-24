@@ -15,5 +15,5 @@ MonoBehaviour:
   enemyName: Armored Orc
   maxHP: 35
   startingShield: 5
-  enemySprite: {fileID: 6362832775884612094, guid: 38eec17d375e44483a8f67aff09359d6, type: 3}
-  backgroundSprite: {fileID: 5841160106669567513, guid: f7c9bab5dbe82483e9d55f4ffd9690aa, type: 3}
+  enemySprite: {fileID: 3009389792317556743, guid: a70b0c1187a42c54b877a13d55387ce5, type: 3}
+  backgroundSprite: {fileID: -3705985972433606475, guid: 9305152611fc6894180c2b8c83ed283c, type: 3}
