@@ -4,11 +4,13 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// SimpleCombatManager — Điều phối toàn bộ vòng lặp chiến đấu theo GDD:
+/// SimpleCombatManager — Điều phối toàn bộ vòng lặp chiến đấu & Giao diện Chiến thuật theo GDD:
 /// - Máy trạng thái 5 pha (RoundStart -> PlayerRoll -> PlayerAction -> EnemyExecution -> RoundEnd)
 /// - Hệ thống 3 viên xúc xắc 6 mặt từ GameManager.playerDiceBag + Strategy Pattern (IDiceAction)
-/// - Hỗ trợ song song Kéo-Thả (Drag & Drop), Click chọn + End Turn, Click phải/Double-click dùng ngay
-/// - Re-roll có giới hạn lượt, Undo bước đi (CommandManager Snapshot), Tooltip, Enemy Intent & Status UI.
+/// - Hệ thống Hoạt ảnh Hành động Nhân vật riêng biệt cho từng loại Xúc xắc (Chém, Trọng kích, Hút máu,
+///   Gồng hồi máu, Thanh tẩy, Dựng khiên, Bất khuất, Đâm độc, Giáng sấm choáng, Gồng cuồng nộ)
+/// - Bố cục tổng quát 4 Phân khu (Top Header, Battlefield Arena với HUD dưới chân nhân vật,
+///   Tactical Tooltip Bar, và Khay Xúc Xắc 3 cột cân đối).
 /// </summary>
 public class SimpleCombatManager : MonoBehaviour
 {
@@ -74,12 +76,20 @@ public class SimpleCombatManager : MonoBehaviour
     private bool isAnimating = false;
     private bool combatEnded = false;
 
-    // Runtime UI Elements (tự động gắn nếu Scene chưa có sẵn)
+    // Runtime UI Elements
     private Component playerStatusLabel;
     private Component enemyStatusLabel;
     private Component enemyIntentLabel;
+    private Image enemyIntentBgImage;
+    private Outline enemyIntentOutline;
     private Component tooltipLabel;
     private GameObject tooltipPanel;
+    private Component stageProgressLabel;
+    private Component trayGuideLabel;
+    private Image playerTargetRing;
+    private Image enemyTargetRing;
+
+    private static Sprite cachedSoftOvalSprite;
 
     private void Start()
     {
@@ -103,17 +113,33 @@ public class SimpleCombatManager : MonoBehaviour
             if (pImg != null) playerPortraitImage = pImg.GetComponent<Image>();
         }
 
-        if (playerPortraitImage != null && playerPortraitImage.GetComponent<CharacterSpriteAnimator>() == null)
+        if (enemyPortraitImage == null && enemyEntity != null)
         {
-            playerPortraitImage.gameObject.AddComponent<CharacterSpriteAnimator>();
-        }
-        if (enemyPortraitImage != null && enemyPortraitImage.GetComponent<CharacterSpriteAnimator>() == null)
-        {
-            enemyPortraitImage.gameObject.AddComponent<CharacterSpriteAnimator>();
+            Transform eImg = enemyEntity.transform.Find("EnemySprite");
+            if (eImg != null) enemyPortraitImage = eImg.GetComponent<Image>();
         }
 
+        // Thiết kế lại bố cục tổng quát của CombatScene trước khi gắn Animator để lấy đúng tọa độ chuẩn
+        ApplyRedesignedCombatLayout();
         EnsureDropTargetsConfigured();
         EnsureRuntimeCombatOverlays();
+
+        // Gắn và làm mới gốc tọa độ cho CharacterSpriteAnimator
+        if (playerPortraitImage != null)
+        {
+            playerPortraitImage.preserveAspect = true;
+            CharacterSpriteAnimator pAnim = playerPortraitImage.GetComponent<CharacterSpriteAnimator>();
+            if (pAnim == null) pAnim = playerPortraitImage.gameObject.AddComponent<CharacterSpriteAnimator>();
+            pAnim.RefreshOriginTransform();
+        }
+        if (enemyPortraitImage != null)
+        {
+            enemyPortraitImage.preserveAspect = true;
+            CharacterSpriteAnimator eAnim = enemyPortraitImage.GetComponent<CharacterSpriteAnimator>();
+            if (eAnim == null) eAnim = enemyPortraitImage.gameObject.AddComponent<CharacterSpriteAnimator>();
+            eAnim.RefreshOriginTransform();
+        }
+
         RegisterEntityEvents();
         LoadStageData();
         SetupDiceSlots();
@@ -135,7 +161,522 @@ public class SimpleCombatManager : MonoBehaviour
     }
 
     // =========================================================================
-    // 1. KHỞI TẠO DỮ LIỆU MÀN CHƠI & UI TỰ ĐỘNG
+    // 1. THIẾT KẾ LẠI BỐ CỤC TỔNG QUÁT COMBAT SCENE (4 PHÂN KHU RÕ RÀNG)
+    // =========================================================================
+
+    private void ApplyRedesignedCombatLayout()
+    {
+        Canvas rootCanvas = FindAnyObjectByType<Canvas>();
+        if (rootCanvas == null) return;
+        Transform canvasTr = rootCanvas.transform;
+
+        EnsureSoftOvalSprite();
+
+        // 1. Làm dịu lớp phủ tối (DarkOverlay) để hình nền hầm ngục sắc nét và có chiều sâu hơn
+        Transform darkOverlayTr = canvasTr.Find("DarkOverlay");
+        if (darkOverlayTr != null)
+        {
+            Image darkImg = darkOverlayTr.GetComponent<Image>();
+            if (darkImg != null)
+            {
+                darkImg.color = new Color(0.04f, 0.05f, 0.09f, 0.24f);
+                darkImg.raycastTarget = false;
+            }
+        }
+
+        // Ẩn các phần tử trang trí tĩnh cũ gây rối bố cục
+        DeactivateIfFound(canvasTr, "CandleL");
+        DeactivateIfFound(canvasTr, "CandleR");
+        DeactivateIfFound(canvasTr, "VS");
+        DeactivateIfFound(canvasTr, "HeroTagGuard");
+        DeactivateIfFound(canvasTr, "HeroTagBurn");
+        DeactivateIfFound(canvasTr, "EnemyTagEnraged");
+        DeactivateIfFound(canvasTr, "Hero_HP_Tag");
+        DeactivateIfFound(canvasTr, "Enemy_HP_Tag");
+
+        // 2. PHÂN KHU 1: TOP HEADER BAR (TurnBadge + Tiến trình Ải + Nút về Menu)
+        Transform turnBadgeTr = canvasTr.Find("TurnBadge");
+        if (turnBadgeTr != null)
+        {
+            RectTransform tbRt = turnBadgeTr.GetComponent<RectTransform>();
+            if (tbRt != null)
+            {
+                tbRt.anchorMin = new Vector2(0.5f, 1f);
+                tbRt.anchorMax = new Vector2(0.5f, 1f);
+                tbRt.pivot = new Vector2(0.5f, 1f);
+                tbRt.anchoredPosition = new Vector2(0f, -18f);
+                tbRt.sizeDelta = new Vector2(540f, 46f);
+            }
+            Image tbImg = turnBadgeTr.GetComponent<Image>();
+            if (tbImg != null)
+            {
+                tbImg.color = new Color(0.07f, 0.08f, 0.14f, 0.94f);
+            }
+            EnsureOutline(turnBadgeTr.gameObject, new Color(0.85f, 0.65f, 0.18f, 0.85f), 1.5f);
+        }
+
+        // 3. PHÂN KHU 2: SÀN ĐẤU ĐỐI KHÁNG (HIỆP SĨ BÊN TRÁI - QUÁI VẬT BÊN PHẢI)
+        // --- 3A. HIỆP SĨ (PlayerArea) ---
+        if (playerEntity != null)
+        {
+            RectTransform pAreaRt = playerEntity.GetComponent<RectTransform>();
+            if (pAreaRt != null)
+            {
+                pAreaRt.anchorMin = new Vector2(0.5f, 0.5f);
+                pAreaRt.anchorMax = new Vector2(0.5f, 0.5f);
+                pAreaRt.pivot = new Vector2(0.5f, 0.5f);
+                pAreaRt.anchoredPosition = new Vector2(-450f, 70f);
+                pAreaRt.sizeDelta = new Vector2(290f, 340f);
+            }
+
+            CleanCharacterFrameBox(playerEntity.transform);
+            CreateCharacterPedestalAndHighlight(
+                playerEntity.transform,
+                new Color(0.25f, 0.82f, 1f, 0f),
+                out playerTargetRing);
+        }
+
+        // Cụm HUD Hiệp Sĩ đặt ngay dưới chân Hiệp Sĩ
+        Transform heroLabelTr = canvasTr.Find("HeroLabel");
+        if (heroLabelTr != null)
+        {
+            RectTransform hlRt = heroLabelTr.GetComponent<RectTransform>();
+            hlRt.anchorMin = new Vector2(0.5f, 0.5f);
+            hlRt.anchorMax = new Vector2(0.5f, 0.5f);
+            hlRt.pivot = new Vector2(0.5f, 0.5f);
+            hlRt.anchoredPosition = new Vector2(-450f, -124f);
+            hlRt.sizeDelta = new Vector2(320f, 30f);
+
+            if (tmpType != null)
+            {
+                Component tmp = heroLabelTr.GetComponent(tmpType);
+                SetTMPText(tmp, "⚔ HIỆP SĨ BẤT KHUẤT");
+                tmpType.GetProperty("fontSize")?.SetValue(tmp, 19f);
+                tmpType.GetProperty("color")?.SetValue(tmp, new Color(0.96f, 0.84f, 0.45f, 1f));
+                tmpType.GetProperty("alignment")?.SetValue(tmp, 514);
+            }
+        }
+
+        Transform heroHpBgTr = canvasTr.Find("Hero_HPBg");
+        if (heroHpBgTr != null)
+        {
+            RectTransform hpBgRt = heroHpBgTr.GetComponent<RectTransform>();
+            hpBgRt.anchorMin = new Vector2(0.5f, 0.5f);
+            hpBgRt.anchorMax = new Vector2(0.5f, 0.5f);
+            hpBgRt.pivot = new Vector2(0.5f, 0.5f);
+            hpBgRt.anchoredPosition = new Vector2(-450f, -158f);
+            hpBgRt.sizeDelta = new Vector2(300f, 26f);
+
+            Image bgImg = heroHpBgTr.GetComponent<Image>();
+            if (bgImg != null) bgImg.color = new Color(0.08f, 0.09f, 0.14f, 0.95f);
+            EnsureOutline(heroHpBgTr.gameObject, new Color(0.75f, 0.58f, 0.18f, 0.8f), 1.5f);
+        }
+
+        if (playerHPFill != null)
+        {
+            playerHPFill.color = new Color(0.2f, 0.78f, 0.38f, 1f);
+        }
+
+        if (playerHPLabel != null)
+        {
+            RectTransform hpLblRt = playerHPLabel.GetComponent<RectTransform>();
+            if (hpLblRt != null)
+            {
+                hpLblRt.anchorMin = new Vector2(0.5f, 0.5f);
+                hpLblRt.anchorMax = new Vector2(0.5f, 0.5f);
+                hpLblRt.pivot = new Vector2(0.5f, 0.5f);
+                hpLblRt.anchoredPosition = new Vector2(-450f, -158f);
+                hpLblRt.sizeDelta = new Vector2(300f, 26f);
+                hpLblRt.SetAsLastSibling();
+            }
+            if (tmpType != null)
+            {
+                tmpType.GetProperty("fontSize")?.SetValue(playerHPLabel, 16.5f);
+                tmpType.GetProperty("color")?.SetValue(playerHPLabel, Color.white);
+                tmpType.GetProperty("alignment")?.SetValue(playerHPLabel, 514);
+            }
+        }
+
+        // --- 3B. QUÁI VẬT (EnemyArea) ---
+        if (enemyEntity != null)
+        {
+            RectTransform eAreaRt = enemyEntity.GetComponent<RectTransform>();
+            if (eAreaRt != null)
+            {
+                eAreaRt.anchorMin = new Vector2(0.5f, 0.5f);
+                eAreaRt.anchorMax = new Vector2(0.5f, 0.5f);
+                eAreaRt.pivot = new Vector2(0.5f, 0.5f);
+                eAreaRt.anchoredPosition = new Vector2(450f, 70f);
+                eAreaRt.sizeDelta = new Vector2(300f, 340f);
+            }
+
+            CleanCharacterFrameBox(enemyEntity.transform);
+            CreateCharacterPedestalAndHighlight(
+                enemyEntity.transform,
+                new Color(1f, 0.35f, 0.25f, 0f),
+                out enemyTargetRing);
+        }
+
+        // Đưa Banner Ý Định Quái Vật (IntentBadge) lên phía trên đỉnh đầu Quái Vật
+        Transform intentBadgeTr = canvasTr.Find("IntentBadge");
+        if (intentBadgeTr != null)
+        {
+            RectTransform ibRt = intentBadgeTr.GetComponent<RectTransform>();
+            ibRt.anchorMin = new Vector2(0.5f, 0.5f);
+            ibRt.anchorMax = new Vector2(0.5f, 0.5f);
+            ibRt.pivot = new Vector2(0.5f, 0.5f);
+            ibRt.anchoredPosition = new Vector2(450f, 262f);
+            ibRt.sizeDelta = new Vector2(390f, 44f);
+
+            enemyIntentBgImage = intentBadgeTr.GetComponent<Image>();
+            if (enemyIntentBgImage != null)
+            {
+                enemyIntentBgImage.color = new Color(0.11f, 0.08f, 0.14f, 0.94f);
+            }
+            enemyIntentOutline = EnsureOutline(intentBadgeTr.gameObject, new Color(0.95f, 0.32f, 0.25f, 0.9f), 1.5f);
+        }
+
+        // Cụm HUD Quái Vật đặt ngay dưới chân Quái Vật (đối xứng với Hiệp Sĩ)
+        if (enemyNameLabel != null)
+        {
+            RectTransform elRt = enemyNameLabel.GetComponent<RectTransform>();
+            if (elRt != null)
+            {
+                elRt.anchorMin = new Vector2(0.5f, 0.5f);
+                elRt.anchorMax = new Vector2(0.5f, 0.5f);
+                elRt.pivot = new Vector2(0.5f, 0.5f);
+                elRt.anchoredPosition = new Vector2(450f, -124f);
+                elRt.sizeDelta = new Vector2(350f, 30f);
+            }
+            if (tmpType != null)
+            {
+                tmpType.GetProperty("fontSize")?.SetValue(enemyNameLabel, 19f);
+                tmpType.GetProperty("color")?.SetValue(enemyNameLabel, new Color(1f, 0.75f, 0.45f, 1f));
+                tmpType.GetProperty("alignment")?.SetValue(enemyNameLabel, 514);
+            }
+        }
+
+        Transform enemyHpBgTr = canvasTr.Find("Enemy_HPBg");
+        if (enemyHpBgTr != null)
+        {
+            RectTransform eHpBgRt = enemyHpBgTr.GetComponent<RectTransform>();
+            eHpBgRt.anchorMin = new Vector2(0.5f, 0.5f);
+            eHpBgRt.anchorMax = new Vector2(0.5f, 0.5f);
+            eHpBgRt.pivot = new Vector2(0.5f, 0.5f);
+            eHpBgRt.anchoredPosition = new Vector2(450f, -158f);
+            eHpBgRt.sizeDelta = new Vector2(300f, 26f);
+
+            Image bgImg = enemyHpBgTr.GetComponent<Image>();
+            if (bgImg != null) bgImg.color = new Color(0.08f, 0.09f, 0.14f, 0.95f);
+            EnsureOutline(enemyHpBgTr.gameObject, new Color(0.85f, 0.28f, 0.25f, 0.8f), 1.5f);
+        }
+
+        if (enemyHPFill != null)
+        {
+            enemyHPFill.color = new Color(0.86f, 0.22f, 0.22f, 1f);
+        }
+
+        if (enemyHPLabel != null)
+        {
+            RectTransform eHpLblRt = enemyHPLabel.GetComponent<RectTransform>();
+            if (eHpLblRt != null)
+            {
+                eHpLblRt.anchorMin = new Vector2(0.5f, 0.5f);
+                eHpLblRt.anchorMax = new Vector2(0.5f, 0.5f);
+                eHpLblRt.pivot = new Vector2(0.5f, 0.5f);
+                eHpLblRt.anchoredPosition = new Vector2(450f, -158f);
+                eHpLblRt.sizeDelta = new Vector2(300f, 26f);
+                eHpLblRt.SetAsLastSibling();
+            }
+            if (tmpType != null)
+            {
+                tmpType.GetProperty("fontSize")?.SetValue(enemyHPLabel, 16.5f);
+                tmpType.GetProperty("color")?.SetValue(enemyHPLabel, Color.white);
+                tmpType.GetProperty("alignment")?.SetValue(enemyHPLabel, 514);
+            }
+        }
+
+        // 4. PHÂN KHU 4: KHAY XÚC XẮC & BẢNG ĐIỀU KHIỂN ĐÁY MÀN HÌNH (DiceTray)
+        Transform diceTrayTr = canvasTr.Find("DiceTray");
+        if (diceTrayTr != null)
+        {
+            RectTransform trayRt = diceTrayTr.GetComponent<RectTransform>();
+            if (trayRt != null)
+            {
+                trayRt.anchorMin = new Vector2(0f, 0f);
+                trayRt.anchorMax = new Vector2(1f, 0f);
+                trayRt.pivot = new Vector2(0.5f, 0f);
+                trayRt.anchoredPosition = Vector2.zero;
+                trayRt.sizeDelta = new Vector2(0f, 212f);
+            }
+
+            Image trayImg = diceTrayTr.GetComponent<Image>();
+            if (trayImg != null)
+            {
+                trayImg.color = new Color(0.06f, 0.06f, 0.1f, 0.95f);
+            }
+
+            // Cột Trái: Tiêu đề Khay Xúc Xắc & Hướng dẫn thao tác
+            Transform trayLabelTr = diceTrayTr.Find("DiceTrayLabel");
+            if (trayLabelTr != null)
+            {
+                RectTransform tlRt = trayLabelTr.GetComponent<RectTransform>();
+                tlRt.anchorMin = new Vector2(0f, 1f);
+                tlRt.anchorMax = new Vector2(0f, 1f);
+                tlRt.pivot = new Vector2(0f, 1f);
+                tlRt.anchoredPosition = new Vector2(42f, -22f);
+                tlRt.sizeDelta = new Vector2(380f, 32f);
+
+                if (tmpType != null)
+                {
+                    Component tmp = trayLabelTr.GetComponent(tmpType);
+                    SetTMPText(tmp, "🎲 KHAY XÚC XẮC CHIẾN THUẬT");
+                    tmpType.GetProperty("fontSize")?.SetValue(tmp, 18f);
+                    tmpType.GetProperty("color")?.SetValue(tmp, new Color(0.95f, 0.78f, 0.32f, 1f));
+                }
+            }
+
+            if (trayGuideLabel == null)
+            {
+                trayGuideLabel = CreateOverlayLabel(
+                    diceTrayTr,
+                    "TrayControlGuide",
+                    new Vector2(-690f, 88f),
+                    new Vector2(430f, 115f),
+                    15f,
+                    new Color(0.78f, 0.84f, 0.92f, 0.92f));
+                if (trayGuideLabel != null && tmpType != null)
+                {
+                    tmpType.GetProperty("alignment")?.SetValue(trayGuideLabel, 257); // Top-Left
+                    SetTMPText(
+                        trayGuideLabel,
+                        "• <b>Kéo-thả</b> hoặc <b>Click Phải / Double-Click</b>: Tung chiêu ngay\n" +
+                        "• <b>Click Trái</b>: Chọn xúc xắc để Gieo lại hoặc Kết thúc lượt\n" +
+                        "• <b>Phím [Z]</b> hoặc nút <b>UNDO</b>: Hoàn tác bước vừa đi");
+                }
+            }
+        }
+
+        // Cột Giữa: Căn giữa 3 Ô Xúc Xắc (Slot 0, 1, 2) tại (-195, 0, +195)
+        float[] slotXPositions = { -195f, 0f, 195f };
+        for (int i = 0; i < diceSlots.Count; i++)
+        {
+            if (diceSlots[i] == null) continue;
+            RectTransform slotRt = diceSlots[i].GetComponent<RectTransform>();
+            if (slotRt != null)
+            {
+                slotRt.anchorMin = new Vector2(0.5f, 0f);
+                slotRt.anchorMax = new Vector2(0.5f, 0f);
+                slotRt.pivot = new Vector2(0.5f, 0.5f);
+                float posX = i < slotXPositions.Length ? slotXPositions[i] : (-195f + i * 195f);
+                slotRt.anchoredPosition = new Vector2(posX, 106f);
+                slotRt.sizeDelta = new Vector2(154f, 172f);
+            }
+
+            EnsureOutline(diceSlots[i], new Color(0.92f, 0.74f, 0.28f, 0.65f), 1.5f);
+            StyleDiceCardChildren(diceSlots[i].transform);
+        }
+
+        // Cột Phải: Cụm nút RE-ROLL, UNDO và END TURN gọn gàng trong lòng DiceTray
+        if (rerollButton != null)
+        {
+            RectTransform rrRt = rerollButton.GetComponent<RectTransform>();
+            if (rrRt != null)
+            {
+                rrRt.anchorMin = new Vector2(0.5f, 0f);
+                rrRt.anchorMax = new Vector2(0.5f, 0f);
+                rrRt.pivot = new Vector2(0.5f, 0.5f);
+                rrRt.anchoredPosition = new Vector2(510f, 146f);
+                rrRt.sizeDelta = new Vector2(180f, 48f);
+            }
+            EnsureOutline(rerollButton.gameObject, new Color(0.45f, 0.72f, 1f, 0.75f), 1.2f);
+        }
+
+        if (endTurnButton != null)
+        {
+            RectTransform etRt = endTurnButton.GetComponent<RectTransform>();
+            if (etRt != null)
+            {
+                etRt.anchorMin = new Vector2(0.5f, 0f);
+                etRt.anchorMax = new Vector2(0.5f, 0f);
+                etRt.pivot = new Vector2(0.5f, 0.5f);
+                etRt.anchoredPosition = new Vector2(606f, 70f);
+                etRt.sizeDelta = new Vector2(372f, 58f);
+            }
+            EnsureOutline(endTurnButton.gameObject, new Color(1f, 0.78f, 0.28f, 0.9f), 1.5f);
+        }
+    }
+
+    private void StyleDiceCardChildren(Transform slotTr)
+    {
+        if (slotTr == null) return;
+
+        // Ẩn lớp phủ Vignette tối bên trong thẻ xúc xắc nếu có
+        Transform vig = slotTr.Find("Vignette");
+        if (vig != null) vig.gameObject.SetActive(false);
+
+        Transform nameTr = slotTr.Find("DiceName");
+        if (nameTr != null)
+        {
+            RectTransform rt = nameTr.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = new Vector2(0f, 1f);
+                rt.anchorMax = new Vector2(1f, 1f);
+                rt.pivot = new Vector2(0.5f, 1f);
+                rt.anchoredPosition = new Vector2(0f, -8f);
+                rt.sizeDelta = new Vector2(-10f, 38f);
+            }
+            if (tmpType != null)
+            {
+                Component tmp = nameTr.GetComponent(tmpType);
+                tmpType.GetProperty("fontSize")?.SetValue(tmp, 15.5f);
+                tmpType.GetProperty("alignment")?.SetValue(tmp, 514);
+            }
+        }
+
+        Transform iconTr = slotTr.Find("DiceIcon");
+        if (iconTr != null)
+        {
+            RectTransform rt = iconTr.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = new Vector2(0.5f, 0.5f);
+                rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = new Vector2(0f, 8f);
+                rt.sizeDelta = new Vector2(60f, 60f);
+            }
+            Image iconImg = iconTr.GetComponent<Image>();
+            if (iconImg != null) iconImg.preserveAspect = true;
+        }
+
+        Transform valTr = slotTr.Find("DiceVal");
+        if (valTr != null)
+        {
+            RectTransform rt = valTr.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = new Vector2(0f, 0f);
+                rt.anchorMax = new Vector2(1f, 0f);
+                rt.pivot = new Vector2(0.5f, 0f);
+                rt.anchoredPosition = new Vector2(0f, 8f);
+                rt.sizeDelta = new Vector2(-10f, 44f);
+            }
+            if (tmpType != null)
+            {
+                Component tmp = valTr.GetComponent(tmpType);
+                tmpType.GetProperty("fontSize")?.SetValue(tmp, 28f);
+                tmpType.GetProperty("alignment")?.SetValue(tmp, 514);
+            }
+        }
+    }
+
+    private void CleanCharacterFrameBox(Transform areaTransform)
+    {
+        if (areaTransform == null) return;
+        // Tắt hộp đen Vignette và các vạch khung vuông cứng quanh nhân vật để nhân vật đứng tự nhiên trên sàn đấu
+        string[] boxParts = { "Vignette", "TL_H", "TL_V", "TR_H", "TR_V", "BL_H", "BL_V", "BR_H", "BR_V" };
+        foreach (string part in boxParts)
+        {
+            Transform child = areaTransform.Find(part);
+            if (child != null) child.gameObject.SetActive(false);
+        }
+    }
+
+    private void CreateCharacterPedestalAndHighlight(
+        Transform areaTransform,
+        Color initialHighlightColor,
+        out Image highlightRingImage)
+    {
+        highlightRingImage = null;
+        if (areaTransform == null) return;
+
+        // 1. Bóng đổ dưới chân nhân vật (Shadow Pedestal)
+        Transform existingShadow = areaTransform.Find("CharacterShadowPedestal");
+        if (existingShadow == null)
+        {
+            GameObject shadowGo = new GameObject("CharacterShadowPedestal");
+            shadowGo.transform.SetParent(areaTransform, false);
+            shadowGo.transform.SetAsFirstSibling();
+
+            RectTransform sRt = shadowGo.AddComponent<RectTransform>();
+            sRt.anchorMin = new Vector2(0.5f, 0f);
+            sRt.anchorMax = new Vector2(0.5f, 0f);
+            sRt.pivot = new Vector2(0.5f, 0.5f);
+            sRt.anchoredPosition = new Vector2(0f, 14f);
+            sRt.sizeDelta = new Vector2(230f, 44f);
+
+            Image sImg = shadowGo.AddComponent<Image>();
+            sImg.sprite = cachedSoftOvalSprite;
+            sImg.color = new Color(0f, 0f, 0f, 0.62f);
+            sImg.raycastTarget = false;
+        }
+
+        // 2. Vòng sáng chỉ định mục tiêu khi kéo xúc xắc (Target Highlight Ring)
+        Transform existingRing = areaTransform.Find("TargetHighlightRing");
+        if (existingRing == null)
+        {
+            GameObject ringGo = new GameObject("TargetHighlightRing");
+            ringGo.transform.SetParent(areaTransform, false);
+            ringGo.transform.SetSiblingIndex(1);
+
+            RectTransform rRt = ringGo.AddComponent<RectTransform>();
+            rRt.anchorMin = new Vector2(0.5f, 0f);
+            rRt.anchorMax = new Vector2(0.5f, 0f);
+            rRt.pivot = new Vector2(0.5f, 0.5f);
+            rRt.anchoredPosition = new Vector2(0f, 16f);
+            rRt.sizeDelta = new Vector2(260f, 56f);
+
+            highlightRingImage = ringGo.AddComponent<Image>();
+            highlightRingImage.sprite = cachedSoftOvalSprite;
+            highlightRingImage.color = initialHighlightColor;
+            highlightRingImage.raycastTarget = false;
+        }
+        else
+        {
+            highlightRingImage = existingRing.GetComponent<Image>();
+        }
+    }
+
+    private static void EnsureSoftOvalSprite()
+    {
+        if (cachedSoftOvalSprite != null) return;
+        int w = 64, h = 64;
+        Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+        for (int y = 0; y < h; y++)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                float nx = (x / (float)(w - 1)) * 2f - 1f;
+                float ny = (y / (float)(h - 1)) * 2f - 1f;
+                float d = Mathf.Sqrt(nx * nx + ny * ny);
+                float a = Mathf.Clamp01(1f - d);
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, a * a));
+            }
+        }
+        tex.Apply();
+        cachedSoftOvalSprite = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f));
+    }
+
+    private void DeactivateIfFound(Transform parent, string childName)
+    {
+        Transform t = parent.Find(childName);
+        if (t != null) t.gameObject.SetActive(false);
+    }
+
+    private Outline EnsureOutline(GameObject go, Color color, float dist)
+    {
+        if (go == null) return null;
+        Outline outline = go.GetComponent<Outline>();
+        if (outline == null) outline = go.AddComponent<Outline>();
+        outline.effectColor = color;
+        outline.effectDistance = new Vector2(dist, -dist);
+        return outline;
+    }
+
+    // =========================================================================
+    // 2. KHỞI TẠO DỮ LIỆU MÀN CHƠI & UI ĐỘNG
     // =========================================================================
 
     private void LoadStageData()
@@ -188,7 +729,7 @@ public class SimpleCombatManager : MonoBehaviour
 
         if (enemyNameLabel != null)
         {
-            SetTMPText(enemyNameLabel, $"{displayEnemyName.ToUpper()} (STAGE {currentStage}/3)");
+            SetTMPText(enemyNameLabel, $"💀 {displayEnemyName.ToUpper()} (ẢI {currentStage}/3)");
         }
 
         // Khởi tạo chỉ số Hiệp Sĩ (giữ lượng HP hiện tại xuyên suốt hành trình)
@@ -203,6 +744,8 @@ public class SimpleCombatManager : MonoBehaviour
             playerEntity.Initialize(null);
             playerEntity.SetHP(Mathf.Clamp(curHP, 1, maxHP), maxHP);
         }
+
+        UpdateStageProgressUI();
     }
 
     private void EnsureDropTargetsConfigured()
@@ -240,62 +783,95 @@ public class SimpleCombatManager : MonoBehaviour
         Canvas rootCanvas = FindAnyObjectByType<Canvas>();
         if (rootCanvas == null) return;
 
-        // 1. Nhãn trạng thái & Giáp của Player
+        // 1. Nhãn trạng thái & Giáp của Player (đặt ngay dưới Thanh Máu Hiệp Sĩ, không đè lên tên)
         if (playerEntity != null && playerStatusLabel == null)
         {
+            GameObject pBadgeBg = CreateStatusPillPanel(
+                rootCanvas.transform,
+                "PlayerStatusPanel",
+                new Vector2(-450f, -195f),
+                new Vector2(340f, 34f),
+                new Color(0.18f, 0.55f, 0.85f, 0.6f));
+
             playerStatusLabel = CreateOverlayLabel(
-                playerEntity.transform,
+                pBadgeBg.transform,
                 "PlayerStatusBadge",
-                new Vector2(0f, -150f),
-                new Vector2(340f, 44f),
-                20f,
-                new Color(0.55f, 0.88f, 1f, 1f));
+                Vector2.zero,
+                new Vector2(330f, 32f),
+                16.5f,
+                new Color(0.68f, 0.92f, 1f, 1f));
         }
 
-        // 2. Nhãn trạng thái & Giáp của Enemy
+        // 2. Nhãn trạng thái & Giáp của Enemy (đặt ngay dưới Thanh Máu Quái Vật)
         if (enemyEntity != null && enemyStatusLabel == null)
         {
+            GameObject eBadgeBg = CreateStatusPillPanel(
+                rootCanvas.transform,
+                "EnemyStatusPanel",
+                new Vector2(450f, -195f),
+                new Vector2(340f, 34f),
+                new Color(0.85f, 0.35f, 0.25f, 0.6f));
+
             enemyStatusLabel = CreateOverlayLabel(
-                enemyEntity.transform,
+                eBadgeBg.transform,
                 "EnemyStatusBadge",
-                new Vector2(0f, -150f),
-                new Vector2(360f, 44f),
-                20f,
-                new Color(1f, 0.85f, 0.45f, 1f));
+                Vector2.zero,
+                new Vector2(330f, 32f),
+                16.5f,
+                new Color(1f, 0.88f, 0.55f, 1f));
         }
 
-        // 3. Banner Ý Định Quái Vật (Enemy Intent) — ưu tiên dùng sẵn IntentBadge/IntentText trong Scene nếu có
+        // 3. Banner Ý Định Quái Vật (Enemy Intent)
         GameObject sceneIntentTextGo = GameObject.Find("IntentText");
         if (sceneIntentTextGo != null && tmpType != null)
         {
             enemyIntentLabel = sceneIntentTextGo.GetComponent(tmpType);
+            tmpType.GetProperty("fontSize")?.SetValue(enemyIntentLabel, 17.5f);
+            tmpType.GetProperty("color")?.SetValue(enemyIntentLabel, new Color(1f, 0.94f, 0.78f, 1f));
         }
         else if (enemyEntity != null && enemyIntentLabel == null)
         {
             GameObject intentBg = new GameObject("EnemyIntentBanner");
-            intentBg.transform.SetParent(enemyEntity.transform, false);
+            intentBg.transform.SetParent(rootCanvas.transform, false);
             RectTransform bgRt = intentBg.AddComponent<RectTransform>();
-            bgRt.anchoredPosition = new Vector2(0f, 165f);
-            bgRt.sizeDelta = new Vector2(380f, 46f);
+            bgRt.anchoredPosition = new Vector2(450f, 262f);
+            bgRt.sizeDelta = new Vector2(390f, 44f);
 
-            Image bgImg = intentBg.AddComponent<Image>();
-            bgImg.color = new Color(0.09f, 0.09f, 0.14f, 0.88f);
-            bgImg.raycastTarget = false;
+            enemyIntentBgImage = intentBg.AddComponent<Image>();
+            enemyIntentBgImage.color = new Color(0.09f, 0.09f, 0.14f, 0.92f);
+            enemyIntentBgImage.raycastTarget = false;
 
-            Outline outline = intentBg.AddComponent<Outline>();
-            outline.effectColor = new Color(0.95f, 0.35f, 0.25f, 0.9f);
-            outline.effectDistance = new Vector2(1.5f, -1.5f);
+            enemyIntentOutline = EnsureOutline(intentBg, new Color(0.95f, 0.35f, 0.25f, 0.9f), 1.5f);
 
             enemyIntentLabel = CreateOverlayLabel(
                 intentBg.transform,
                 "IntentText",
                 Vector2.zero,
-                new Vector2(368f, 42f),
-                19f,
-                new Color(1f, 0.92f, 0.72f, 1f));
+                new Vector2(376f, 40f),
+                17.5f,
+                new Color(1f, 0.94f, 0.78f, 1f));
         }
 
-        // 4. Panel Tooltip hiển thị thông tin mặt xúc xắc & hướng dẫn thao tác
+        // 4. Huy hiệu Tiến Trình Hành Trình 3 Ải ở Góc Trái Đỉnh
+        if (stageProgressLabel == null)
+        {
+            GameObject progBg = CreateStatusPillPanel(
+                rootCanvas.transform,
+                "StageProgressBanner",
+                new Vector2(-650f, 498f),
+                new Vector2(460f, 38f),
+                new Color(0.72f, 0.55f, 0.18f, 0.65f));
+
+            stageProgressLabel = CreateOverlayLabel(
+                progBg.transform,
+                "StageProgressText",
+                Vector2.zero,
+                new Vector2(445f, 34f),
+                15.5f,
+                new Color(0.95f, 0.9f, 0.75f, 1f));
+        }
+
+        // 5. Panel Tooltip Chiến Thuật nằm ngay trên Khay Xúc Xắc (DiceTray)
         if (tooltipPanel == null)
         {
             tooltipPanel = new GameObject("DiceTooltipBanner");
@@ -304,41 +880,69 @@ public class SimpleCombatManager : MonoBehaviour
             rt.anchorMin = new Vector2(0.5f, 0f);
             rt.anchorMax = new Vector2(0.5f, 0f);
             rt.pivot = new Vector2(0.5f, 0f);
-            rt.anchoredPosition = new Vector2(0f, 195f);
-            rt.sizeDelta = new Vector2(760f, 48f);
+            rt.anchoredPosition = new Vector2(0f, 218f);
+            rt.sizeDelta = new Vector2(1020f, 42f);
 
             Image bg = tooltipPanel.AddComponent<Image>();
-            bg.color = new Color(0.06f, 0.08f, 0.13f, 0.9f);
+            bg.color = new Color(0.06f, 0.08f, 0.14f, 0.93f);
             bg.raycastTarget = false;
+            EnsureOutline(tooltipPanel, new Color(0.75f, 0.6f, 0.22f, 0.65f), 1.2f);
 
             tooltipLabel = CreateOverlayLabel(
                 tooltipPanel.transform,
                 "TooltipText",
                 Vector2.zero,
-                new Vector2(740f, 44f),
-                17f,
-                new Color(0.9f, 0.95f, 1f, 1f));
+                new Vector2(996f, 38f),
+                16.5f,
+                new Color(0.92f, 0.96f, 1f, 1f));
 
             SetDefaultHintText();
         }
 
-        // 5. Tạo nút UNDO cạnh nút Reroll nếu chưa có
+        // 6. Tạo nút UNDO đặt ngang hàng với nút RE-ROLL trong Khay Xúc Xắc
         if (undoButton == null && rerollButton != null)
         {
             GameObject undoObj = Instantiate(rerollButton.gameObject, rerollButton.transform.parent);
             undoObj.name = "UndoButton";
-            RectTransform rerollRt = rerollButton.GetComponent<RectTransform>();
             RectTransform undoRt = undoObj.GetComponent<RectTransform>();
-            if (rerollRt != null && undoRt != null)
+            if (undoRt != null)
             {
-                undoRt.anchoredPosition = rerollRt.anchoredPosition + new Vector2(0f, 56f);
-                undoRt.sizeDelta = new Vector2(rerollRt.sizeDelta.x, Mathf.Min(46f, rerollRt.sizeDelta.y));
+                undoRt.anchorMin = new Vector2(0.5f, 0f);
+                undoRt.anchorMax = new Vector2(0.5f, 0f);
+                undoRt.pivot = new Vector2(0.5f, 0.5f);
+                undoRt.anchoredPosition = new Vector2(702f, 146f);
+                undoRt.sizeDelta = new Vector2(180f, 48f);
             }
+            EnsureOutline(undoObj, new Color(0.85f, 0.65f, 0.25f, 0.75f), 1.2f);
 
             undoButton = undoObj.GetComponent<Button>();
             undoButton.onClick.RemoveAllListeners();
             UpdateButtonCaption(undoButton, "UNDO (0) [Z]");
         }
+    }
+
+    private GameObject CreateStatusPillPanel(
+        Transform parent,
+        string name,
+        Vector2 anchoredPos,
+        Vector2 size,
+        Color outlineColor)
+    {
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        RectTransform rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = size;
+
+        Image bg = go.AddComponent<Image>();
+        bg.color = new Color(0.06f, 0.07f, 0.12f, 0.88f);
+        bg.raycastTarget = false;
+
+        EnsureOutline(go, outlineColor, 1.2f);
+        return go;
     }
 
     private Component CreateOverlayLabel(
@@ -368,8 +972,17 @@ public class SimpleCombatManager : MonoBehaviour
         return null;
     }
 
+    private void UpdateStageProgressUI()
+    {
+        if (stageProgressLabel == null) return;
+        string s1 = currentStage == 1 ? "<color=#ffd166><b>[Ải 1: Goblin]</b></color>" : (currentStage > 1 ? "<color=#52b788>✓ Ải 1</color>" : "Ải 1");
+        string s2 = currentStage == 2 ? "<color=#ffd166><b>[Ải 2: Orc]</b></color>" : (currentStage > 2 ? "<color=#52b788>✓ Ải 2</color>" : "Ải 2");
+        string s3 = currentStage == 3 ? "<color=#ef476f><b>[Ải 3: Minotaur]</b></color>" : "Ải 3";
+        SetTMPText(stageProgressLabel, $"HÀNH TRÌNH:  {s1}  ➔  {s2}  ➔  {s3}");
+    }
+
     // =========================================================================
-    // 2. ĐĂNG KÝ OBSERVER EVENTS CHO MÁU, GIÁP, HIỆU ỨNG TRẠNG THÁI
+    // 3. ĐĂNG KÝ OBSERVER EVENTS CHO MÁU, GIÁP, HIỆU ỨNG & NHẬN SÁT THƯƠNG
     // =========================================================================
 
     private void RegisterEntityEvents()
@@ -394,13 +1007,17 @@ public class SimpleCombatManager : MonoBehaviour
             playerEntity.OnDamageTaken += (dmg) =>
             {
                 SpawnFloatingText(playerEntity.transform, dmg, false);
-                if (playerPortraitImage != null) StartCoroutine(HitFlash(playerPortraitImage));
-                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.2f, 8f);
+                if (playerPortraitImage != null)
+                {
+                    CharacterSpriteAnimator pAnim = playerPortraitImage.GetComponent<CharacterSpriteAnimator>();
+                    if (pAnim != null) pAnim.PlayTakeDamage();
+                }
+                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.22f, 9f);
             };
 
             playerEntity.OnHealed += (healAmount) =>
             {
-                SpawnCustomFloatingText(playerEntity.transform, $"+{healAmount} HP", new Color(0.25f, 0.95f, 0.45f));
+                SpawnCustomFloatingText(playerEntity.transform, $"+{healAmount} 💚 HP", new Color(0.25f, 0.98f, 0.5f));
             };
 
             playerEntity.OnShieldChanged += (shield) =>
@@ -430,13 +1047,17 @@ public class SimpleCombatManager : MonoBehaviour
             enemyEntity.OnDamageTaken += (dmg) =>
             {
                 SpawnFloatingText(enemyEntity.transform, dmg, false);
-                if (enemyPortraitImage != null) StartCoroutine(HitFlash(enemyPortraitImage));
-                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.2f, 8f);
+                if (enemyPortraitImage != null)
+                {
+                    CharacterSpriteAnimator eAnim = enemyPortraitImage.GetComponent<CharacterSpriteAnimator>();
+                    if (eAnim != null) eAnim.PlayTakeDamage();
+                }
+                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.22f, 9f);
             };
 
             enemyEntity.OnHealed += (healAmount) =>
             {
-                SpawnCustomFloatingText(enemyEntity.transform, $"+{healAmount} HP", new Color(0.25f, 0.95f, 0.45f));
+                SpawnCustomFloatingText(enemyEntity.transform, $"+{healAmount} 💚 HP", new Color(0.25f, 0.98f, 0.5f));
             };
 
             enemyEntity.OnShieldChanged += (shield) =>
@@ -457,19 +1078,19 @@ public class SimpleCombatManager : MonoBehaviour
         if (entity == null || statusLabel == null) return;
 
         List<string> badges = new List<string>();
-        if (entity.CurrentShield > 0) badges.Add($"🛡 Giáp:{entity.CurrentShield}");
-        if (entity.RetainHalfShieldNextTurn) badges.Add("🏰 BấtKhuất");
-        if (entity.PoisonStacks > 0) badges.Add($"☠ Độc:{entity.PoisonStacks}");
-        if (entity.StunStacks > 0) badges.Add($"⚡ Choáng:{entity.StunStacks}");
-        if (entity.WeakStacks > 0) badges.Add($"⬇ Yếu:{entity.WeakStacks}");
-        if (entity.BonusAttack > 0) badges.Add($"🔥 +Công:{entity.BonusAttack}");
+        if (entity.CurrentShield > 0) badges.Add($"<color=#38bdf8>🛡 Giáp: {entity.CurrentShield}</color>");
+        if (entity.RetainHalfShieldNextTurn) badges.Add("<color=#fde047>🏰 Giữ 50% Giáp</color>");
+        if (entity.PoisonStacks > 0) badges.Add($"<color=#c084fc>☠ Độc: {entity.PoisonStacks}</color>");
+        if (entity.StunStacks > 0) badges.Add($"<color=#facc15>⚡ Choáng: {entity.StunStacks}</color>");
+        if (entity.WeakStacks > 0) badges.Add($"<color=#94a3b8>⬇ Yếu: {entity.WeakStacks}</color>");
+        if (entity.BonusAttack > 0) badges.Add($"<color=#fb923c>🔥 +Công: {entity.BonusAttack}</color>");
 
-        string text = badges.Count > 0 ? string.Join("  ", badges) : "Trạng thái: Bình thường";
+        string text = badges.Count > 0 ? string.Join("   ", badges) : "<color=#94a3b8>🛡 Giáp: 0  •  Bình thường</color>";
         SetTMPText(statusLabel, text);
     }
 
     // =========================================================================
-    // 3. CẤU HÌNH XÚC XẮC & NÚT ĐIỀU KHIỂN
+    // 4. CẤU HÌNH XÚC XẮC & NÚT ĐIỀU KHIỂN
     // =========================================================================
 
     private void SetupDiceSlots()
@@ -493,13 +1114,11 @@ public class SimpleCombatManager : MonoBehaviour
             Image img = slotObj.GetComponent<Image>();
             slotBaseColors.Add(img != null ? img.color : Color.white);
 
-            // Gắn DraggableDice để hỗ trợ Kéo-Thả, Hover Tooltip & Click Phải/Double-Click
             DraggableDice drag = slotObj.GetComponent<DraggableDice>();
             if (drag == null) drag = slotObj.AddComponent<DraggableDice>();
             drag.combatManager = this;
             drag.slotIndex = i;
 
-            // Gắn sự kiện Click Trái để chọn/bỏ chọn xúc xắc (dùng cho Re-roll hoặc End Turn)
             int capturedIndex = i;
             Button btn = slotObj.GetComponent<Button>();
             if (btn != null)
@@ -550,7 +1169,7 @@ public class SimpleCombatManager : MonoBehaviour
     }
 
     // =========================================================================
-    // 4. MÁY TRẠNG THÁI 5 PHA (5-PHASE TURN STATE MACHINE)
+    // 5. MÁY TRẠNG THÁI 5 PHA (5-PHASE TURN STATE MACHINE)
     // =========================================================================
 
     private IEnumerator BeginRoundCoroutine()
@@ -561,15 +1180,12 @@ public class SimpleCombatManager : MonoBehaviour
         currentPhase = CombatPhase.RoundStart;
         currentRound++;
 
-        // 1. Pha Khởi Đầu (RoundStart): Reset giáp đầu hiệp (có tính Iron Wall giữ 50% giáp)
         if (playerEntity != null) playerEntity.ResetShieldForNewTurn();
         if (enemyEntity != null) enemyEntity.ResetShieldForNewTurn();
 
-        // Xóa lịch sử Undo của hiệp cũ & cập nhật lượt Re-roll
         if (commandManager != null) commandManager.ClearHistory();
         rerollsLeft = GameManager.Instance != null ? Mathf.Max(1, GameManager.Instance.maxRerollsPerTurn) : 1;
 
-        // Cập nhật Ý Định Quái Vật (Enemy Intent) theo kịch bản GDD mục 4
         if (currentEnemyData != null)
         {
             currentEnemyIntent = currentEnemyData.GetIntentForTurn(currentRound, currentStage);
@@ -596,12 +1212,14 @@ public class SimpleCombatManager : MonoBehaviour
 
         // 2. Pha Gieo Xúc Xắc (PlayerRoll)
         currentPhase = CombatPhase.PlayerRoll;
+        UpdateEnemyIntentUI();
         yield return StartCoroutine(RollAllDiceCoroutine(false));
 
         // 3. Mở Pha Hành Động (PlayerAction)
         currentPhase = CombatPhase.PlayerAction;
         isAnimating = false;
         SetDefaultHintText();
+        UpdateEnemyIntentUI();
         UpdateControlButtonsUI();
     }
 
@@ -621,8 +1239,6 @@ public class SimpleCombatManager : MonoBehaviour
         }
         else
         {
-            // Nếu người chơi có click chọn các viên muốn gieo lại thì chỉ gieo lại các viên đó;
-            // nếu không chọn viên nào thì gieo lại toàn bộ các viên chưa dùng.
             if (selectedDiceIndices.Count > 0)
             {
                 foreach (int idx in selectedDiceIndices)
@@ -645,20 +1261,32 @@ public class SimpleCombatManager : MonoBehaviour
             selectedDiceTotal = 0;
         }
 
-        // Hiệu ứng nhảy số ngẫu nhiên (0.35s)
+        // Hiệu ứng lắc và nhảy số ngẫu nhiên (0.35s)
         float duration = 0.35f;
         float elapsed = 0f;
         while (elapsed < duration)
         {
             foreach (int i in indicesToRoll)
             {
-                SetDiceSlotText(i, "ĐANG GIEO...", Random.Range(1, 9).ToString());
+                SetDiceSlotText(i, "🎲 ĐANG GIEO...", Random.Range(1, 9).ToString());
+                if (i >= 0 && i < diceSlots.Count && diceSlots[i] != null)
+                {
+                    float tilt = Mathf.Sin((elapsed * 45f) + i) * 9f;
+                    diceSlots[i].transform.localRotation = Quaternion.Euler(0f, 0f, tilt);
+                }
             }
             elapsed += 0.05f;
             yield return new WaitForSeconds(0.05f);
         }
 
-        // Lấy kết quả thực tế từ túi xúc xắc 6 mặt trong GameManager
+        foreach (int i in indicesToRoll)
+        {
+            if (i >= 0 && i < diceSlots.Count && diceSlots[i] != null)
+            {
+                diceSlots[i].transform.localRotation = Quaternion.identity;
+            }
+        }
+
         List<DiceInstance> bag = GameManager.Instance != null
             ? GameManager.Instance.playerDiceBag
             : DiceCatalog.CreateStarterDiceBag();
@@ -682,7 +1310,7 @@ public class SimpleCombatManager : MonoBehaviour
     }
 
     // =========================================================================
-    // 5. TƯƠNG TÁC XÚC XẮC (KÉO-THẢ, CLICK, DOUBLE-CLICK, RE-ROLL, UNDO)
+    // 6. TƯƠNG TÁC XÚC XẮC & KÍCH HOẠT HÀNH ĐỘNG NHÂN VẬT THEO TỪNG KỸ NĂNG
     // =========================================================================
 
     public bool CanInteractWithDiceSlot(int slotIndex)
@@ -692,6 +1320,44 @@ public class SimpleCombatManager : MonoBehaviour
         if (slotIndex < diceUsed.Count && diceUsed[slotIndex]) return false;
         if (slotIndex >= rolledFaces.Count || rolledFaces[slotIndex] == null) return false;
         return true;
+    }
+
+    /// <summary>
+    /// Bật/tắt vòng sáng chỉ định mục tiêu dưới chân Hiệp Sĩ hoặc Quái Vật khi người chơi đang kéo xúc xắc.
+    /// </summary>
+    public void OnDiceDragStateChanged(int slotIndex, bool isDragging)
+    {
+        if (playerTargetRing != null) playerTargetRing.color = new Color(0.25f, 0.85f, 1f, 0f);
+        if (enemyTargetRing != null) enemyTargetRing.color = new Color(1f, 0.35f, 0.25f, 0f);
+
+        if (!isDragging || slotIndex < 0 || slotIndex >= rolledFaces.Count || rolledFaces[slotIndex] == null)
+        {
+            return;
+        }
+
+        DiceFaceData face = rolledFaces[slotIndex];
+        if (face.TargetsEnemy())
+        {
+            if (enemyTargetRing != null)
+            {
+                enemyTargetRing.color = new Color(1f, 0.32f, 0.22f, 0.78f);
+            }
+            if (tooltipLabel != null)
+            {
+                SetTMPText(tooltipLabel, $"🎯 Thả [{face.faceName}] vào <b>QUÁI VẬT</b> ở bên phải để tung đòn!");
+            }
+        }
+        else
+        {
+            if (playerTargetRing != null)
+            {
+                playerTargetRing.color = new Color(0.25f, 0.92f, 0.65f, 0.78f);
+            }
+            if (tooltipLabel != null)
+            {
+                SetTMPText(tooltipLabel, $"🛡 Thả [{face.faceName}] vào <b>HIỆP SĨ</b> ở bên trái để kích hoạt hỗ trợ!");
+            }
+        }
     }
 
     private void OnDiceSlotLeftClicked(int slotIndex)
@@ -713,9 +1379,6 @@ public class SimpleCombatManager : MonoBehaviour
         UpdateControlButtonsUI();
     }
 
-    /// <summary>
-    /// Kích hoạt ngay lập tức viên xúc xắc lên mục tiêu tự nhiên của nó (dùng khi Click phải hoặc Double-Click).
-    /// </summary>
     public void UseDiceSlotImmediately(int slotIndex)
     {
         if (!CanInteractWithDiceSlot(slotIndex)) return;
@@ -728,9 +1391,6 @@ public class SimpleCombatManager : MonoBehaviour
         TryUseDiceFromDrag(slotIndex, naturalTarget);
     }
 
-    /// <summary>
-    /// Kích hoạt viên xúc xắc khi Kéo-Thả vào mục tiêu hoặc gọi trực tiếp.
-    /// </summary>
     public bool TryUseDiceFromDrag(int slotIndex, DropTarget.TargetType dropTargetType)
     {
         if (!CanInteractWithDiceSlot(slotIndex)) return false;
@@ -762,6 +1422,7 @@ public class SimpleCombatManager : MonoBehaviour
             return false;
         }
 
+        // Thực thi hiệu ứng logic của kỹ năng xúc xắc
         strategy.Execute(ctx);
 
         // Ghi nhận vào CommandManager để hỗ trợ Undo
@@ -777,15 +1438,8 @@ public class SimpleCombatManager : MonoBehaviour
             });
         }
 
-        // Hiển thị chữ nổi báo hiệu kỹ năng vừa dùng & hoạt ảnh vung kiếm nếu tấn công quái
-        if (resolvedTarget == enemyEntity && playerPortraitImage != null)
-        {
-            CharacterSpriteAnimator pAnim = playerPortraitImage.GetComponent<CharacterSpriteAnimator>();
-            if (pAnim != null)
-            {
-                pAnim.PlaySlashAttack(enemyPortraitImage != null ? enemyPortraitImage.transform : enemyEntity.transform);
-            }
-        }
+        // Kích hoạt Hoạt ảnh Hành động Nhân vật tương ứng với từng mặt Xúc xắc!
+        TriggerPlayerCharacterActionAnimation(face);
         SpawnSkillFeedbackFloatingText(face, resolvedTarget);
 
         // Đánh dấu viên xúc xắc đã dùng
@@ -801,6 +1455,74 @@ public class SimpleCombatManager : MonoBehaviour
         UpdateControlButtonsUI();
 
         return true;
+    }
+
+    /// <summary>
+    /// Điều phối hoạt ảnh hành động của Hiệp Sĩ theo đúng bản chất kỹ năng xúc xắc vừa sử dụng:
+    /// - Strike / HeavySlash: Lao tới chém kiếm (HeavySlash có vệt chém chữ X khổng lồ)
+    /// - Vampiric: Chém huyết kiếm & gồng hấp thụ máu
+    /// - Regenerate / Purify: Gồng tụ khí hồi máu / thanh tẩy kèm vòng hào quang dâng lên
+    /// - Block / IronWall: Dậm chân thế thủ & dựng lá chắn quang học trước ngực
+    /// - PoisonSting: Lao đâm mũi độc & nổ độc tím trên mục tiêu
+    /// - ShockStun: Giương vũ khí phóng tia sét vàng gây choáng
+    /// - Blank: Nghiêng người trượt đà
+    /// </summary>
+    private void TriggerPlayerCharacterActionAnimation(DiceFaceData face)
+    {
+        if (face == null || playerPortraitImage == null) return;
+
+        CharacterSpriteAnimator pAnim = playerPortraitImage.GetComponent<CharacterSpriteAnimator>();
+        if (pAnim == null) return;
+
+        Transform enemyVisualTr = enemyPortraitImage != null
+            ? enemyPortraitImage.transform
+            : (enemyEntity != null ? enemyEntity.transform : null);
+
+        DiceSkillKind kind = face.GetResolvedSkillKind();
+        switch (kind)
+        {
+            case DiceSkillKind.Strike:
+                pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: false);
+                break;
+
+            case DiceSkillKind.HeavySlash:
+                pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: true);
+                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.28f, 14f);
+                break;
+
+            case DiceSkillKind.Vampiric:
+                pAnim.PlayVampiricAttack(enemyVisualTr);
+                break;
+
+            case DiceSkillKind.Block:
+                pAnim.PlayGuardBrace(isIronWall: false);
+                break;
+
+            case DiceSkillKind.IronWall:
+                pAnim.PlayGuardBrace(isIronWall: true);
+                break;
+
+            case DiceSkillKind.Regenerate:
+                pAnim.PlayHealPowerUp(isPurify: false);
+                break;
+
+            case DiceSkillKind.Purify:
+                pAnim.PlayHealPowerUp(isPurify: true);
+                break;
+
+            case DiceSkillKind.PoisonSting:
+                pAnim.PlayPoisonStrike(enemyVisualTr);
+                break;
+
+            case DiceSkillKind.ShockStun:
+                pAnim.PlayShockStunStrike(enemyVisualTr);
+                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.24f, 11f);
+                break;
+
+            case DiceSkillKind.Blank:
+                pAnim.PlayMissFumble();
+                break;
+        }
     }
 
     private bool TryConsumeUnusedBlockSlot(int excludeSlotIndex, out int consumedSlotIndex)
@@ -827,30 +1549,39 @@ public class SimpleCombatManager : MonoBehaviour
 
         switch (kind)
         {
+            case DiceSkillKind.Strike:
+                SpawnCustomFloatingText(playerEntity.transform, "⚔ CHÉM!", new Color(1f, 0.88f, 0.45f));
+                break;
+            case DiceSkillKind.HeavySlash:
+                SpawnCustomFloatingText(playerEntity.transform, "💥 TRỌNG KÍCH!", new Color(1f, 0.45f, 0.2f));
+                break;
+            case DiceSkillKind.Vampiric:
+                SpawnCustomFloatingText(playerEntity.transform, "🩸 HÚT HUYẾT!", new Color(1f, 0.3f, 0.55f));
+                break;
             case DiceSkillKind.Block:
-                SpawnCustomFloatingText(playerEntity.transform, $"+{face.valueV} 🛡 GIÁP", new Color(0.35f, 0.78f, 1f));
+                SpawnCustomFloatingText(playerEntity.transform, $"🛡 DỰNG KHIÊN +{face.valueV}", new Color(0.35f, 0.82f, 1f));
                 break;
             case DiceSkillKind.IronWall:
-                SpawnCustomFloatingText(playerEntity.transform, $"+{face.valueV} 🛡 BẤT KHUẤT", new Color(0.45f, 0.85f, 1f));
+                SpawnCustomFloatingText(playerEntity.transform, $"🏰 BẤT KHUẤT +{face.valueV}", new Color(1f, 0.85f, 0.35f));
+                break;
+            case DiceSkillKind.Regenerate:
+                SpawnCustomFloatingText(playerEntity.transform, "💚 GỒNG HỒI PHỤC!", new Color(0.35f, 0.98f, 0.55f));
                 break;
             case DiceSkillKind.Purify:
-                SpawnCustomFloatingText(playerEntity.transform, "✨ THANH TẨY", new Color(0.5f, 1f, 0.8f));
+                SpawnCustomFloatingText(playerEntity.transform, "✨ THANH TẨY!", new Color(0.55f, 0.98f, 1f));
                 break;
             case DiceSkillKind.PoisonSting:
-                SpawnCustomFloatingText(enemyEntity.transform, $"+{face.valueV} ☠ ĐỘC", new Color(0.65f, 0.35f, 0.95f));
+                SpawnCustomFloatingText(enemyEntity.transform, $"+{face.valueV} ☠ TRÚNG ĐỘC", new Color(0.75f, 0.38f, 1f));
                 break;
             case DiceSkillKind.ShockStun:
-                SpawnCustomFloatingText(enemyEntity.transform, "⚡ CHOÁNG!", new Color(1f, 0.9f, 0.25f));
+                SpawnCustomFloatingText(enemyEntity.transform, "⚡ GIÁNG SẤM CHOÁNG!", new Color(1f, 0.92f, 0.25f));
                 break;
             case DiceSkillKind.Blank:
-                SpawnCustomFloatingText(playerEntity.transform, "💨 TRƯỢT!", new Color(0.75f, 0.75f, 0.75f));
+                SpawnCustomFloatingText(playerEntity.transform, "💨 TRƯỢT ĐÀ!", new Color(0.75f, 0.75f, 0.75f));
                 break;
         }
     }
 
-    /// <summary>
-    /// Hoàn tác (Undo) viên xúc xắc vừa sử dụng trong lượt hiện tại.
-    /// </summary>
     public void UndoLastDiceAction()
     {
         if (isAnimating || combatEnded || currentPhase != CombatPhase.PlayerAction) return;
@@ -876,7 +1607,7 @@ public class SimpleCombatManager : MonoBehaviour
 
             if (tooltipLabel != null)
             {
-                SetTMPText(tooltipLabel, $"Đã hoàn tác (Undo): [{record.description}]");
+                SetTMPText(tooltipLabel, $"⏪ Đã hoàn tác (Undo): <b>[{record.description}]</b>");
             }
         }
     }
@@ -908,7 +1639,7 @@ public class SimpleCombatManager : MonoBehaviour
         isAnimating = true;
         UpdateControlButtonsUI();
 
-        // Nếu người chơi đã Click chọn các viên xúc xắc mà chưa Kéo-Thả, tự động kích hoạt chúng theo thứ tự!
+        // Nếu người chơi đã Click chọn các viên xúc xắc mà chưa Kéo-Thả, tự động kích hoạt tuần tự kèm hoạt ảnh!
         if (selectedDiceIndices.Count > 0)
         {
             List<int> pendingSlots = new List<int>(selectedDiceIndices);
@@ -924,11 +1655,10 @@ public class SimpleCombatManager : MonoBehaviour
                             ? DropTarget.TargetType.Enemy
                             : DropTarget.TargetType.Player;
 
-                        // Tạm mở cờ isAnimating để thực thi lệnh
                         isAnimating = false;
                         TryUseDiceFromDrag(slotIdx, naturalTarget);
                         isAnimating = true;
-                        yield return new WaitForSeconds(0.32f);
+                        yield return new WaitForSeconds(0.45f);
                     }
                 }
             }
@@ -944,6 +1674,7 @@ public class SimpleCombatManager : MonoBehaviour
         // 4. Pha Quái Hành Động (EnemyExecution)
         currentPhase = CombatPhase.EnemyExecution;
         if (commandManager != null) commandManager.EndTurn();
+        UpdateEnemyIntentUI();
         UpdateControlButtonsUI();
 
         yield return new WaitForSeconds(0.45f);
@@ -957,18 +1688,8 @@ public class SimpleCombatManager : MonoBehaviour
             }
             else
             {
-                if (enemyPortraitImage != null)
-                {
-                    CharacterSpriteAnimator eAnim = enemyPortraitImage.GetComponent<CharacterSpriteAnimator>();
-                    if (eAnim != null)
-                    {
-                        eAnim.PlaySlashAttack(playerPortraitImage != null ? playerPortraitImage.transform : playerEntity.transform);
-                    }
-                    yield return new WaitForSeconds(0.18f);
-                }
-
-                ExecuteCurrentEnemyIntent();
-                yield return new WaitForSeconds(0.65f);
+                // Kích hoạt hoạt ảnh hành động của Quái Vật theo đúng loại Intent của nó!
+                yield return StartCoroutine(PlayEnemyIntentAnimationAndExecute());
             }
         }
 
@@ -979,6 +1700,7 @@ public class SimpleCombatManager : MonoBehaviour
 
         // 5. Pha Kết Thúc Hiệp (RoundEnd): Kích hoạt Độc (Poison) xuyên giáp & giảm Suy Yếu
         currentPhase = CombatPhase.RoundEnd;
+        UpdateEnemyIntentUI();
 
         if (enemyEntity.PoisonStacks > 0)
         {
@@ -996,10 +1718,55 @@ public class SimpleCombatManager : MonoBehaviour
 
         if (combatEnded || !playerEntity.IsAlive()) yield break;
 
-        yield return new WaitForSeconds(0.35f);
+        yield return new WaitForSeconds(0.38f);
 
         // Chuyển sang hiệp kế tiếp
         StartCoroutine(BeginRoundCoroutine());
+    }
+
+    private IEnumerator PlayEnemyIntentAnimationAndExecute()
+    {
+        CharacterSpriteAnimator eAnim = enemyPortraitImage != null
+            ? enemyPortraitImage.GetComponent<CharacterSpriteAnimator>()
+            : null;
+
+        Transform playerVisualTr = playerPortraitImage != null
+            ? playerPortraitImage.transform
+            : (playerEntity != null ? playerEntity.transform : null);
+
+        if (eAnim != null)
+        {
+            switch (currentEnemyIntent.intentType)
+            {
+                case EnemyIntentType.Attack:
+                    eAnim.PlaySlashAttack(playerVisualTr, isHeavySlash: currentStage >= 3);
+                    yield return new WaitForSeconds(0.22f);
+                    break;
+
+                case EnemyIntentType.Defend:
+                    eAnim.PlayGuardBrace(isIronWall: false);
+                    yield return new WaitForSeconds(0.18f);
+                    break;
+
+                case EnemyIntentType.AttackAndPoison:
+                    eAnim.PlayPoisonStrike(playerVisualTr);
+                    yield return new WaitForSeconds(0.18f);
+                    break;
+
+                case EnemyIntentType.ChargeBuffAttack:
+                    eAnim.PlayEnrageCharge();
+                    yield return new WaitForSeconds(0.24f);
+                    break;
+
+                case EnemyIntentType.AttackAndHeal:
+                    eAnim.PlayVampiricAttack(playerVisualTr);
+                    yield return new WaitForSeconds(0.22f);
+                    break;
+            }
+        }
+
+        ExecuteCurrentEnemyIntent();
+        yield return new WaitForSeconds(0.62f);
     }
 
     private void ExecuteCurrentEnemyIntent()
@@ -1017,7 +1784,7 @@ public class SimpleCombatManager : MonoBehaviour
             case EnemyIntentType.Defend:
             {
                 enemyEntity.AddShield(currentEnemyIntent.primaryValue);
-                SpawnCustomFloatingText(enemyEntity.transform, $"+{currentEnemyIntent.primaryValue} 🛡 GIÁP", new Color(0.4f, 0.8f, 1f));
+                SpawnCustomFloatingText(enemyEntity.transform, $"+{currentEnemyIntent.primaryValue} 🛡 DỰNG GIÁP", new Color(0.4f, 0.82f, 1f));
                 break;
             }
             case EnemyIntentType.AttackAndPoison:
@@ -1025,13 +1792,13 @@ public class SimpleCombatManager : MonoBehaviour
                 int dmg = enemyEntity.CalculateOutgoingDamage(currentEnemyIntent.primaryValue);
                 playerEntity.TakeDamage(dmg);
                 playerEntity.AddPoison(currentEnemyIntent.secondaryValue);
-                SpawnCustomFloatingText(playerEntity.transform, $"+{currentEnemyIntent.secondaryValue} ☠ ĐỘC", new Color(0.7f, 0.35f, 0.95f));
+                SpawnCustomFloatingText(playerEntity.transform, $"+{currentEnemyIntent.secondaryValue} ☠ TRÚNG ĐỘC", new Color(0.75f, 0.35f, 0.98f));
                 break;
             }
             case EnemyIntentType.ChargeBuffAttack:
             {
                 enemyEntity.AddBonusAttack(currentEnemyIntent.primaryValue);
-                SpawnCustomFloatingText(enemyEntity.transform, $"🔥 TÍCH TỤ +{currentEnemyIntent.primaryValue} CÔNG!", new Color(1f, 0.5f, 0.2f));
+                SpawnCustomFloatingText(enemyEntity.transform, $"🔥 GỒNG CUỒNG NỘ +{currentEnemyIntent.primaryValue} CÔNG!", new Color(1f, 0.5f, 0.2f));
                 break;
             }
             case EnemyIntentType.AttackAndHeal:
@@ -1045,7 +1812,7 @@ public class SimpleCombatManager : MonoBehaviour
     }
 
     // =========================================================================
-    // 6. HIỂN THỊ UI XÚC XẮC, TOOLTIP, INTENT & GAME JUICE
+    // 7. HIỂN THỊ UI XÚC XẮC, TOOLTIP, INTENT & GAME JUICE
     // =========================================================================
 
     public void RefreshDiceSlotVisuals()
@@ -1064,10 +1831,17 @@ public class SimpleCombatManager : MonoBehaviour
             cg.alpha = used ? 0.32f : 1f;
             cg.blocksRaycasts = true;
 
+            slotObj.transform.localScale = selected && !used
+                ? new Vector3(1.07f, 1.07f, 1f)
+                : Vector3.one;
+
             if (face != null)
             {
                 string valDisplay = GetFaceValueSymbol(face);
-                string titleDisplay = used ? $"{face.faceName}\n(ĐÃ DÙNG)" : face.faceName;
+                string targetTag = face.TargetsEnemy() ? "<size=11><color=#fca5a5>🎯 Địch</color></size>" : "<size=11><color=#86efac>🛡 Hiệp Sĩ</color></size>";
+                string titleDisplay = used
+                    ? $"{face.faceName}\n<size=11><color=#94a3b8>(ĐÃ DÙNG)</color></size>"
+                    : $"{face.faceName}\n{targetTag}";
                 SetDiceSlotText(i, titleDisplay, valDisplay);
                 SetDiceSlotIcon(i, GetSkillSprite(face));
             }
@@ -1077,11 +1851,11 @@ public class SimpleCombatManager : MonoBehaviour
             {
                 if (used)
                 {
-                    img.color = new Color(0.22f, 0.22f, 0.26f, 0.65f);
+                    img.color = new Color(0.18f, 0.18f, 0.22f, 0.65f);
                 }
                 else if (selected)
                 {
-                    img.color = new Color(0.85f, 0.65f, 0.12f, 0.96f);
+                    img.color = new Color(0.86f, 0.64f, 0.14f, 0.98f);
                 }
                 else if (face != null)
                 {
@@ -1102,22 +1876,22 @@ public class SimpleCombatManager : MonoBehaviour
         {
             case DiceSkillKind.Strike:
             case DiceSkillKind.HeavySlash:
-                return $"⚔{face.valueV}";
+                return $"⚔ {face.valueV}";
             case DiceSkillKind.Vampiric:
-                return $"🩸{face.valueV}";
+                return $"🩸 {face.valueV}";
             case DiceSkillKind.Block:
             case DiceSkillKind.IronWall:
-                return $"🛡{face.valueV}";
+                return $"🛡 {face.valueV}";
             case DiceSkillKind.Regenerate:
-                return $"💚{face.valueV}";
+                return $"💚 {face.valueV}";
             case DiceSkillKind.Purify:
-                return "✨";
+                return "✨ 0";
             case DiceSkillKind.PoisonSting:
-                return $"☠{face.valueV}";
+                return $"☠ {face.valueV}";
             case DiceSkillKind.ShockStun:
-                return $"⚡{face.valueV}";
+                return $"⚡ {face.valueV}";
             case DiceSkillKind.Blank:
-                return "💨0";
+                return "💨 0";
             default:
                 return face.valueV.ToString();
         }
@@ -1129,21 +1903,21 @@ public class SimpleCombatManager : MonoBehaviour
         {
             case DiceSkillKind.Strike:
             case DiceSkillKind.HeavySlash:
-                return new Color(0.42f, 0.16f, 0.18f, 0.92f);
+                return new Color(0.44f, 0.15f, 0.17f, 0.95f);
             case DiceSkillKind.Vampiric:
-                return new Color(0.48f, 0.12f, 0.28f, 0.92f);
+                return new Color(0.48f, 0.12f, 0.28f, 0.95f);
             case DiceSkillKind.Block:
             case DiceSkillKind.IronWall:
-                return new Color(0.14f, 0.28f, 0.46f, 0.92f);
+                return new Color(0.13f, 0.28f, 0.48f, 0.95f);
             case DiceSkillKind.Regenerate:
             case DiceSkillKind.Purify:
-                return new Color(0.14f, 0.38f, 0.26f, 0.92f);
+                return new Color(0.13f, 0.38f, 0.26f, 0.95f);
             case DiceSkillKind.PoisonSting:
-                return new Color(0.32f, 0.16f, 0.44f, 0.92f);
+                return new Color(0.32f, 0.15f, 0.46f, 0.95f);
             case DiceSkillKind.ShockStun:
-                return new Color(0.46f, 0.36f, 0.12f, 0.92f);
+                return new Color(0.48f, 0.36f, 0.11f, 0.95f);
             case DiceSkillKind.Blank:
-                return new Color(0.25f, 0.25f, 0.28f, 0.85f);
+                return new Color(0.24f, 0.24f, 0.28f, 0.88f);
             default:
                 return fallback;
         }
@@ -1219,9 +1993,26 @@ public class SimpleCombatManager : MonoBehaviour
         }
 
         DiceFaceData face = rolledFaces[slotIndex];
-        string targetHint = face.TargetsEnemy() ? "Mục tiêu: Quái vật" : "Mục tiêu: Hiệp Sĩ";
+        string actionVerb = GetActionAnimationDescription(face.GetResolvedSkillKind());
         string flatTooltip = face.GetTooltipText().Replace("\n", " — ");
-        SetTMPText(tooltipLabel, $"{flatTooltip}  |  ({targetHint})");
+        SetTMPText(tooltipLabel, $"{flatTooltip}   |   <i>{actionVerb}</i>");
+    }
+
+    private string GetActionAnimationDescription(DiceSkillKind kind)
+    {
+        switch (kind)
+        {
+            case DiceSkillKind.Strike: return "Hành động: ⚔ Lao tới chém kiếm";
+            case DiceSkillKind.HeavySlash: return "Hành động: 💥 Trọng kích chém chữ X";
+            case DiceSkillKind.Vampiric: return "Hành động: 🩸 Chém huyết kiếm & Hấp thụ";
+            case DiceSkillKind.Block: return "Hành động: 🛡 Dậm chân dựng khiên chắn";
+            case DiceSkillKind.IronWall: return "Hành động: 🏰 Thế thủ Kim Cang Bất Khuất";
+            case DiceSkillKind.Regenerate: return "Hành động: 💚 Gồng tụ khí hồi máu";
+            case DiceSkillKind.Purify: return "Hành động: ✨ Gồng thanh tẩy độc tố";
+            case DiceSkillKind.PoisonSting: return "Hành động: ☠ Đâm mũi kiếm kịch độc";
+            case DiceSkillKind.ShockStun: return "Hành động: ⚡ Giáng sấm sét gây choáng";
+            default: return "Hành động: 💨 Trượt đà";
+        }
     }
 
     public void HideTooltip()
@@ -1234,7 +2025,7 @@ public class SimpleCombatManager : MonoBehaviour
         if (tooltipLabel == null) return;
         SetTMPText(
             tooltipLabel,
-            "Mẹo: Kéo-thả xúc xắc vào mục tiêu (hoặc Click phải/Double-click dùng ngay) | Click trái chọn Re-roll / End Turn | Phím Z: Undo");
+            "💡 <b>Chiến thuật:</b> Kéo-thả xúc xắc vào nhân vật (hoặc Click phải / Double-Click) để tung đòn  |  Click trái chọn viên muốn Gieo lại");
     }
 
     private void UpdateEnemyIntentUI()
@@ -1243,14 +2034,55 @@ public class SimpleCombatManager : MonoBehaviour
         string desc = currentEnemyIntent.GetDisplayDescription(bonusAtk);
         if (enemyIntentLabel != null)
         {
-            SetTMPText(enemyIntentLabel, $"HIỆP {currentRound} — {desc}");
+            if (enemyEntity != null && enemyEntity.StunStacks > 0)
+            {
+                SetTMPText(enemyIntentLabel, "⚡ ĐANG BỊ CHOÁNG — Mất lượt hành động kế tiếp!");
+            }
+            else
+            {
+                SetTMPText(enemyIntentLabel, $"Ý ĐỊNH ĐỊCH:  {desc}");
+            }
+        }
+
+        // Đổi màu viền khung Intent theo loại hành động sắp tới của Quái Vật
+        if (enemyIntentOutline != null)
+        {
+            switch (currentEnemyIntent.intentType)
+            {
+                case EnemyIntentType.Defend:
+                    enemyIntentOutline.effectColor = new Color(0.3f, 0.8f, 1f, 0.9f);
+                    break;
+                case EnemyIntentType.AttackAndPoison:
+                    enemyIntentOutline.effectColor = new Color(0.75f, 0.35f, 1f, 0.9f);
+                    break;
+                case EnemyIntentType.ChargeBuffAttack:
+                    enemyIntentOutline.effectColor = new Color(1f, 0.6f, 0.15f, 0.95f);
+                    break;
+                default:
+                    enemyIntentOutline.effectColor = new Color(0.95f, 0.3f, 0.25f, 0.9f);
+                    break;
+            }
         }
 
         GameObject turnBadgeGo = GameObject.Find("TurnBadge");
         if (turnBadgeGo != null && tmpType != null)
         {
             Component turnTmp = turnBadgeGo.GetComponentInChildren(tmpType);
-            SetTMPText(turnTmp, $"ROUND {currentRound} — STAGE {currentStage}/3");
+            string phaseText = GetPhaseDisplayName(currentPhase);
+            SetTMPText(turnTmp, $"⚔ ẢI {currentStage}/3   •   HIỆP {currentRound}   •   {phaseText}");
+        }
+    }
+
+    private string GetPhaseDisplayName(CombatPhase phase)
+    {
+        switch (phase)
+        {
+            case CombatPhase.PlayerRoll: return "<color=#93c5fd>ĐANG GIEO XÚC XẮC</color>";
+            case CombatPhase.PlayerAction: return "<color=#fde047>LƯỢT HIỆP SĨ</color>";
+            case CombatPhase.EnemyExecution: return "<color=#fca5a5>QUÁI VẬT HÀNH ĐỘNG</color>";
+            case CombatPhase.RoundEnd: return "<color=#d8b4fe>KẾT THÚC HIỆP</color>";
+            case CombatPhase.CombatOver: return "<color=#86efac>KẾT THÚC TRẬN</color>";
+            default: return "KHỞI ĐẦU HIỆP";
         }
     }
 
@@ -1259,15 +2091,15 @@ public class SimpleCombatManager : MonoBehaviour
         if (rerollButton != null)
         {
             rerollButton.interactable = !isAnimating && currentPhase == CombatPhase.PlayerAction && rerollsLeft > 0;
-            UpdateButtonCaption(rerollButton, $"RE-ROLL ({rerollsLeft})");
+            UpdateButtonCaption(rerollButton, $"🎲 GIEO LẠI ({rerollsLeft})");
         }
 
         if (endTurnButton != null)
         {
             endTurnButton.interactable = !isAnimating && currentPhase == CombatPhase.PlayerAction;
             string endCaption = selectedDiceIndices.Count > 0
-                ? $"DÙNG ({selectedDiceIndices.Count}) & END TURN"
-                : "END TURN";
+                ? $"⚔ DÙNG ({selectedDiceIndices.Count}) & KẾT THÚC LƯỢT"
+                : "⏭ KẾT THÚC LƯỢT (END TURN)";
             UpdateButtonCaption(endTurnButton, endCaption);
         }
 
@@ -1278,7 +2110,7 @@ public class SimpleCombatManager : MonoBehaviour
                            currentPhase == CombatPhase.PlayerAction &&
                            undoCount > 0;
             undoButton.interactable = canUndo;
-            UpdateButtonCaption(undoButton, $"UNDO ({undoCount}) [Z]");
+            UpdateButtonCaption(undoButton, $"⏪ UNDO ({undoCount}) [Z]");
         }
     }
 
@@ -1302,7 +2134,7 @@ public class SimpleCombatManager : MonoBehaviour
     }
 
     // =========================================================================
-    // 7. HIỆU ỨNG GAME JUICE & XỬ LÝ THẮNG / THUA CHUYỂN MÀN
+    // 8. HIỆU ỨNG THANH MÁU, CHỮ NỔI (FLOATING TEXT) & XỬ LÝ THẮNG / THUA
     // =========================================================================
 
     private void UpdateHPBar(Image fill, int current, int max)
@@ -1319,7 +2151,7 @@ public class SimpleCombatManager : MonoBehaviour
 
         float startPct = rt.anchorMax.x;
         float elapsed = 0f;
-        float duration = 0.35f;
+        float duration = 0.32f;
 
         while (elapsed < duration)
         {
@@ -1333,45 +2165,27 @@ public class SimpleCombatManager : MonoBehaviour
         rt.anchorMax = new Vector2(targetPct, rt.anchorMax.y);
     }
 
-    private IEnumerator HitFlash(Image img)
-    {
-        if (img == null) yield break;
-        Color original = Color.white;
-        img.color = Color.red;
-
-        Vector3 originalPos = img.transform.localPosition;
-        img.transform.localPosition = originalPos + new Vector3(10f, 0f, 0f);
-
-        yield return new WaitForSeconds(0.1f);
-
-        if (img != null)
-        {
-            img.color = original;
-            img.transform.localPosition = originalPos;
-        }
-    }
-
     private void SpawnFloatingText(Transform parent, int damage, bool isPierce)
     {
         if (parent == null) return;
         GameObject go = new GameObject("FloatingText");
         go.transform.SetParent(parent, false);
         RectTransform rt = go.AddComponent<RectTransform>();
-        rt.anchoredPosition = new Vector2(Random.Range(-25f, 25f), 55f);
+        rt.anchoredPosition = new Vector2(Random.Range(-25f, 25f), 65f);
 
         if (tmpType != null)
         {
             Component tmp = go.AddComponent(tmpType);
             SetTMPText(tmp, "-" + damage.ToString());
             tmpType.GetProperty("fontSize")?.SetValue(tmp, 44f);
-            Color red = new Color(0.94f, 0.27f, 0.27f);
+            Color red = new Color(0.98f, 0.25f, 0.25f);
             tmpType.GetProperty("color")?.SetValue(tmp, red);
             tmpType.GetProperty("alignment")?.SetValue(tmp, 514);
         }
 
         FloatingText ft = go.AddComponent<FloatingText>();
-        ft.floatSpeed = 80f;
-        ft.fadeDuration = 0.8f;
+        ft.floatSpeed = 85f;
+        ft.fadeDuration = 0.85f;
         ft.Setup(damage, isPierce);
     }
 
@@ -1381,20 +2195,20 @@ public class SimpleCombatManager : MonoBehaviour
         GameObject go = new GameObject("CustomFloatingText");
         go.transform.SetParent(parent, false);
         RectTransform rt = go.AddComponent<RectTransform>();
-        rt.anchoredPosition = new Vector2(Random.Range(-20f, 20f), 85f);
-        rt.sizeDelta = new Vector2(320f, 50f);
+        rt.anchoredPosition = new Vector2(Random.Range(-20f, 20f), 95f);
+        rt.sizeDelta = new Vector2(360f, 52f);
 
         if (tmpType != null)
         {
             Component tmp = go.AddComponent(tmpType);
             SetTMPText(tmp, message);
-            tmpType.GetProperty("fontSize")?.SetValue(tmp, 30f);
+            tmpType.GetProperty("fontSize")?.SetValue(tmp, 28f);
             tmpType.GetProperty("color")?.SetValue(tmp, color);
             tmpType.GetProperty("alignment")?.SetValue(tmp, 514);
         }
 
         FloatingText ft = go.AddComponent<FloatingText>();
-        ft.floatSpeed = 65f;
+        ft.floatSpeed = 68f;
         ft.fadeDuration = 0.95f;
         ft.SetupCustom(message, color);
     }
@@ -1402,7 +2216,7 @@ public class SimpleCombatManager : MonoBehaviour
     private void UpdateHPLabel(Component label, int current, int max)
     {
         if (label == null) return;
-        SetTMPText(label, $"{current} / {max}");
+        SetTMPText(label, $"♥ {current} / {max} HP");
     }
 
     private void SetTMPText(Component tmpComp, string value)
@@ -1418,12 +2232,20 @@ public class SimpleCombatManager : MonoBehaviour
         currentPhase = CombatPhase.CombatOver;
         isAnimating = true;
 
+        UpdateEnemyIntentUI();
         if (enemyIntentLabel != null)
         {
             SetTMPText(enemyIntentLabel, "🎉 CHIẾN THẮNG! QUÁI VẬT ĐÃ BỊ HẠ GỤC!");
         }
 
-        yield return new WaitForSeconds(0.8f);
+        // Hiệp sĩ gồng ăn mừng chiến thắng
+        if (playerPortraitImage != null)
+        {
+            CharacterSpriteAnimator pAnim = playerPortraitImage.GetComponent<CharacterSpriteAnimator>();
+            if (pAnim != null) pAnim.PlayHealPowerUp(isPurify: true);
+        }
+
+        yield return new WaitForSeconds(0.95f);
 
         if (GameManager.Instance != null)
         {
@@ -1442,6 +2264,7 @@ public class SimpleCombatManager : MonoBehaviour
         currentPhase = CombatPhase.CombatOver;
         isAnimating = true;
 
+        UpdateEnemyIntentUI();
         if (enemyIntentLabel != null)
         {
             SetTMPText(enemyIntentLabel, "💀 HIỆP SĨ ĐÃ NGÃ XUỐNG — HÀNH TRÌNH KHÉP LẠI!");

@@ -2,7 +2,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// DraggableDice — Hỗ trợ Kéo thả (Drag & Drop), Hover xem Tooltip và Click phải dùng nhanh xúc xắc (GDD 2.2).
+/// DraggableDice — Hỗ trợ Kéo thả (Drag & Drop), Hover xem Tooltip, Highlight mục tiêu hợp lệ
+/// và Click phải / Double-Click dùng nhanh xúc xắc (GDD 2.2).
 /// </summary>
 public class DraggableDice : MonoBehaviour,
     IBeginDragHandler, IDragHandler, IEndDragHandler,
@@ -56,8 +57,13 @@ public class DraggableDice : MonoBehaviour,
 
         if (canvasGroup != null)
         {
-            canvasGroup.alpha = 0.75f;
+            canvasGroup.alpha = 0.85f;
             canvasGroup.blocksRaycasts = false;
+        }
+
+        if (combatManager != null)
+        {
+            combatManager.OnDiceDragStateChanged(slotIndex, true);
         }
     }
 
@@ -73,6 +79,11 @@ public class DraggableDice : MonoBehaviour,
         if (canvasGroup != null)
         {
             canvasGroup.blocksRaycasts = true;
+        }
+
+        if (combatManager != null)
+        {
+            combatManager.OnDiceDragStateChanged(slotIndex, false);
         }
 
         // Luôn trả xúc xắc về vị trí khay ban đầu để không làm vỡ bố cục UI và hỗ trợ Undo
