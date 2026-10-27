@@ -14,5 +14,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TheForge.unity
     guid: e50bbbc84572a406e81b1cafd26e6ad3
+  - enabled: 1
+    path: Assets/Scenes/CombatScene_Stage1.unity
+    guid: bdaa9fc41f364eb2b2aad873008d2d3e
+  - enabled: 1
+    path: Assets/Scenes/CombatScene_Stage2.unity
+    guid: b23fb2ef2a48405ebd4347b88f18bf15
+  - enabled: 1
+    path: Assets/Scenes/CombatScene_Stage3.unity
+    guid: 48aea10eb29e4905a0e55935c3eebd66
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
