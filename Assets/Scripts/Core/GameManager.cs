@@ -51,7 +51,14 @@ public class GameManager : MonoBehaviour
 
     [Header("Run Progression (GDD 4)")]
     public int currentStageIndex = 1; // 1=Goblin, 2=Orc, 3=Minotaur
+    public int heroMapStageIndex = 1; // Vị trí hiện tại của Hiệp Sĩ trên Bản Đồ Ải (1..3)
+    public int highestUnlockedStageIndex = 1; // Ải cao nhất đã mở khóa trên Bản Đồ Ải
+    public int lastClearedStageIndex = 0; // Ải gần nhất vừa đánh thắng
+    public int pendingForgeUpgrades = 0; // Số lượt rèn xúc xắc khả dụng sau khi qua ải
+    public bool isRunVictory = false; // Đã chiến thắng toàn bộ các ải
     public EnemyData[] stageEnemies;
+
+    private readonly List<DiceFaceData> cachedForgeRewards = new List<DiceFaceData>();
 
     private void Awake()
     {
@@ -162,6 +169,13 @@ public class GameManager : MonoBehaviour
 
         // FULL RESET — xóa sạch state cũ và cấp lại bộ xúc xắc khởi đầu chuẩn GDD
         currentStageIndex = 1;
+        heroMapStageIndex = 1;
+        highestUnlockedStageIndex = 1;
+        lastClearedStageIndex = 0;
+        pendingForgeUpgrades = 0;
+        isRunVictory = false;
+        cachedForgeRewards.Clear();
+
         playerCurrentHP = playerMaxHP;
         playerDiceBag = DiceCatalog.CreateStarterDiceBag();
         SyncLegacyDiceFaceList();
@@ -170,13 +184,60 @@ public class GameManager : MonoBehaviour
         LoadCombatScene();
     }
 
-    public void LoadCombatScene() => SceneManager.LoadScene("CombatScene");
-    public void LoadForgeScene()  => SceneManager.LoadScene("TheForge");
-    public void LoadMainMenu()    => SceneManager.LoadScene("MainMenu");
+    public int GetTotalStages()
+    {
+        return (stageEnemies != null && stageEnemies.Length > 0) ? stageEnemies.Length : 3;
+    }
+
+    public List<DiceFaceData> GetOrRollForgeRewards(int count)
+    {
+        if (cachedForgeRewards.Count != count)
+        {
+            cachedForgeRewards.Clear();
+            List<DiceFaceData> rolled = DiceCatalog.RollRandomRewards(count);
+            if (rolled != null)
+            {
+                cachedForgeRewards.AddRange(rolled);
+            }
+        }
+        return new List<DiceFaceData>(cachedForgeRewards);
+    }
+
+    public void ConsumeForgeUpgrade()
+    {
+        if (pendingForgeUpgrades > 0)
+        {
+            pendingForgeUpgrades--;
+        }
+        cachedForgeRewards.Clear();
+    }
+
+    public void LoadCombatScene()   => SceneManager.LoadScene("CombatScene");
+    public void LoadStageMapScene() => SceneManager.LoadScene("StageMap");
+    public void LoadForgeScene()    => SceneManager.LoadScene("TheForge");
+    public void LoadMainMenu()      => SceneManager.LoadScene("MainMenu");
 
     public void OnEnemyDefeated()
     {
-        Debug.Log($"[GameManager] Enemy defeated! Stage {currentStageIndex} done (Player HP={playerCurrentHP}/{playerMaxHP}). Loading Forge...");
-        LoadForgeScene();
+        int totalStages = GetTotalStages();
+        lastClearedStageIndex = Mathf.Max(lastClearedStageIndex, currentStageIndex);
+        heroMapStageIndex = currentStageIndex;
+        pendingForgeUpgrades = Mathf.Max(1, pendingForgeUpgrades + 1);
+        cachedForgeRewards.Clear();
+
+        if (currentStageIndex < totalStages)
+        {
+            currentStageIndex++;
+            highestUnlockedStageIndex = Mathf.Max(highestUnlockedStageIndex, currentStageIndex);
+            isRunVictory = false;
+        }
+        else
+        {
+            highestUnlockedStageIndex = totalStages;
+            isRunVictory = true;
+        }
+
+        Debug.Log($"[GameManager] Enemy defeated! Cleared Stage {lastClearedStageIndex}/{totalStages} (Next Stage={currentStageIndex}, Player HP={playerCurrentHP}/{playerMaxHP}). Loading StageMap...");
+        LoadStageMapScene();
     }
 }

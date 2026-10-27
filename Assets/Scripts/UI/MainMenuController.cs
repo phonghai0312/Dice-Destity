@@ -113,8 +113,16 @@ public class MainMenuController : MonoBehaviour
         GameManager gameManager = GameManager.ResolveInstance();
         if (gameManager != null && gameManager.playerCurrentHP > 0 && gameManager.currentStageIndex > 0)
         {
-            Debug.Log($"[MainMenu] Continuing current run at Stage {gameManager.currentStageIndex + 1} (HP: {gameManager.playerCurrentHP}/{gameManager.playerMaxHP})...");
-            SceneManager.LoadScene("CombatScene");
+            if (gameManager.lastClearedStageIndex > 0 && !gameManager.isRunVictory)
+            {
+                Debug.Log($"[MainMenu] Continuing current run at StageMap (Next Stage {gameManager.currentStageIndex}, HP: {gameManager.playerCurrentHP}/{gameManager.playerMaxHP})...");
+                gameManager.LoadStageMapScene();
+            }
+            else
+            {
+                Debug.Log($"[MainMenu] Continuing current run at Stage {gameManager.currentStageIndex} (HP: {gameManager.playerCurrentHP}/{gameManager.playerMaxHP})...");
+                gameManager.LoadCombatScene();
+            }
         }
         else if (gameManager != null)
         {

@@ -2235,7 +2235,7 @@ public class SimpleCombatManager : MonoBehaviour
         UpdateEnemyIntentUI();
         if (enemyIntentLabel != null)
         {
-            SetTMPText(enemyIntentLabel, "🎉 CHIẾN THẮNG! QUÁI VẬT ĐÃ BỊ HẠ GỤC!");
+            SetTMPText(enemyIntentLabel, "🎉 CHIẾN THẮNG! ĐANG MỞ BẢN ĐỒ HÀNH TRÌNH...");
         }
 
         // Hiệp sĩ gồng ăn mừng chiến thắng
@@ -2247,13 +2247,18 @@ public class SimpleCombatManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.95f);
 
-        if (GameManager.Instance != null)
+        GameManager gm = GameManager.ResolveInstance();
+        if (gm != null)
         {
             if (playerEntity != null)
             {
-                GameManager.Instance.playerCurrentHP = Mathf.Max(1, playerEntity.CurrentHP);
+                gm.playerCurrentHP = Mathf.Max(1, playerEntity.CurrentHP);
             }
-            GameManager.Instance.OnEnemyDefeated();
+            gm.OnEnemyDefeated();
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("StageMap");
         }
     }
 

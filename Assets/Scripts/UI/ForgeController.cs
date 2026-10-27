@@ -82,6 +82,7 @@ public class ForgeController : MonoBehaviour
         }
 
         AutoDiscover();
+        CreateBackToMapButtonIfNeeded();
         CreateDiceSelectorTabsIfNeeded();
         SetupCurrentDiceFaceSlots();
         GenerateAndSetupRewards();
@@ -92,6 +93,70 @@ public class ForgeController : MonoBehaviour
         RefreshCurrentDiceUI();
         RefreshRewardCardsUI();
         RefreshHeaderAndConfirmState();
+    }
+
+    private bool HasAvailableForgeUpgrade()
+    {
+        if (GameManager.Instance == null) return true;
+        // Nếu mở TheForge trực tiếp trong Editor (lastClearedStageIndex == 0) hoặc còn lượt rèn sau qua ải
+        return GameManager.Instance.pendingForgeUpgrades > 0 || GameManager.Instance.lastClearedStageIndex == 0;
+    }
+
+    private void CreateBackToMapButtonIfNeeded()
+    {
+        Canvas canvas = FindAnyObjectByType<Canvas>();
+        if (canvas == null) return;
+        if (canvas.transform.Find("BackToMapButton") != null) return;
+
+        GameObject btnGo = new GameObject("BackToMapButton");
+        btnGo.transform.SetParent(canvas.transform, false);
+        RectTransform rt = btnGo.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot = new Vector2(0f, 1f);
+        rt.anchoredPosition = new Vector2(36f, -30f);
+        rt.sizeDelta = new Vector2(240f, 44f);
+
+        Image bg = btnGo.AddComponent<Image>();
+        bg.color = new Color(0.14f, 0.11f, 0.20f, 0.95f);
+
+        Outline ol = btnGo.AddComponent<Outline>();
+        ol.effectColor = new Color(0.85f, 0.68f, 0.25f, 0.85f);
+        ol.effectDistance = new Vector2(1.5f, -1.5f);
+
+        Button btn = btnGo.AddComponent<Button>();
+        btn.targetGraphic = bg;
+        btn.onClick.AddListener(OnBackToMapClicked);
+
+        GameObject txtGo = new GameObject("Label");
+        txtGo.transform.SetParent(btnGo.transform, false);
+        RectTransform txtRt = txtGo.AddComponent<RectTransform>();
+        txtRt.anchorMin = Vector2.zero;
+        txtRt.anchorMax = Vector2.one;
+        txtRt.sizeDelta = Vector2.zero;
+
+        if (TMP != null)
+        {
+            Component tmp = txtGo.AddComponent(TMP);
+            SetTMPText(tmp, "🗺 ⬅ VỀ BẢN ĐỒ ẢI");
+            TMP.GetProperty("fontSize")?.SetValue(tmp, 15f);
+            TMP.GetProperty("alignment")?.SetValue(tmp, 514);
+            TMP.GetProperty("color")?.SetValue(tmp, new Color(0.96f, 0.88f, 0.68f, 1f));
+            TMP.GetProperty("raycastTarget")?.SetValue(tmp, false);
+        }
+    }
+
+    public void OnBackToMapClicked()
+    {
+        if (isForgingTransition) return;
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.LoadStageMapScene();
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("StageMap");
+        }
     }
 
     // =========================================================================
@@ -290,7 +355,9 @@ public class ForgeController : MonoBehaviour
         rewardCards.Clear();
         rolledRewards.Clear();
 
-        List<DiceFaceData> randomPool = DiceCatalog.RollRandomRewards(rewardNames.Length);
+        List<DiceFaceData> randomPool = GameManager.Instance != null
+            ? GameManager.Instance.GetOrRollForgeRewards(rewardNames.Length)
+            : DiceCatalog.RollRandomRewards(rewardNames.Length);
 
         for (int i = 0; i < rewardNames.Length; i++)
         {
@@ -571,17 +638,37 @@ public class ForgeController : MonoBehaviour
 
     private void RefreshHeaderAndConfirmState()
     {
-        int stage = GameManager.Instance != null ? GameManager.Instance.currentStageIndex : 1;
+        int nextStage = GameManager.Instance != null ? GameManager.Instance.currentStageIndex : 2;
+        bool isVictory = GameManager.Instance != null && GameManager.Instance.isRunVictory;
+        bool hasUpgrade = HasAvailableForgeUpgrade();
+
         if (forgeTitleLabel != null)
         {
-            if (stage >= 3)
+            if (isVictory)
             {
                 SetTMPText(forgeTitleLabel, "CHIẾN THẮNG HOÀN TOÀN — XƯỞNG RÈN HUYỀN THOẠI");
             }
             else
             {
-                SetTMPText(forgeTitleLabel, $"XƯỞNG RÈN XÚC XẮC (HOÀN THÀNH ẢI {stage}/3)");
+                SetTMPText(forgeTitleLabel, $"XƯỞNG RÈN XÚC XẮC — CHUẨN BỊ CHO ẢI {nextStage}/3");
             }
+        }
+
+        if (!hasUpgrade)
+        {
+            if (forgeSubLabel != null)
+            {
+                SetTMPText(
+                    forgeSubLabel,
+                    "✅ Đã hoàn tất rèn xúc xắc cho lượt này! Bạn có thể kiểm tra 3 viên xúc xắc hoặc quay về Bản Đồ Ải.");
+            }
+
+            if (nextStageButton != null)
+            {
+                nextStageButton.interactable = true;
+                UpdateConfirmButtonText("🗺 QUAY VỀ BẢN ĐỒ ẢI");
+            }
+            return;
         }
 
         List<DiceInstance> bag = GetActiveDiceBag();
@@ -607,9 +694,7 @@ public class ForgeController : MonoBehaviour
             if (nextStageButton != null)
             {
                 nextStageButton.interactable = true;
-                UpdateConfirmButtonText(stage >= 3
-                    ? "RÈN & HOÀN TẤT HÀNH TRÌNH (WIN!)"
-                    : $"RÈN MẶT MỚI & SANG ẢI {stage + 1}");
+                UpdateConfirmButtonText("🔥 RÈN MẶT MỚI & VỀ BẢN ĐỒ ẢI");
             }
         }
         else
@@ -637,7 +722,7 @@ public class ForgeController : MonoBehaviour
     }
 
     // =========================================================================
-    // 5. XÁC NHẬN RÈN ĐÈ MẶT XÚC XẮC & CHUYỂN SANG ẢI KẾ TIẾP
+    // 5. XÁC NHẬN RÈN ĐÈ MẶT XÚC XẮC & QUAY VỀ BẢN ĐỒ ẢI (STAGEMAP)
     // =========================================================================
 
     private void SetupConfirmButton()
@@ -656,6 +741,13 @@ public class ForgeController : MonoBehaviour
         }
 
         if (isForgingTransition) return;
+
+        if (!HasAvailableForgeUpgrade())
+        {
+            OnBackToMapClicked();
+            return;
+        }
+
         if (selectedRewardIndex < 0 || selectedRewardIndex >= rolledRewards.Count)
         {
             Debug.LogWarning("[Forge] Chưa chọn mặt xúc xắc phần thưởng!");
@@ -676,6 +768,7 @@ public class ForgeController : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.ReplacePlayerDiceFace(selectedDiceIndex, selectedFaceSlotIndex, chosenReward);
+            GameManager.Instance.ConsumeForgeUpgrade();
         }
 
         RefreshCurrentDiceUI();
@@ -691,26 +784,18 @@ public class ForgeController : MonoBehaviour
 
         if (forgeSubLabel != null)
         {
-            SetTMPText(forgeSubLabel, $"🔥 RÈN THÀNH CÔNG: Đã khắc [{chosenReward.faceName}] vào xúc xắc!");
+            SetTMPText(forgeSubLabel, $"🔥 RÈN THÀNH CÔNG: Đã khắc [{chosenReward.faceName}] vào xúc xắc! Đang trở về Bản Đồ Ải...");
         }
 
         yield return new WaitForSeconds(0.55f);
 
-        if (GameManager.Instance == null) yield break;
-
-        GameManager.Instance.currentStageIndex++;
-        int maxStages = (GameManager.Instance.stageEnemies != null && GameManager.Instance.stageEnemies.Length > 0)
-            ? GameManager.Instance.stageEnemies.Length
-            : 3;
-
-        if (GameManager.Instance.currentStageIndex > maxStages)
+        if (GameManager.Instance != null)
         {
-            Debug.Log("[Forge] You WIN! All stages cleared.");
-            GameManager.Instance.LoadMainMenu();
+            GameManager.Instance.LoadStageMapScene();
         }
         else
         {
-            GameManager.Instance.LoadCombatScene();
+            UnityEngine.SceneManagement.SceneManager.LoadScene("StageMap");
         }
     }
 

@@ -20,6 +20,11 @@ public class Phase1Setup
             EditorSceneManager.SaveScene(EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single), menuPath);
         }
 
+        string mapPath = "Assets/Scenes/StageMap.unity";
+        if (!System.IO.File.Exists(mapPath)) {
+            EditorSceneManager.SaveScene(EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single), mapPath);
+        }
+
         string forgePath = "Assets/Scenes/TheForge.unity";
         if (!System.IO.File.Exists(forgePath)) {
             EditorSceneManager.SaveScene(EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single), forgePath);
@@ -28,6 +33,7 @@ public class Phase1Setup
         List<EditorBuildSettingsScene> newScenes = new List<EditorBuildSettingsScene>();
         newScenes.Add(new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true));
         newScenes.Add(new EditorBuildSettingsScene("Assets/Scenes/CombatScene.unity", true));
+        newScenes.Add(new EditorBuildSettingsScene("Assets/Scenes/StageMap.unity", true));
         newScenes.Add(new EditorBuildSettingsScene("Assets/Scenes/TheForge.unity", true));
 
         EditorBuildSettings.scenes = newScenes.ToArray();
