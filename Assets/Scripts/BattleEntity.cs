@@ -12,15 +12,19 @@ public struct EntityStateSnapshot
     public int currentShield;
     public bool retainHalfShieldNextTurn;
     public int poisonStacks;
+    public int burnStacks;
     public int stunStacks;
     public int weakStacks;
     public int bonusAttack;
+    public int currentEnergy;
+    public int maxEnergy;
+    public int nextSkillCostReduction;
 }
 
 /// <summary>
 /// BattleEntity — Thực thể chiến đấu (Player & Enemy) theo GDD mục 3.1 & 3.3.
-/// Quản lý: HP, Shield (reset đầu lượt hoặc giữ 50% với Iron Wall),
-/// Túi hiệu ứng trạng thái (Poison, Stun, Weak, BonusAttack) và Observer Events.
+/// Quản lý: HP, Shield (reset đầu lượt hoặc giữ 50% với Iron Wall), Energy (Năng lượng kỹ năng),
+/// Túi hiệu ứng trạng thái (Poison, Burn/Thiêu đốt, Stun, Weak, BonusAttack) và Observer Events.
 /// </summary>
 public class BattleEntity : MonoBehaviour
 {
@@ -30,8 +34,14 @@ public class BattleEntity : MonoBehaviour
     [SerializeField] private int currentShield;
     [SerializeField] private bool retainHalfShieldNextTurn;
 
+    [Header("Player Energy / Skill Resource")]
+    public int maxEnergy = 10;
+    [SerializeField] private int currentEnergy;
+    [SerializeField] private int nextSkillCostReduction;
+
     [Header("Status Effects (GDD 3.1 & 3.3)")]
     [SerializeField] private int poisonStacks;
+    [SerializeField] private int burnStacks;
     [SerializeField] private int stunStacks;
     [SerializeField] private int weakStacks;
     [SerializeField] private int bonusAttack;
@@ -41,12 +51,17 @@ public class BattleEntity : MonoBehaviour
     public event Action<int> OnShieldChanged;      // <CurrentShield>
     public event Action<int> OnDamageTaken;        // <DamageAmount>
     public event Action<int> OnHealed;             // <HealAmount>
-    public event Action OnStatusChanged;           // Kích hoạt khi Poison/Stun/Weak/BonusAtk thay đổi
+    public event Action<int, int> OnEnergyChanged; // <CurrentEnergy, MaxEnergy>
+    public event Action OnStatusChanged;           // Kích hoạt khi Poison/Burn/Stun/Weak/BonusAtk/Energy thay đổi
 
     public int CurrentHP => currentHP;
     public int MaxHP => maxHP;
     public int CurrentShield => currentShield;
+    public int CurrentEnergy => currentEnergy;
+    public int MaxEnergy => maxEnergy;
+    public int NextSkillCostReduction => nextSkillCostReduction;
     public int PoisonStacks => poisonStacks;
+    public int BurnStacks => burnStacks;
     public int StunStacks => stunStacks;
     public int WeakStacks => weakStacks;
     public int BonusAttack => bonusAttack;
@@ -72,6 +87,8 @@ public class BattleEntity : MonoBehaviour
     {
         ClearAllStatuses();
         retainHalfShieldNextTurn = false;
+        currentEnergy = 0;
+        nextSkillCostReduction = 0;
 
         if (data != null)
         {
@@ -116,7 +133,66 @@ public class BattleEntity : MonoBehaviour
     {
         OnHPChanged?.Invoke(currentHP, maxHP);
         OnShieldChanged?.Invoke(currentShield);
+        OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
         OnStatusChanged?.Invoke();
+    }
+
+    // ─── Quản lý Thanh Năng Lượng & Chi Phí Kỹ Năng Nhân Vật ───────────────────
+
+    /// <summary>
+    /// Tích lũy Năng lượng từ các mặt xúc xắc Năng lượng (Mana Spark, Arcane Surge, Overcharge).
+    /// </summary>
+    public void AddEnergy(int amount, int skillDiscount = 0)
+    {
+        if (amount > 0)
+        {
+            currentEnergy = Mathf.Clamp(currentEnergy + amount, 0, maxEnergy);
+        }
+        if (skillDiscount > 0)
+        {
+            nextSkillCostReduction += skillDiscount;
+        }
+        OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
+        OnStatusChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Tính chi phí Năng lượng thực tế của kỹ năng sau khi trừ giảm giá từ mặt Overcharge (nếu có).
+    /// </summary>
+    public int GetEffectiveSkillCost(int baseCost)
+    {
+        return Mathf.Max(0, baseCost - nextSkillCostReduction);
+    }
+
+    /// <summary>
+    /// Kiểm tra và tiêu hao Năng lượng để thi triển Kỹ năng Thường hoặc Kỹ năng Tối thượng.
+    /// </summary>
+    public bool TrySpendEnergyForSkill(int baseCost)
+    {
+        int effectiveCost = GetEffectiveSkillCost(baseCost);
+        if (currentEnergy < effectiveCost)
+        {
+            return false;
+        }
+
+        currentEnergy -= effectiveCost;
+        nextSkillCostReduction = 0; // Tiêu thụ hiệu ứng giảm chi phí cho kỹ năng tiếp theo
+        OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
+        OnStatusChanged?.Invoke();
+        return true;
+    }
+
+    /// <summary>
+    /// Xóa hiệu ứng giảm chi phí kỹ năng trong lượt khi kết thúc hiệp (Năng lượng vẫn được bảo lưu giữa các hiệp).
+    /// </summary>
+    public void ResetTurnSkillDiscount()
+    {
+        if (nextSkillCostReduction != 0)
+        {
+            nextSkillCostReduction = 0;
+            OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
+            OnStatusChanged?.Invoke();
+        }
     }
 
     // ─── Quy tắc Toán học Chiến đấu (GDD 3.3) ──────────────────────────────────
@@ -178,7 +254,7 @@ public class BattleEntity : MonoBehaviour
     }
 
     /// <summary>
-    /// Nhận sát thương xuyên giáp (dùng cho Độc - Poison ở cuối mỗi Round theo GDD 3.3).
+    /// Nhận sát thương xuyên giáp (dùng cho Độc - Poison và Thiêu đốt - Burn ở cuối mỗi Round).
     /// </summary>
     public void TakeDirectDamage(int directDamage, bool triggerDefeatCallback = true)
     {
@@ -266,6 +342,13 @@ public class BattleEntity : MonoBehaviour
         OnStatusChanged?.Invoke();
     }
 
+    public void AddBurn(int stacks)
+    {
+        if (stacks <= 0) return;
+        burnStacks += stacks;
+        OnStatusChanged?.Invoke();
+    }
+
     public void AddStun(int stacks = 1)
     {
         if (stacks <= 0) return;
@@ -288,11 +371,12 @@ public class BattleEntity : MonoBehaviour
     }
 
     /// <summary>
-    /// Kỹ năng Purify (GDD 3.2): Giải trừ toàn bộ hiệu ứng bất lợi (Poison, Weak, Stun).
+    /// Kỹ năng Purify (GDD 3.2): Giải trừ toàn bộ hiệu ứng bất lợi (Poison, Burn, Weak, Stun).
     /// </summary>
     public void Purify()
     {
         poisonStacks = 0;
+        burnStacks = 0;
         weakStacks = 0;
         stunStacks = 0;
         OnStatusChanged?.Invoke();
@@ -301,6 +385,7 @@ public class BattleEntity : MonoBehaviour
     public void ClearAllStatuses()
     {
         poisonStacks = 0;
+        burnStacks = 0;
         weakStacks = 0;
         stunStacks = 0;
         bonusAttack = 0;
@@ -324,19 +409,29 @@ public class BattleEntity : MonoBehaviour
 
     /// <summary>
     /// Xử lý cuối mỗi Round (RoundEnd - GDD 3.3 & 3.4):
-    /// - Kích hoạt Độc (trừ máu trực tiếp, giảm 1 stack).
+    /// - Kích hoạt Độc (Poison: trừ máu trực tiếp, giảm 1 stack).
+    /// - Kích hoạt Thiêu đốt (Burn: trừ máu trực tiếp, giảm 1 stack).
     /// - Giảm 1 stack Suy yếu (Weak) nếu có.
-    /// Trả về lượng sát thương độc đã gây ra.
+    /// Trả về tổng lượng sát thương theo thời gian (Độc + Thiêu đốt) đã gây ra.
     /// </summary>
     public int ProcessRoundEndStatuses(bool triggerDefeatCallback = true)
     {
-        int poisonDamageDealt = 0;
+        int totalDotDamage = 0;
 
         if (poisonStacks > 0 && currentHP > 0)
         {
-            poisonDamageDealt = poisonStacks;
+            int poisonDmg = poisonStacks;
             poisonStacks = Mathf.Max(0, poisonStacks - 1);
-            TakeDirectDamage(poisonDamageDealt, triggerDefeatCallback);
+            totalDotDamage += poisonDmg;
+            TakeDirectDamage(poisonDmg, triggerDefeatCallback);
+        }
+
+        if (burnStacks > 0 && currentHP > 0)
+        {
+            int burnDmg = burnStacks;
+            burnStacks = Mathf.Max(0, burnStacks - 1);
+            totalDotDamage += burnDmg;
+            TakeDirectDamage(burnDmg, triggerDefeatCallback);
         }
 
         if (weakStacks > 0)
@@ -344,8 +439,9 @@ public class BattleEntity : MonoBehaviour
             weakStacks = Mathf.Max(0, weakStacks - 1);
         }
 
+        ResetTurnSkillDiscount();
         OnStatusChanged?.Invoke();
-        return poisonDamageDealt;
+        return totalDotDamage;
     }
 
     // ─── Hỗ trợ Hoàn tác (Undo Snapshot) ──────────────────────────────────────
@@ -359,9 +455,13 @@ public class BattleEntity : MonoBehaviour
             currentShield = this.currentShield,
             retainHalfShieldNextTurn = this.retainHalfShieldNextTurn,
             poisonStacks = this.poisonStacks,
+            burnStacks = this.burnStacks,
             stunStacks = this.stunStacks,
             weakStacks = this.weakStacks,
-            bonusAttack = this.bonusAttack
+            bonusAttack = this.bonusAttack,
+            currentEnergy = this.currentEnergy,
+            maxEnergy = this.maxEnergy,
+            nextSkillCostReduction = this.nextSkillCostReduction
         };
     }
 
@@ -372,9 +472,13 @@ public class BattleEntity : MonoBehaviour
         this.currentShield = snapshot.currentShield;
         this.retainHalfShieldNextTurn = snapshot.retainHalfShieldNextTurn;
         this.poisonStacks = snapshot.poisonStacks;
+        this.burnStacks = snapshot.burnStacks;
         this.stunStacks = snapshot.stunStacks;
         this.weakStacks = snapshot.weakStacks;
         this.bonusAttack = snapshot.bonusAttack;
+        this.currentEnergy = snapshot.currentEnergy;
+        this.maxEnergy = snapshot.maxEnergy > 0 ? snapshot.maxEnergy : 10;
+        this.nextSkillCostReduction = snapshot.nextSkillCostReduction;
 
         SyncPlayerHPToGameManager();
         NotifyAllStats();

@@ -56,6 +56,13 @@ public class SimpleCombatManager : MonoBehaviour
     public Sprite diceFacePoisonSprite;
     public Sprite diceFaceFireSprite;
 
+    [Header("Character Active Skills (Normal & Ultimate)")]
+    public int normalSkillBaseCost = 2;
+    public int normalSkillDamage = 5;
+    public int ultimateSkillBaseCost = 6;
+    public int ultimateSkillDamage = 14;
+    public int ultimateSkillBurnStacks = 4;
+
     [Header("Runtime Combat State")]
     public CombatPhase currentPhase = CombatPhase.RoundStart;
     public int currentRound = 0;
@@ -88,6 +95,11 @@ public class SimpleCombatManager : MonoBehaviour
     private Component trayGuideLabel;
     private Image playerTargetRing;
     private Image enemyTargetRing;
+
+    // Character Skill & Energy Bar UI Elements
+    private Component energyStatusLabel;
+    private Button normalSkillButton;
+    private Button ultimateSkillButton;
 
     private static Sprite cachedSoftOvalSprite;
 
@@ -150,12 +162,20 @@ public class SimpleCombatManager : MonoBehaviour
 
     private void Update()
     {
-        // Phím tắt Z để Undo nhanh trong pha PlayerAction
+        // Phím tắt trong pha PlayerAction: Z = Undo, 1 = Skill Thường, 2 = Skill Tối Thượng
         if (!isAnimating && !combatEnded && currentPhase == CombatPhase.PlayerAction)
         {
             if (Input.GetKeyDown(KeyCode.Z))
             {
                 UndoLastDiceAction();
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+            {
+                TryCastNormalSkill();
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
+            {
+                TryCastUltimateSkill();
             }
         }
     }
@@ -919,6 +939,86 @@ public class SimpleCombatManager : MonoBehaviour
             undoButton.onClick.RemoveAllListeners();
             UpdateButtonCaption(undoButton, "UNDO (0) [Z]");
         }
+
+        // 7. Cụm Thanh Năng Lượng & 2 Kỹ Năng Nhân Vật (Skill Thường & Skill Tối Thượng)
+        if (energyStatusLabel == null)
+        {
+            GameObject energyPill = CreateStatusPillPanel(
+                rootCanvas.transform,
+                "PlayerEnergyPanel",
+                new Vector2(0f, -135f),
+                new Vector2(360f, 34f),
+                new Color(0.22f, 0.75f, 1f, 0.85f));
+
+            energyStatusLabel = CreateOverlayLabel(
+                energyPill.transform,
+                "PlayerEnergyText",
+                Vector2.zero,
+                new Vector2(348f, 30f),
+                16.5f,
+                new Color(0.55f, 0.92f, 1f, 1f));
+        }
+
+        if (normalSkillButton == null)
+        {
+            normalSkillButton = CreateSkillButton(
+                rootCanvas.transform,
+                "NormalSkillButton",
+                new Vector2(-115f, -184f),
+                new Vector2(218f, 44f),
+                new Color(0.12f, 0.28f, 0.48f, 0.95f),
+                new Color(0.38f, 0.78f, 1f, 0.9f),
+                TryCastNormalSkill);
+        }
+
+        if (ultimateSkillButton == null)
+        {
+            ultimateSkillButton = CreateSkillButton(
+                rootCanvas.transform,
+                "UltimateSkillButton",
+                new Vector2(115f, -184f),
+                new Vector2(218f, 44f),
+                new Color(0.48f, 0.14f, 0.12f, 0.95f),
+                new Color(1f, 0.55f, 0.18f, 0.92f),
+                TryCastUltimateSkill);
+        }
+    }
+
+    private Button CreateSkillButton(
+        Transform parent,
+        string name,
+        Vector2 anchoredPos,
+        Vector2 size,
+        Color bgColor,
+        Color outlineColor,
+        UnityEngine.Events.UnityAction onClickAction)
+    {
+        GameObject btnGo = new GameObject(name);
+        btnGo.transform.SetParent(parent, false);
+        RectTransform rt = btnGo.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = size;
+
+        Image img = btnGo.AddComponent<Image>();
+        img.color = bgColor;
+        EnsureOutline(btnGo, outlineColor, 1.4f);
+
+        Button btn = btnGo.AddComponent<Button>();
+        btn.targetGraphic = img;
+        btn.onClick.AddListener(onClickAction);
+
+        CreateOverlayLabel(
+            btnGo.transform,
+            "SkillCaption",
+            Vector2.zero,
+            size - new Vector2(10f, 4f),
+            13.5f,
+            Color.white);
+
+        return btn;
     }
 
     private GameObject CreateStatusPillPanel(
@@ -1025,9 +1125,15 @@ public class SimpleCombatManager : MonoBehaviour
                 RefreshEntityStatusDisplay(playerEntity, playerStatusLabel);
             };
 
+            playerEntity.OnEnergyChanged += (curEnergy, maxEnergy) =>
+            {
+                UpdateCharacterSkillsUI();
+            };
+
             playerEntity.OnStatusChanged += () =>
             {
                 RefreshEntityStatusDisplay(playerEntity, playerStatusLabel);
+                UpdateCharacterSkillsUI();
             };
         }
 
@@ -1081,9 +1187,10 @@ public class SimpleCombatManager : MonoBehaviour
         if (entity.CurrentShield > 0) badges.Add($"<color=#38bdf8>🛡 Giáp: {entity.CurrentShield}</color>");
         if (entity.RetainHalfShieldNextTurn) badges.Add("<color=#fde047>🏰 Giữ 50% Giáp</color>");
         if (entity.PoisonStacks > 0) badges.Add($"<color=#c084fc>☠ Độc: {entity.PoisonStacks}</color>");
+        if (entity.BurnStacks > 0) badges.Add($"<color=#fb923c>🔥 Thiêu đốt: {entity.BurnStacks}</color>");
         if (entity.StunStacks > 0) badges.Add($"<color=#facc15>⚡ Choáng: {entity.StunStacks}</color>");
         if (entity.WeakStacks > 0) badges.Add($"<color=#94a3b8>⬇ Yếu: {entity.WeakStacks}</color>");
-        if (entity.BonusAttack > 0) badges.Add($"<color=#fb923c>🔥 +Công: {entity.BonusAttack}</color>");
+        if (entity.BonusAttack > 0) badges.Add($"<color=#fb923c>⚔ +Công: {entity.BonusAttack}</color>");
 
         string text = badges.Count > 0 ? string.Join("   ", badges) : "<color=#94a3b8>🛡 Giáp: 0  •  Bình thường</color>";
         SetTMPText(statusLabel, text);
@@ -1519,10 +1626,123 @@ public class SimpleCombatManager : MonoBehaviour
                 if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.24f, 11f);
                 break;
 
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge:
+                pAnim.PlayHealPowerUp(isPurify: true);
+                break;
+
             case DiceSkillKind.Blank:
                 pAnim.PlayMissFumble();
                 break;
         }
+    }
+
+    // ─── HỆ THỐNG 2 KỸ NĂNG NHÂN VẬT (SKILL THƯỜNG & SKILL TỐI THƯỢNG) ─────────
+
+    /// <summary>
+    /// Kỹ năng Thường: Tiêu hao Năng lượng thấp (mặc định 2 Energy), gây 1 lượng đơn vị sát thương lên đối thủ.
+    /// </summary>
+    public void TryCastNormalSkill()
+    {
+        if (isAnimating || combatEnded || currentPhase != CombatPhase.PlayerAction) return;
+        if (playerEntity == null || enemyEntity == null || !enemyEntity.IsAlive()) return;
+
+        int cost = playerEntity.GetEffectiveSkillCost(normalSkillBaseCost);
+        if (playerEntity.CurrentEnergy < cost)
+        {
+            if (tooltipLabel != null)
+            {
+                SetTMPText(tooltipLabel, $"⚠ Không đủ Năng lượng để dùng Kỹ năng Thường! (Cần {cost} 🔷, hiện có {playerEntity.CurrentEnergy} 🔷)");
+            }
+            return;
+        }
+
+        EntityStateSnapshot playerSnapBefore = playerEntity.CaptureSnapshot();
+        EntityStateSnapshot enemySnapBefore = enemyEntity.CaptureSnapshot();
+
+        if (!playerEntity.TrySpendEnergyForSkill(normalSkillBaseCost)) return;
+
+        int finalDmg = playerEntity.CalculateOutgoingDamage(normalSkillDamage);
+        enemyEntity.TakeDamage(finalDmg);
+
+        if (commandManager != null)
+        {
+            commandManager.RecordDiceAction(new CombatCommandRecord
+            {
+                description = $"Skill Thường (-{cost}🔷, {finalDmg} Sát thương)",
+                primaryDiceSlotIndex = -1,
+                extraConsumedSlotIndex = -1,
+                playerBefore = playerSnapBefore,
+                enemyBefore = enemySnapBefore
+            });
+        }
+
+        if (playerPortraitImage != null)
+        {
+            CharacterSpriteAnimator pAnim = playerPortraitImage.GetComponent<CharacterSpriteAnimator>();
+            Transform enemyVisualTr = enemyPortraitImage != null ? enemyPortraitImage.transform : enemyEntity.transform;
+            if (pAnim != null) pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: false);
+        }
+
+        SpawnCustomFloatingText(playerEntity.transform, $"⚔ SKILL THƯỜNG! (-{cost}🔷)", new Color(0.45f, 0.88f, 1f));
+        UpdateControlButtonsUI();
+    }
+
+    /// <summary>
+    /// Kỹ năng Tối thượng (Ultimate): Tiêu hao Năng lượng lớn (mặc định 6 Energy),
+    /// gây 1 lượng sát thương lớn và áp hiệu ứng Thiêu đốt (Burn) lên đối thủ.
+    /// </summary>
+    public void TryCastUltimateSkill()
+    {
+        if (isAnimating || combatEnded || currentPhase != CombatPhase.PlayerAction) return;
+        if (playerEntity == null || enemyEntity == null || !enemyEntity.IsAlive()) return;
+
+        int cost = playerEntity.GetEffectiveSkillCost(ultimateSkillBaseCost);
+        if (playerEntity.CurrentEnergy < cost)
+        {
+            if (tooltipLabel != null)
+            {
+                SetTMPText(tooltipLabel, $"⚠ Không đủ Năng lượng để tung Kỹ năng Tối thượng! (Cần {cost} 🔷, hiện có {playerEntity.CurrentEnergy} 🔷)");
+            }
+            return;
+        }
+
+        EntityStateSnapshot playerSnapBefore = playerEntity.CaptureSnapshot();
+        EntityStateSnapshot enemySnapBefore = enemyEntity.CaptureSnapshot();
+
+        if (!playerEntity.TrySpendEnergyForSkill(ultimateSkillBaseCost)) return;
+
+        int finalDmg = playerEntity.CalculateOutgoingDamage(ultimateSkillDamage);
+        enemyEntity.TakeDamage(finalDmg);
+        if (enemyEntity.IsAlive())
+        {
+            enemyEntity.AddBurn(ultimateSkillBurnStacks);
+        }
+
+        if (commandManager != null)
+        {
+            commandManager.RecordDiceAction(new CombatCommandRecord
+            {
+                description = $"Skill Tối Thượng (-{cost}🔷, {finalDmg} Sát thương + {ultimateSkillBurnStacks} Thiêu đốt)",
+                primaryDiceSlotIndex = -1,
+                extraConsumedSlotIndex = -1,
+                playerBefore = playerSnapBefore,
+                enemyBefore = enemySnapBefore
+            });
+        }
+
+        if (playerPortraitImage != null)
+        {
+            CharacterSpriteAnimator pAnim = playerPortraitImage.GetComponent<CharacterSpriteAnimator>();
+            Transform enemyVisualTr = enemyPortraitImage != null ? enemyPortraitImage.transform : enemyEntity.transform;
+            if (pAnim != null) pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: true);
+        }
+
+        if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.32f, 16f);
+        SpawnCustomFloatingText(playerEntity.transform, $"🔥 TỐI THƯỢNG! (-{cost}🔷)", new Color(1f, 0.55f, 0.15f));
+        SpawnCustomFloatingText(enemyEntity.transform, $"🔥 +{ultimateSkillBurnStacks} THIÊU ĐỐT!", new Color(1f, 0.42f, 0.12f));
+        UpdateControlButtonsUI();
     }
 
     private bool TryConsumeUnusedBlockSlot(int excludeSlotIndex, out int consumedSlotIndex)
@@ -1575,6 +1795,15 @@ public class SimpleCombatManager : MonoBehaviour
                 break;
             case DiceSkillKind.ShockStun:
                 SpawnCustomFloatingText(enemyEntity.transform, "⚡ GIÁNG SẤM CHOÁNG!", new Color(1f, 0.92f, 0.25f));
+                break;
+            case DiceSkillKind.ManaSpark:
+                SpawnCustomFloatingText(playerEntity.transform, $"🔷 +{face.valueV} NĂNG LƯỢNG!", new Color(0.38f, 0.88f, 1f));
+                break;
+            case DiceSkillKind.ArcaneSurge:
+                SpawnCustomFloatingText(playerEntity.transform, $"🔷 +{face.valueV} NĂNG LƯỢNG & +2 GIÁP!", new Color(0.45f, 0.92f, 1f));
+                break;
+            case DiceSkillKind.Overcharge:
+                SpawnCustomFloatingText(playerEntity.transform, $"🔷 +{face.valueV} QUÁ TẢI (-1🔷 SKILL)!", new Color(0.95f, 0.78f, 0.25f));
                 break;
             case DiceSkillKind.Blank:
                 SpawnCustomFloatingText(playerEntity.transform, "💨 TRƯỢT ĐÀ!", new Color(0.75f, 0.75f, 0.75f));
@@ -1698,13 +1927,17 @@ public class SimpleCombatManager : MonoBehaviour
             yield break;
         }
 
-        // 5. Pha Kết Thúc Hiệp (RoundEnd): Kích hoạt Độc (Poison) xuyên giáp & giảm Suy Yếu
+        // 5. Pha Kết Thúc Hiệp (RoundEnd): Kích hoạt Độc (Poison) & Thiêu đốt (Burn) xuyên giáp, giảm Suy Yếu
         currentPhase = CombatPhase.RoundEnd;
         UpdateEnemyIntentUI();
 
         if (enemyEntity.PoisonStacks > 0)
         {
             SpawnCustomFloatingText(enemyEntity.transform, $"☠ ĐỘC -{enemyEntity.PoisonStacks}", new Color(0.68f, 0.32f, 0.95f));
+        }
+        if (enemyEntity.BurnStacks > 0)
+        {
+            SpawnCustomFloatingText(enemyEntity.transform, $"🔥 THIÊU ĐỐT -{enemyEntity.BurnStacks}", new Color(1f, 0.45f, 0.15f));
         }
         enemyEntity.ProcessRoundEndStatuses(false);
 
@@ -1713,6 +1946,10 @@ public class SimpleCombatManager : MonoBehaviour
         if (playerEntity.PoisonStacks > 0)
         {
             SpawnCustomFloatingText(playerEntity.transform, $"☠ ĐỘC -{playerEntity.PoisonStacks}", new Color(0.68f, 0.32f, 0.95f));
+        }
+        if (playerEntity.BurnStacks > 0)
+        {
+            SpawnCustomFloatingText(playerEntity.transform, $"🔥 THIÊU ĐỐT -{playerEntity.BurnStacks}", new Color(1f, 0.45f, 0.15f));
         }
         playerEntity.ProcessRoundEndStatuses(false);
 
@@ -1890,6 +2127,10 @@ public class SimpleCombatManager : MonoBehaviour
                 return $"☠ {face.valueV}";
             case DiceSkillKind.ShockStun:
                 return $"⚡ {face.valueV}";
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge:
+                return $"🔷 +{face.valueV}";
             case DiceSkillKind.Blank:
                 return "💨 0";
             default:
@@ -1916,6 +2157,10 @@ public class SimpleCombatManager : MonoBehaviour
                 return new Color(0.32f, 0.15f, 0.46f, 0.95f);
             case DiceSkillKind.ShockStun:
                 return new Color(0.48f, 0.36f, 0.11f, 0.95f);
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge:
+                return new Color(0.11f, 0.36f, 0.58f, 0.95f);
             case DiceSkillKind.Blank:
                 return new Color(0.24f, 0.24f, 0.28f, 0.88f);
             default:
@@ -1942,6 +2187,9 @@ public class SimpleCombatManager : MonoBehaviour
             case DiceSkillKind.Regenerate:
             case DiceSkillKind.Purify:
             case DiceSkillKind.ShockStun:
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge:
                 return diceFaceFireSprite != null ? diceFaceFireSprite : diceFaceAttackSprite;
             default:
                 return diceFaceAttackSprite;
@@ -2011,6 +2259,9 @@ public class SimpleCombatManager : MonoBehaviour
             case DiceSkillKind.Purify: return "Hành động: ✨ Gồng thanh tẩy độc tố";
             case DiceSkillKind.PoisonSting: return "Hành động: ☠ Đâm mũi kiếm kịch độc";
             case DiceSkillKind.ShockStun: return "Hành động: ⚡ Giáng sấm sét gây choáng";
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge: return "Hành động: 🔷 Tụ khí nạp Năng lượng kỹ năng";
             default: return "Hành động: 💨 Trượt đà";
         }
     }
@@ -2111,6 +2362,43 @@ public class SimpleCombatManager : MonoBehaviour
                            undoCount > 0;
             undoButton.interactable = canUndo;
             UpdateButtonCaption(undoButton, $"⏪ UNDO ({undoCount}) [Z]");
+        }
+
+        UpdateCharacterSkillsUI();
+    }
+
+    private void UpdateCharacterSkillsUI()
+    {
+        int curEnergy = playerEntity != null ? playerEntity.CurrentEnergy : 0;
+        int maxEnergy = playerEntity != null ? playerEntity.MaxEnergy : 10;
+        int discount = playerEntity != null ? playerEntity.NextSkillCostReduction : 0;
+
+        if (energyStatusLabel != null)
+        {
+            string discountTag = discount > 0 ? $"  <color=#fde047>(-{discount}🔷 chi phí)</color>" : "";
+            SetTMPText(energyStatusLabel, $"🔷 NĂNG LƯỢNG KỸ NĂNG: <b>{curEnergy} / {maxEnergy}</b>{discountTag}");
+        }
+
+        int normalCost = playerEntity != null ? playerEntity.GetEffectiveSkillCost(normalSkillBaseCost) : normalSkillBaseCost;
+        int ultCost = playerEntity != null ? playerEntity.GetEffectiveSkillCost(ultimateSkillBaseCost) : ultimateSkillBaseCost;
+        bool canAct = !isAnimating && !combatEnded && currentPhase == CombatPhase.PlayerAction;
+
+        if (normalSkillButton != null)
+        {
+            bool canCastNormal = canAct && curEnergy >= normalCost;
+            normalSkillButton.interactable = canCastNormal;
+            UpdateButtonCaption(
+                normalSkillButton,
+                $"⚔ SKILL THƯỜNG [{normalCost}🔷]\n<size=11>Gây {normalSkillDamage} Sát thương [Phím 1]</size>");
+        }
+
+        if (ultimateSkillButton != null)
+        {
+            bool canCastUlt = canAct && curEnergy >= ultCost;
+            ultimateSkillButton.interactable = canCastUlt;
+            UpdateButtonCaption(
+                ultimateSkillButton,
+                $"🔥 TỐI THƯỢNG [{ultCost}🔷]\n<size=11>{ultimateSkillDamage} Sát thương + {ultimateSkillBurnStacks} Cháy [Phím 2]</size>");
         }
     }
 

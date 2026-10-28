@@ -32,15 +32,16 @@ Là một tựa game Roguelike, người chơi sẽ phải chinh phục các ả
 
 ### **2.1. Sơ đồ điều hướng màn hình (Screen Flow)**
 
-> * Menu Chính (Main Menu) \-\> Lựa chọn nhân vật (nếu có) \-\> Main Gameplay Loop.  
-> * Main Gameplay Loop: Màn hình Chiến đấu (Combat Scene) \-\> Màn hình Xưởng rèn (Forge Scene) \-\> Màn hình Chiến đấu...
+> * Menu Chính (Main Menu) \-\> Bản đồ Ải (Stage Map) \-\> Main Gameplay Loop.  
+> * Main Gameplay Loop: Màn hình Chiến đấu (Combat Scene) \-\> Bản đồ Ải (Stage Map) \-\> Màn hình Xưởng rèn (Forge Scene) \-\> Màn hình Chiến đấu...
 
 ### **2.2. Cơ chế điều khiển chi tiết (Control Scheme)**
 
-> * **Sử dụng kỹ năng:** Kéo thả (Drag & Drop) trực tiếp mặt xúc xắc từ khu vực của người chơi vào mục tiêu (Kẻ địch hoặc bản thân) trên màn hình.  
-> * **Xem thông tin (Tooltip):** Hover chuột vào mặt xúc xắc hoặc icon hiệu ứng (Độc, Choáng) để hiển thị bảng chú thích chi tiết công dụng.  
+> * **Sử dụng kỹ năng xúc xắc:** Kéo thả (Drag & Drop) trực tiếp mặt xúc xắc từ khu vực của người chơi vào mục tiêu (Kẻ địch hoặc bản thân) trên màn hình.  
+> * **Kích hoạt Kỹ năng Nhân vật:** Bấm vào nút **Kỹ năng Thường** hoặc **Kỹ năng Tối thượng** trên giao diện khi đã tích đủ điểm Năng lượng (Energy).  
+> * **Xem thông tin (Tooltip):** Hover chuột vào mặt xúc xắc hoặc icon hiệu ứng (Độc, Thiêu đốt, Choáng) để hiển thị bảng chú thích chi tiết công dụng.  
 > * **Gieo lại (Re-roll):** Click chuột trái để chọn (hoặc bỏ chọn) các viên xúc xắc bất lợi. Bấm nút "Re-roll" trên UI để tung lại các viên đã chọn (tốn tài nguyên R\_current).  
-> * **Hoàn tác (Undo):** Bấm nút Undo hoặc phím tắt để hủy lệnh vừa kéo thả (chỉ áp dụng trước khi bấm kết thúc lượt).
+> * **Hoàn tác (Undo):** Bấm nút Undo hoặc phím tắt `[Z]` để hủy lệnh vừa thực hiện (chỉ áp dụng trước khi bấm kết thúc lượt).
 
 ### **2.3. Wireframe & Bản nháp giao diện (UI/UX)**
 
@@ -50,29 +51,32 @@ Là một tựa game Roguelike, người chơi sẽ phải chinh phục các ả
 
 ### **3.1. Mô Hình Đối Tượng Thực Thể (Entity Models)**
 
-Mọi đối tượng tham gia trận chiến (Người chơi và Kẻ địch) đều kế thừa từ lớp trừu tượng Character:
+Mọi đối tượng tham gia trận chiến (Người chơi và Kẻ địch) đều kế thừa từ lớp thực thể chiến đấu (`BattleEntity`):
 
 > * **Máu tối đa (HP\_max):** Ngưỡng sống sót cao nhất.  
 > * **Máu hiện tại (HP\_current):** Biến động qua sát thương và hồi máu. Khi HP \= 0, trạng thái chuyển sang Dead.  
 > * **Giáp ảo (Shield):** Hấp thụ sát thương trước HP, chu kỳ làm mới về 0 ở đầu mỗi lượt.  
-> * **Túi hiệu ứng trạng thái (S):** Tập hợp các hiệu ứng phụ cộng dồn: Độc (Poison), Choáng (Stun), Suy yếu (Weak).
+> * **Túi hiệu ứng trạng thái (S):** Tập hợp các hiệu ứng phụ cộng dồn: Độc (Poison), Thiêu đốt (Burn), Choáng (Stun), Suy yếu (Weak).
 
 **Người chơi (Player)** mở rộng với:
 
-> * Túi xúc xắc: Tập hợp các khối lục diện đang trang bị (thường n từ 2-3 viên).  
-> * Lượt gieo lại (R\_current): Số lần cho phép re-roll. Mặc định R\_max \= 1\.  
-> * Túi mảnh mặt rèn: Kho lưu trữ mặt xúc xắc thu thập sau mỗi ải.
+> * **Túi xúc xắc:** Tập hợp các khối lục diện đang trang bị (thường n từ 2-3 viên).  
+> * **Lượt gieo lại (R\_current):** Số lần cho phép re-roll. Mặc định R\_max \= 1\.  
+> * **Thanh Năng lượng (Energy):** Tích lũy từ các mặt xúc xắc Năng lượng (tối đa E\_max \= 10), dùng để thi triển 2 Kỹ năng Nhân vật:
+>   * **Kỹ năng Thường (Normal Skill):** Tiêu hao 2 Energy — Gây 1 lượng đơn vị sát thương chuẩn lên đối thủ.
+>   * **Kỹ năng Tối thượng (Ultimate Skill):** Tiêu hao 6 Energy — Gây 1 lượng sát thương lớn và áp hiệu ứng Thiêu đốt (Burn) lên đối thủ.
+> * **Túi mảnh mặt rèn:** Kho lưu trữ mặt xúc xắc thu thập sau mỗi ải.
 
 **Kẻ địch (Enemy)** không dùng xúc xắc mà vận hành theo Hệ thống Ý định dự báo trước (Deterministic Intent):
 
 > * Intent (Action Type, Value, Target): Báo trước hành động ở đầu lượt của người chơi (Tấn công, Thủ, Debuff, Charge).
 
-### **3.2. Hệ Thống Xúc Xắc & Cơ Chế Tùy Biến (Dice-Crafting)**
+### **3.2. Hệ Thống Xúc Xắc & Cơ Chế Tùy Biến (Dice-Crafting — 13 Mặt Xúc Xắc)**
 
-Mỗi viên xúc xắc gồm đúng 6 mặt. Mỗi mặt định nghĩa bởi: Name, Icon, Type (Attack, Defend, Heal, Special), Value (V), Rarity.  
+Mỗi viên xúc xắc gồm đúng 6 mặt. Mỗi mặt định nghĩa bởi: Name, Icon, Type (Attack, Defend, Heal, Status, Energy, Special), Value (V), Rarity.  
 **Cơ chế Rèn (Crafting):** Khi qua màn, chọn 1 mặt mới ghi đè lên 1 mặt cũ của viên xúc xắc hiện tại. Mặt cũ bị hủy hoặc phân rã.
 
-| Nhóm | Tên mặt | Cấp | Giá trị (V) | Quy tắc thực thi chi tiết   |
+| Nhóm | Tên mặt | Cấp | Giá trị (V) | Quy tắc thực thi chi tiết |
 | :---- | :---- | :---- | :---- | :---- |
 | Tấn công | Strike | Common | 2-4 | Gây V sát thương chuẩn lên mục tiêu. |
 | Tấn công | Heavy Slash | Rare | 6-8 | Gây V sát thương; yêu cầu tiêu thụ thêm 1 mặt Khiên. |
@@ -83,6 +87,9 @@ Mỗi viên xúc xắc gồm đúng 6 mặt. Mỗi mặt định nghĩa bởi: N
 | Hồi phục | Purify | Rare | 0 | Giải trừ toàn bộ hiệu ứng bất lợi. |
 | Trạng thái | Poison Sting | Rare | 2-3 | Gây 1 dmg và cộng V stack Poison vào mục tiêu. |
 | Trạng thái | Shock / Stun | Epic | 1 | Đặt Choáng, vô hiệu hóa Intent địch ở lượt kế. |
+| Năng lượng | Mana Spark | Common | 1-2 | Tích lũy ngay lập tức +V điểm Năng lượng vào thanh kỹ năng. |
+| Năng lượng | Arcane Surge | Rare | 2-3 | Tích lũy +V Năng lượng và cộng thêm 2 Shield cho bản thân. |
+| Năng lượng | Overcharge | Epic | 4 | Tích lũy +4 Năng lượng; giảm 1 chi phí Năng lượng cho kỹ năng tiếp theo trong lượt. |
 | Đặc biệt | Blank (Miss) | Common | 0 | Không tạo hiệu ứng (mặt rủi ro cần tìm cách rèn đè). |
 
 ### **3.3. Quy Tắc Toán Học Chiến Đấu (Combat Resolution)**
@@ -90,7 +97,7 @@ Mỗi viên xúc xắc gồm đúng 6 mặt. Mỗi mặt định nghĩa bởi: N
 > * **Suy yếu (Weak):** Sát thương thực tế nếu bị dính Weak \= max(1, D\_raw \* 0.75).  
 > * **Giáp (Shield):** Sát thương đâm vào máu \= Sát thương thực tế \- Lượng giáp bị vỡ.  
 > * **Hồi máu:** HP mới \= min(HP\_max, HP\_current \+ Lượng hồi).  
-> * **Độc (Poison):** Trừ máu trực tiếp ở cuối mỗi round, stack độc giảm dần 1 đơn vị mỗi lượt.
+> * **Độc (Poison) & Thiêu đốt (Burn):** Trừ máu trực tiếp ở cuối mỗi round, số tầng (stack) giảm dần 1 đơn vị mỗi lượt.
 
 ### **3.4. Máy Trạng Thái Trận Đấu (Turn-based State Machine)**
 
@@ -98,17 +105,17 @@ Vòng lặp điều phối bởi một hệ thống máy trạng thái hữu h�
 
 > 1. **RoundStart:** Đặt lại Shield Player về 0\. Quái chọn Intent mới. Khôi phục lượt re-roll cho người chơi.  
 > 2. **PlayerRoll:** Tung ngẫu nhiên các xúc xắc. Player được phép thao tác Re-roll nếu còn lượt.  
-> 3. **PlayerAction:** Kéo thả xúc xắc dùng kỹ năng. Các lệnh đưa vào Command Stack (hỗ trợ Undo). Kết thúc bằng nút "End Turn".  
+> 3. **PlayerAction:** Kéo thả xúc xắc dùng kỹ năng hoặc kích hoạt Kỹ năng Thường / Kỹ năng Tối thượng khi đủ Năng lượng. Các lệnh đưa vào Command Stack (hỗ trợ Undo). Kết thúc bằng nút "End Turn".  
 > 4. **EnemyExecution:** Kiểm tra Stun (bỏ qua lượt nếu có, gỡ Stun). Nếu bình thường, thực thi chính xác Intent đã báo trước.  
-> 5. **RoundEnd:** Kích hoạt Độc (Poison) 2 bên. Kiểm tra HP (Victory/Defeat). Nếu chưa kết thúc, chuyển vòng lại RoundStart.
+> 5. **RoundEnd:** Kích hoạt Độc (Poison) & Thiêu đốt (Burn) 2 bên. Kiểm tra HP (Victory/Defeat). Nếu chưa kết thúc, chuyển vòng lại RoundStart.
 
 ## **4\. CẤU TRÚC MÀN CHƠI (LEVEL PROGRESSION)**
 
-| Ải đấu | Máu (HP) & Giáp | Chu kỳ hành vi Intent | Ý đồ thiết kế (Design Intent)   |
+| Ải đấu | Máu (HP) & Giáp | Chu kỳ hành vi Intent | Ý đồ thiết kế (Design Intent) |
 | :---- | :---- | :---- | :---- |
-| Ải 1: Goblin Scout | 20 HP | T1: 3 dmg T2: 4 dmg T3: Buff 3 giáp | Làm quen tính toán giáp và dứt điểm mục tiêu yếu. |
-| Ải 2: Armored Orc | 35 HP (+5 Shield) | T1: 6 dmg T2: Buff 6 giáp T3: 4 dmg \+ Độc 2 | Ép người chơi tích lũy giáp lớn hoặc dùng Độc bào máu qua khiên. |
-| Ải 3: Minotaur Boss | 60 HP | T1: Tích tụ (Buff \+3 Atk) T2: Bổ củi (12 dmg) T3: Lan 6 dmg \+ Hồi 4 HP | Thử thách sống sót, yêu cầu tối ưu bộ xúc xắc (Choáng hoặc Giáp cực đại). |
+| Ải 1: Goblin Scout | 20 HP | T1: 3 dmg T2: 4 dmg T3: Buff 3 giáp | Làm quen tính toán giáp, tích Năng lượng và dứt điểm mục tiêu yếu. |
+| Ải 2: Armored Orc | 35 HP (+5 Shield) | T1: 6 dmg T2: Buff 6 giáp T3: 4 dmg \+ Độc 2 | Ép người chơi tích lũy giáp lớn hoặc dùng Độc / Thiêu đốt bào máu qua khiên. |
+| Ải 3: Minotaur Boss | 60 HP | T1: Tích tụ (Buff \+3 Atk) T2: Bổ củi (12 dmg) T3: Lan 6 dmg \+ Hồi 4 HP | Thử thách sống sót, yêu cầu tối ưu bộ xúc xắc và tung Kỹ năng Tối thượng đúng thời điểm. |
 
 ## **5\. HƯỚNG ĐI NGHỆ THUẬT & ÂM THANH (ART & AUDIO)**
 

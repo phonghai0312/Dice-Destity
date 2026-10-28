@@ -853,6 +853,10 @@ public class ForgeController : MonoBehaviour
                 return $"☠{face.valueV}";
             case DiceSkillKind.ShockStun:
                 return $"⚡{face.valueV}";
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge:
+                return $"🔷+{face.valueV}";
             case DiceSkillKind.Blank:
                 return "💨0";
             default:
@@ -879,6 +883,10 @@ public class ForgeController : MonoBehaviour
                 return new Color(0.30f, 0.15f, 0.42f, 0.92f);
             case DiceSkillKind.ShockStun:
                 return new Color(0.45f, 0.35f, 0.10f, 0.92f);
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge:
+                return new Color(0.12f, 0.34f, 0.56f, 0.94f);
             case DiceSkillKind.Blank:
             default:
                 return new Color(0.22f, 0.20f, 0.25f, 0.85f);

@@ -178,6 +178,7 @@
          * **Giáp ảo (Shield):** Hấp thụ sát thương trực tiếp thay cho máu. Giáp ảo sẽ tự động đặt lại về $0$ khi bắt đầu vòng đấu mới (trừ khi có hiệu ứng bảo lưu đặc biệt).
          * **Hiệu ứng trạng thái (Status Effects):**
          * *Độc (Poison):* Gây sát thương trực tiếp vào máu ở cuối vòng đấu (bỏ qua Giáp) dựa trên số tầng (stack) hiện có, sau đó giảm đi $1$ tầng.
+         * *Thiêu đốt (Burn):* Gây sát thương lửa trực tiếp vào máu ở cuối vòng đấu dựa trên số tầng (stack) hiện có, sau đó giảm đi $1$ tầng.
          * *Choáng (Stun):* Vô hiệu hóa hoàn toàn hành động của mục tiêu trong lượt kế tiếp.
          * *Suy yếu (Weak):* Giảm $25\%$ lượng sát thương gây ra ($\text{Sát thương thực tế} = \max(1, \lfloor D_{raw} \times 0.75 \rfloor)$).
 
@@ -190,12 +191,12 @@
          Bên cạnh các hành động trực tiếp từ mặt xúc xắc, nhân vật sở hữu một bộ kỹ năng chủ động gồm **2 kỹ năng** sử dụng điểm Năng lượng (Energy) để thi triển trong giai đoạn hành động (`PlayerAction`):
 
          * **Kỹ năng Thường (Normal Skill):**
-         * **Chi phí:** Tiêu hao lượng năng lượng thấp ($2 - 3$ Energy), không giới hạn số lần kích hoạt mỗi lượt nếu đủ năng lượng (hoặc hồi chiêu ngắn $1$ lượt tùy nhánh nâng cấp).
-         * **Vai trò:** Bổ trợ chiến thuật linh hoạt, giúp lấp đầy khoảng trống khi xúc xắc gieo ra thiếu mặt công hoặc thủ (Ví dụ: *Chém Phá Giáp* – gây $4$ sát thương và kèm $1$ tầng Suy yếu; hoặc *Khiên Năng Lượng* – tạo $4$ Shield và rút $1$ lượt gieo lại miễn phí).
+         * **Chi phí:** Tiêu hao lượng năng lượng thấp ($2$ Energy), không giới hạn số lần kích hoạt mỗi lượt nếu đủ năng lượng.
+         * **Hiệu ứng:** Gây $1$ lượng đơn vị sát thương chuẩn ($5\text{ sát thương}$) trực tiếp lên đối thủ, bổ trợ sát thương ổn định ngay cả khi xúc xắc gieo ra thiếu mặt tấn công.
 
          * **Kỹ năng Tối thượng (Ultimate Skill):**
-         * **Chi phí:** Tiêu hao lượng năng lượng lớn ($6 - 8$ Energy).
-         * **Vai trò:** Đòn đánh xoay chuyển cục diện trận đấu với sức sát thương bùng nổ hoặc hiệu ứng khống chế/bảo vệ diện rộng cực mạnh (Ví dụ: *Phán Quyết Định Mệnh* – gây $15$ sát thương chuẩn, làm Choáng mục tiêu $1$ lượt và nhân đôi lượng Giáp hiện tại của bản thân).
+         * **Chi phí:** Tiêu hao lượng năng lượng lớn ($6$ Energy).
+         * **Hiệu ứng:** Gây $1$ lượng sát thương lớn ($14\text{ sát thương}$) lên đối thủ và đồng thời áp hiệu ứng **Thiêu đốt (Burn)** ($4\text{ tầng}$), tiếp tục rút máu đối thủ ở cuối mỗi vòng đấu.
 
       3. ### Hệ thống Xúc xắc & Mặt Tích Năng lượng (Dice & Energy Faces)
          Mỗi viên xúc xắc có $6$ mặt, được phân thành $5$ nhóm chức năng chính: **Tấn công (Attack)**, **Phòng thủ (Defend)**, **Hồi phục (Heal)**, **Trạng thái (Status/Special)** và **Năng lượng (Energy)**.

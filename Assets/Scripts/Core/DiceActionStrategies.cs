@@ -253,6 +253,55 @@ public class BlankActionStrategy : IDiceAction
     }
 }
 
+// ─── 11. MANA SPARK (Common, 1-2): Tích lũy +V Năng lượng ───────────────────
+public class ManaSparkActionStrategy : IDiceAction
+{
+    public bool CanExecute(DiceActionContext ctx, out string failReason)
+    {
+        failReason = null;
+        return ctx.User != null;
+    }
+
+    public void Execute(DiceActionContext ctx)
+    {
+        int energyVal = Mathf.Max(1, ctx.FaceData.valueV);
+        ctx.User.AddEnergy(energyVal, skillDiscount: 0);
+    }
+}
+
+// ─── 12. ARCANE SURGE (Rare, 2-3): Tích lũy +V Năng lượng và +2 Shield ──────
+public class ArcaneSurgeActionStrategy : IDiceAction
+{
+    public bool CanExecute(DiceActionContext ctx, out string failReason)
+    {
+        failReason = null;
+        return ctx.User != null;
+    }
+
+    public void Execute(DiceActionContext ctx)
+    {
+        int energyVal = Mathf.Max(1, ctx.FaceData.valueV);
+        ctx.User.AddEnergy(energyVal, skillDiscount: 0);
+        ctx.User.AddShield(2, retainHalf: false);
+    }
+}
+
+// ─── 13. OVERCHARGE (Epic, 4): Tích lũy +4 Năng lượng & Giảm 1 chi phí Skill ─
+public class OverchargeActionStrategy : IDiceAction
+{
+    public bool CanExecute(DiceActionContext ctx, out string failReason)
+    {
+        failReason = null;
+        return ctx.User != null;
+    }
+
+    public void Execute(DiceActionContext ctx)
+    {
+        int energyVal = Mathf.Max(1, ctx.FaceData.valueV);
+        ctx.User.AddEnergy(energyVal, skillDiscount: 1);
+    }
+}
+
 /// <summary>
 /// Registry ánh xạ từng DiceSkillKind sang Strategy tương ứng (không cần switch-case ở Controller).
 /// </summary>
@@ -270,7 +319,10 @@ public static class DiceActionRegistry
             { DiceSkillKind.Purify,      new PurifyActionStrategy() },
             { DiceSkillKind.PoisonSting, new PoisonStingActionStrategy() },
             { DiceSkillKind.ShockStun,   new ShockStunActionStrategy() },
-            { DiceSkillKind.Blank,       new BlankActionStrategy() }
+            { DiceSkillKind.Blank,       new BlankActionStrategy() },
+            { DiceSkillKind.ManaSpark,   new ManaSparkActionStrategy() },
+            { DiceSkillKind.ArcaneSurge, new ArcaneSurgeActionStrategy() },
+            { DiceSkillKind.Overcharge,  new OverchargeActionStrategy() }
         };
 
     public static IDiceAction GetStrategy(DiceFaceData faceData)
@@ -284,4 +336,3 @@ public static class DiceActionRegistry
         return strategies[DiceSkillKind.Strike];
     }
 }
-

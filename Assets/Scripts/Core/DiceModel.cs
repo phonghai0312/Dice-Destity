@@ -68,58 +68,58 @@ public class DiceInstance
 }
 
 /// <summary>
-/// DiceCatalog — Khởi tạo bộ túi xúc xắc cơ bản (Starter Dice Bag) và danh mục 10 kỹ năng chuẩn GDD 3.2.
+/// DiceCatalog — Khởi tạo bộ túi xúc xắc cơ bản (Starter Dice Bag) và danh mục 13 kỹ năng chuẩn GDD.
 /// </summary>
 public static class DiceCatalog
 {
     private static List<DiceFaceData> cachedRewardPool;
 
     /// <summary>
-    /// Tạo bộ 3 viên xúc xắc khởi đầu (mỗi viên 6 mặt) theo GDD 3.1 & 3.2:
-    /// Có đầy đủ Tấn công (Strike), Phòng thủ (Block), Hồi máu (Regenerate) và 1 mặt Blank (Miss) để rèn đè.
+    /// Tạo bộ 3 viên xúc xắc khởi đầu (mỗi viên 6 mặt) theo GDD:
+    /// Có đầy đủ Tấn công (Strike), Phòng thủ (Block), Hồi máu (Regenerate), Năng lượng (Mana Spark) và 1 mặt Blank (Miss) để rèn đè.
     /// </summary>
     public static List<DiceInstance> CreateStarterDiceBag()
     {
         List<DiceInstance> bag = new List<DiceInstance>(3);
 
-        // Viên 1: Xúc xắc Chiến Binh (Thiên về Công & Thủ cơ bản)
+        // Viên 1: Xúc xắc Chiến Binh (Thiên về Công, Thủ & Năng lượng)
         bag.Add(new DiceInstance("Xúc Xắc Chiến Binh", new DiceFaceData[]
         {
-            DiceFaceData.CreateRuntimeFace("Strike", DiceFaceType.Attack, DiceSkillKind.Strike, 4, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Strike", DiceFaceType.Attack, DiceSkillKind.Strike, 3, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Strike", DiceFaceType.Attack, DiceSkillKind.Strike, 3, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Block",  DiceFaceType.Defend, DiceSkillKind.Block,  3, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Block",  DiceFaceType.Defend, DiceSkillKind.Block,  2, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Blank",  DiceFaceType.Special, DiceSkillKind.Blank, 0, DiceFaceRarity.Common)
-        }));
-
-        // Viên 2: Xúc xắc Hộ Vệ (Thiên về Thủ & Hồi phục)
-        bag.Add(new DiceInstance("Xúc Xắc Hộ Vệ", new DiceFaceData[]
-        {
-            DiceFaceData.CreateRuntimeFace("Block",      DiceFaceType.Defend, DiceSkillKind.Block,      4, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Block",      DiceFaceType.Defend, DiceSkillKind.Block,      3, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Strike",     DiceFaceType.Attack, DiceSkillKind.Strike,     3, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Regenerate", DiceFaceType.Heal,   DiceSkillKind.Regenerate, 3, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Regenerate", DiceFaceType.Heal,   DiceSkillKind.Regenerate, 2, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Strike",     DiceFaceType.Attack,  DiceSkillKind.Strike,    4, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Strike",     DiceFaceType.Attack,  DiceSkillKind.Strike,    3, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Block",      DiceFaceType.Defend,  DiceSkillKind.Block,     3, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Mana Spark", DiceFaceType.Energy,  DiceSkillKind.ManaSpark, 2, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Mana Spark", DiceFaceType.Energy,  DiceSkillKind.ManaSpark, 1, DiceFaceRarity.Common),
             DiceFaceData.CreateRuntimeFace("Blank",      DiceFaceType.Special, DiceSkillKind.Blank,     0, DiceFaceRarity.Common)
         }));
 
-        // Viên 3: Xúc xắc Định Mệnh (Cân bằng Công, Độc nhẹ & Thủ)
+        // Viên 2: Xúc xắc Hộ Vệ (Thiên về Thủ, Hồi phục & Năng lượng)
+        bag.Add(new DiceInstance("Xúc Xắc Hộ Vệ", new DiceFaceData[]
+        {
+            DiceFaceData.CreateRuntimeFace("Block",      DiceFaceType.Defend,  DiceSkillKind.Block,      4, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Block",      DiceFaceType.Defend,  DiceSkillKind.Block,      3, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Strike",     DiceFaceType.Attack,  DiceSkillKind.Strike,     3, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Regenerate", DiceFaceType.Heal,    DiceSkillKind.Regenerate, 3, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Mana Spark", DiceFaceType.Energy,  DiceSkillKind.ManaSpark,  2, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Blank",      DiceFaceType.Special, DiceSkillKind.Blank,      0, DiceFaceRarity.Common)
+        }));
+
+        // Viên 3: Xúc xắc Định Mệnh (Cân bằng Công, Độc, Thủ & Năng lượng)
         bag.Add(new DiceInstance("Xúc Xắc Định Mệnh", new DiceFaceData[]
         {
-            DiceFaceData.CreateRuntimeFace("Strike",       DiceFaceType.Attack, DiceSkillKind.Strike,      4, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Strike",       DiceFaceType.Attack, DiceSkillKind.Strike,      2, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Block",        DiceFaceType.Defend, DiceSkillKind.Block,       3, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Poison Sting", DiceFaceType.Status, DiceSkillKind.PoisonSting, 2, DiceFaceRarity.Rare),
-            DiceFaceData.CreateRuntimeFace("Regenerate",   DiceFaceType.Heal,   DiceSkillKind.Regenerate,  2, DiceFaceRarity.Common),
-            DiceFaceData.CreateRuntimeFace("Blank",        DiceFaceType.Special, DiceSkillKind.Blank,      0, DiceFaceRarity.Common)
+            DiceFaceData.CreateRuntimeFace("Strike",       DiceFaceType.Attack,  DiceSkillKind.Strike,      4, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Block",        DiceFaceType.Defend,  DiceSkillKind.Block,       3, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Poison Sting", DiceFaceType.Status,  DiceSkillKind.PoisonSting, 2, DiceFaceRarity.Rare),
+            DiceFaceData.CreateRuntimeFace("Regenerate",   DiceFaceType.Heal,    DiceSkillKind.Regenerate,  2, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Mana Spark",   DiceFaceType.Energy,  DiceSkillKind.ManaSpark,   2, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Blank",        DiceFaceType.Special, DiceSkillKind.Blank,       0, DiceFaceRarity.Common)
         }));
 
         return bag;
     }
 
     /// <summary>
-    /// Danh sách đầy đủ các mặt xúc xắc nâng cấp dùng làm phần thưởng trong Xưởng Rèn (GDD 3.2).
+    /// Danh sách đầy đủ các mặt xúc xắc nâng cấp dùng làm phần thưởng trong Xưởng Rèn (đủ 13 loại mặt trong GDD).
     /// </summary>
     public static List<DiceFaceData> GetForgeRewardPool()
     {
@@ -139,7 +139,10 @@ public static class DiceCatalog
             DiceFaceData.CreateRuntimeFace("Purify",       DiceFaceType.Heal,   DiceSkillKind.Purify,      0, DiceFaceRarity.Rare),
             DiceFaceData.CreateRuntimeFace("Poison Sting", DiceFaceType.Status, DiceSkillKind.PoisonSting, 3, DiceFaceRarity.Rare),
             DiceFaceData.CreateRuntimeFace("Shock / Stun", DiceFaceType.Status, DiceSkillKind.ShockStun,   1, DiceFaceRarity.Epic),
-            DiceFaceData.CreateRuntimeFace("Strike",       DiceFaceType.Attack, DiceSkillKind.Strike,      4, DiceFaceRarity.Common)
+            DiceFaceData.CreateRuntimeFace("Strike",       DiceFaceType.Attack, DiceSkillKind.Strike,      4, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Mana Spark",   DiceFaceType.Energy, DiceSkillKind.ManaSpark,   2, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Arcane Surge", DiceFaceType.Energy, DiceSkillKind.ArcaneSurge, 3, DiceFaceRarity.Rare),
+            DiceFaceData.CreateRuntimeFace("Overcharge",   DiceFaceType.Energy, DiceSkillKind.Overcharge,  4, DiceFaceRarity.Epic)
         };
 
         return cachedRewardPool;
@@ -163,4 +166,3 @@ public static class DiceCatalog
         return result;
     }
 }
-
