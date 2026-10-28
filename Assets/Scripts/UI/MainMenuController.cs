@@ -228,14 +228,48 @@ public class MainMenuController : MonoBehaviour
         infoTmp.alignment = TextAlignmentOptions.Center;
         infoTmp.color = new Color(0.88f, 0.85f, 0.8f, 1f);
 
+        // Codex Button (Mở Bách Khoa 13 Mặt Xúc Xắc & Kỹ Năng)
+        GameObject codexBtnObj = new GameObject("OpenCodexButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        codexBtnObj.transform.SetParent(boxObj.transform, false);
+        RectTransform codexRect = codexBtnObj.GetComponent<RectTransform>();
+        codexRect.anchorMin = new Vector2(0.5f, 0f);
+        codexRect.anchorMax = new Vector2(0.5f, 0f);
+        codexRect.sizeDelta = new Vector2(230f, 52f);
+        codexRect.anchoredPosition = new Vector2(-115f, 45f);
+
+        Image codexImg = codexBtnObj.GetComponent<Image>();
+        codexImg.color = new Color(0.14f, 0.28f, 0.48f, 1f);
+
+        Button codexBtn = codexBtnObj.GetComponent<Button>();
+        codexBtn.onClick.AddListener(() =>
+        {
+            modalObj.SetActive(false);
+            DiceCodexModalUI.ToggleOrCreate(canvas.transform);
+        });
+
+        GameObject codexTxtObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        codexTxtObj.transform.SetParent(codexBtnObj.transform, false);
+        RectTransform codexTxtRect = codexTxtObj.GetComponent<RectTransform>();
+        codexTxtRect.anchorMin = Vector2.zero;
+        codexTxtRect.anchorMax = Vector2.one;
+        codexTxtRect.offsetMin = Vector2.zero;
+        codexTxtRect.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI codexTmp = codexTxtObj.GetComponent<TextMeshProUGUI>();
+        codexTmp.text = "📖 BÁCH KHOA (13 MẶT)";
+        codexTmp.fontSize = 16.5f;
+        codexTmp.fontStyle = FontStyles.Bold;
+        codexTmp.alignment = TextAlignmentOptions.Center;
+        codexTmp.color = Color.white;
+
         // Close Button
         GameObject closeBtnObj = new GameObject("CloseSettingsButton", typeof(RectTransform), typeof(Image), typeof(Button));
         closeBtnObj.transform.SetParent(boxObj.transform, false);
         RectTransform closeRect = closeBtnObj.GetComponent<RectTransform>();
         closeRect.anchorMin = new Vector2(0.5f, 0f);
         closeRect.anchorMax = new Vector2(0.5f, 0f);
-        closeRect.sizeDelta = new Vector2(200f, 52f);
-        closeRect.anchoredPosition = new Vector2(0f, 45f);
+        closeRect.sizeDelta = new Vector2(180f, 52f);
+        closeRect.anchoredPosition = new Vector2(115f, 45f);
 
         Image closeImg = closeBtnObj.GetComponent<Image>();
         closeImg.color = new Color(0.55f, 0.16f, 0.16f, 1f);

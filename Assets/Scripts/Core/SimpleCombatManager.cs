@@ -55,6 +55,10 @@ public class SimpleCombatManager : MonoBehaviour
     public Sprite diceFaceShieldSprite;
     public Sprite diceFacePoisonSprite;
     public Sprite diceFaceFireSprite;
+    public Sprite diceFaceEnergySprite;
+    public Sprite diceFaceHealSprite;
+    public Sprite diceFaceLightningSprite;
+    public Sprite diceFaceBlankSprite;
 
     [Header("Character Active Skills (Normal & Ultimate)")]
     public int normalSkillBaseCost = 2;
@@ -97,6 +101,7 @@ public class SimpleCombatManager : MonoBehaviour
     private Image enemyTargetRing;
 
     // Character Skill & Energy Bar UI Elements
+    private CharacterSkillBarUI characterSkillBarUI;
     private Component energyStatusLabel;
     private Button normalSkillButton;
     private Button ultimateSkillButton;
@@ -706,6 +711,12 @@ public class SimpleCombatManager : MonoBehaviour
             GameManager.Instance.EnsureDiceBagInitialized();
             currentStage = Mathf.Max(1, GameManager.Instance.currentStageIndex);
 
+            normalSkillBaseCost = GameManager.Instance.normalSkillBaseCost;
+            normalSkillDamage = GameManager.Instance.GetNormalSkillDamage();
+            ultimateSkillBaseCost = GameManager.Instance.ultimateSkillBaseCost;
+            ultimateSkillDamage = GameManager.Instance.GetUltimateSkillDamage();
+            ultimateSkillBurnStacks = GameManager.Instance.GetUltimateSkillBurnStacks();
+
             if (GameManager.Instance.stageEnemies != null &&
                 currentStage - 1 < GameManager.Instance.stageEnemies.Length)
             {
@@ -940,48 +951,19 @@ public class SimpleCombatManager : MonoBehaviour
             UpdateButtonCaption(undoButton, "UNDO (0) [Z]");
         }
 
-        // 7. Cụm Thanh Năng Lượng & 2 Kỹ Năng Nhân Vật (Skill Thường & Skill Tối Thượng)
-        if (energyStatusLabel == null)
+        // 7. Cụm Thanh Năng Lượng (10 vạch Energy Pips) & 2 Kỹ Năng Nhân Vật (Skill Thường & Skill Tối Thượng)
+        if (characterSkillBarUI == null)
         {
-            GameObject energyPill = CreateStatusPillPanel(
-                rootCanvas.transform,
-                "PlayerEnergyPanel",
-                new Vector2(0f, -135f),
-                new Vector2(360f, 34f),
-                new Color(0.22f, 0.75f, 1f, 0.85f));
-
-            energyStatusLabel = CreateOverlayLabel(
-                energyPill.transform,
-                "PlayerEnergyText",
-                Vector2.zero,
-                new Vector2(348f, 30f),
-                16.5f,
-                new Color(0.55f, 0.92f, 1f, 1f));
+            characterSkillBarUI = rootCanvas.GetComponentInChildren<CharacterSkillBarUI>(true);
+            if (characterSkillBarUI == null)
+            {
+                characterSkillBarUI = gameObject.AddComponent<CharacterSkillBarUI>();
+            }
+            characterSkillBarUI.Initialize(this, playerEntity, rootCanvas.transform);
         }
 
-        if (normalSkillButton == null)
-        {
-            normalSkillButton = CreateSkillButton(
-                rootCanvas.transform,
-                "NormalSkillButton",
-                new Vector2(-115f, -184f),
-                new Vector2(218f, 44f),
-                new Color(0.12f, 0.28f, 0.48f, 0.95f),
-                new Color(0.38f, 0.78f, 1f, 0.9f),
-                TryCastNormalSkill);
-        }
-
-        if (ultimateSkillButton == null)
-        {
-            ultimateSkillButton = CreateSkillButton(
-                rootCanvas.transform,
-                "UltimateSkillButton",
-                new Vector2(115f, -184f),
-                new Vector2(218f, 44f),
-                new Color(0.48f, 0.14f, 0.12f, 0.95f),
-                new Color(1f, 0.55f, 0.18f, 0.92f),
-                TryCastUltimateSkill);
-        }
+        // 8. Nút Truy Cập Nhanh Bách Khoa Xúc Xắc (Codex) & Menu Tạm Dừng [ESC]
+        PauseMenuUI.AttachToCanvas(rootCanvas.transform);
     }
 
     private Button CreateSkillButton(
@@ -2183,16 +2165,20 @@ public class SimpleCombatManager : MonoBehaviour
                 return diceFaceShieldSprite;
             case DiceSkillKind.PoisonSting:
                 return diceFacePoisonSprite != null ? diceFacePoisonSprite : diceFaceFireSprite;
-            case DiceSkillKind.Vampiric:
             case DiceSkillKind.Regenerate:
             case DiceSkillKind.Purify:
+                return diceFaceHealSprite != null ? diceFaceHealSprite : diceFaceShieldSprite;
             case DiceSkillKind.ShockStun:
+                return diceFaceLightningSprite != null ? diceFaceLightningSprite : diceFaceFireSprite;
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
             case DiceSkillKind.Overcharge:
-                return diceFaceFireSprite != null ? diceFaceFireSprite : diceFaceAttackSprite;
+                return diceFaceEnergySprite != null ? diceFaceEnergySprite : diceFaceFireSprite;
+            case DiceSkillKind.Blank:
+                return diceFaceBlankSprite != null ? diceFaceBlankSprite : diceFaceShieldSprite;
+            case DiceSkillKind.Vampiric:
             default:
-                return diceFaceAttackSprite;
+                return diceFaceFireSprite != null ? diceFaceFireSprite : diceFaceAttackSprite;
         }
     }
 
@@ -2269,6 +2255,17 @@ public class SimpleCombatManager : MonoBehaviour
     public void HideTooltip()
     {
         SetDefaultHintText();
+    }
+
+    public void ShowCustomBannerTooltip(string message)
+    {
+        if (tooltipLabel == null) return;
+        SetTMPText(tooltipLabel, message);
+    }
+
+    public bool CanPlayerCastCharacterSkills()
+    {
+        return !isAnimating && !combatEnded && currentPhase == CombatPhase.PlayerAction;
     }
 
     private void SetDefaultHintText()
@@ -2369,36 +2366,9 @@ public class SimpleCombatManager : MonoBehaviour
 
     private void UpdateCharacterSkillsUI()
     {
-        int curEnergy = playerEntity != null ? playerEntity.CurrentEnergy : 0;
-        int maxEnergy = playerEntity != null ? playerEntity.MaxEnergy : 10;
-        int discount = playerEntity != null ? playerEntity.NextSkillCostReduction : 0;
-
-        if (energyStatusLabel != null)
+        if (characterSkillBarUI != null)
         {
-            string discountTag = discount > 0 ? $"  <color=#fde047>(-{discount}🔷 chi phí)</color>" : "";
-            SetTMPText(energyStatusLabel, $"🔷 NĂNG LƯỢNG KỸ NĂNG: <b>{curEnergy} / {maxEnergy}</b>{discountTag}");
-        }
-
-        int normalCost = playerEntity != null ? playerEntity.GetEffectiveSkillCost(normalSkillBaseCost) : normalSkillBaseCost;
-        int ultCost = playerEntity != null ? playerEntity.GetEffectiveSkillCost(ultimateSkillBaseCost) : ultimateSkillBaseCost;
-        bool canAct = !isAnimating && !combatEnded && currentPhase == CombatPhase.PlayerAction;
-
-        if (normalSkillButton != null)
-        {
-            bool canCastNormal = canAct && curEnergy >= normalCost;
-            normalSkillButton.interactable = canCastNormal;
-            UpdateButtonCaption(
-                normalSkillButton,
-                $"⚔ SKILL THƯỜNG [{normalCost}🔷]\n<size=11>Gây {normalSkillDamage} Sát thương [Phím 1]</size>");
-        }
-
-        if (ultimateSkillButton != null)
-        {
-            bool canCastUlt = canAct && curEnergy >= ultCost;
-            ultimateSkillButton.interactable = canCastUlt;
-            UpdateButtonCaption(
-                ultimateSkillButton,
-                $"🔥 TỐI THƯỢNG [{ultCost}🔷]\n<size=11>{ultimateSkillDamage} Sát thương + {ultimateSkillBurnStacks} Cháy [Phím 2]</size>");
+            characterSkillBarUI.RefreshSkillBarState();
         }
     }
 
@@ -2519,11 +2489,12 @@ public class SimpleCombatManager : MonoBehaviour
         combatEnded = true;
         currentPhase = CombatPhase.CombatOver;
         isAnimating = true;
+        UpdateControlButtonsUI();
 
         UpdateEnemyIntentUI();
         if (enemyIntentLabel != null)
         {
-            SetTMPText(enemyIntentLabel, "🎉 CHIẾN THẮNG! ĐANG MỞ BẢN ĐỒ HÀNH TRÌNH...");
+            SetTMPText(enemyIntentLabel, "🎉 CHIẾN THẮNG! QUÁI VẬT ĐÃ BỊ TIÊU DIỆT!");
         }
 
         // Hiệp sĩ gồng ăn mừng chiến thắng
@@ -2533,21 +2504,50 @@ public class SimpleCombatManager : MonoBehaviour
             if (pAnim != null) pAnim.PlayHealPowerUp(isPurify: true);
         }
 
-        yield return new WaitForSeconds(0.95f);
+        yield return new WaitForSeconds(0.75f);
+
+        int clearedStage = currentStage;
+        int remHP = playerEntity != null ? Mathf.Max(1, playerEntity.CurrentHP) : 70;
+        int maxHP = playerEntity != null ? playerEntity.MaxHP : 70;
+        string eName = currentEnemyData != null && !string.IsNullOrWhiteSpace(currentEnemyData.enemyName)
+            ? currentEnemyData.enemyName
+            : (clearedStage == 3 ? "Minotaur Boss" : (clearedStage == 2 ? "Armored Orc" : "Goblin Scout"));
 
         GameManager gm = GameManager.ResolveInstance();
         if (gm != null)
         {
-            if (playerEntity != null)
+            gm.playerCurrentHP = remHP;
+            int totalStages = gm.GetTotalStages();
+            gm.lastClearedStageIndex = Mathf.Max(gm.lastClearedStageIndex, clearedStage);
+            gm.heroMapStageIndex = clearedStage;
+            gm.pendingForgeUpgrades = Mathf.Max(1, gm.pendingForgeUpgrades + 1);
+
+            if (clearedStage < totalStages)
             {
-                gm.playerCurrentHP = Mathf.Max(1, playerEntity.CurrentHP);
+                gm.currentStageIndex = clearedStage + 1;
+                gm.highestUnlockedStageIndex = Mathf.Max(gm.highestUnlockedStageIndex, gm.currentStageIndex);
+                gm.isRunVictory = false;
             }
-            gm.OnEnemyDefeated();
+            else
+            {
+                gm.highestUnlockedStageIndex = totalStages;
+                gm.isRunVictory = true;
+            }
         }
-        else
+
+        Canvas rootCanvas = FindAnyObjectByType<Canvas>();
+        if (rootCanvas != null)
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("StageMap");
+            CombatResultModalUI modal = CombatResultModalUI.ShowOrCreate(rootCanvas.transform);
+            if (modal != null)
+            {
+                modal.ShowVictory(clearedStage, currentRound, remHP, maxHP, eName);
+                yield break;
+            }
         }
+
+        if (gm != null) gm.LoadStageMapScene();
+        else UnityEngine.SceneManagement.SceneManager.LoadScene("StageMap");
     }
 
     private IEnumerator HandlePlayerDefeated()
@@ -2556,6 +2556,7 @@ public class SimpleCombatManager : MonoBehaviour
         combatEnded = true;
         currentPhase = CombatPhase.CombatOver;
         isAnimating = true;
+        UpdateControlButtonsUI();
 
         UpdateEnemyIntentUI();
         if (enemyIntentLabel != null)
@@ -2563,7 +2564,22 @@ public class SimpleCombatManager : MonoBehaviour
             SetTMPText(enemyIntentLabel, "💀 HIỆP SĨ ĐÃ NGÃ XUỐNG — HÀNH TRÌNH KHÉP LẠI!");
         }
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(0.95f);
+
+        string eName = currentEnemyData != null && !string.IsNullOrWhiteSpace(currentEnemyData.enemyName)
+            ? currentEnemyData.enemyName
+            : (currentStage == 3 ? "Minotaur Boss" : (currentStage == 2 ? "Armored Orc" : "Goblin Scout"));
+
+        Canvas rootCanvas = FindAnyObjectByType<Canvas>();
+        if (rootCanvas != null)
+        {
+            CombatResultModalUI modal = CombatResultModalUI.ShowOrCreate(rootCanvas.transform);
+            if (modal != null)
+            {
+                modal.ShowDefeat(currentStage, currentRound, eName);
+                yield break;
+            }
+        }
 
         if (GameManager.Instance != null)
         {

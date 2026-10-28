@@ -45,11 +45,17 @@ public class PoisonUIEffect : MonoBehaviour
     {
         if (targetEntity != null)
         {
-            SetPoisoned(targetEntity.PoisonStacks > 0);
+            UpdateHPBarStatusColor(targetEntity.PoisonStacks > 0, targetEntity.BurnStacks > 0);
         }
     }
 
     public void SetPoisoned(bool isPoisoned)
+    {
+        bool isBurning = targetEntity != null && targetEntity.BurnStacks > 0;
+        UpdateHPBarStatusColor(isPoisoned, isBurning);
+    }
+
+    public void UpdateHPBarStatusColor(bool isPoisoned, bool isBurning)
     {
         if (hpBarImage != null)
         {
@@ -58,7 +64,23 @@ public class PoisonUIEffect : MonoBehaviour
                 originalColor = hpBarImage.color;
                 initializedColor = true;
             }
-            hpBarImage.color = isPoisoned ? new Color(0.6f, 0.1f, 0.85f) : originalColor;
+
+            if (isBurning && isPoisoned)
+            {
+                hpBarImage.color = new Color(0.88f, 0.25f, 0.55f); // Tím-Cam khi vừa Độc vừa Thiêu đốt
+            }
+            else if (isBurning)
+            {
+                hpBarImage.color = new Color(0.96f, 0.42f, 0.14f); // Đỏ-Cam rực khi dính Thiêu đốt
+            }
+            else if (isPoisoned)
+            {
+                hpBarImage.color = new Color(0.6f, 0.1f, 0.85f); // Tím độc khi dính Poison
+            }
+            else
+            {
+                hpBarImage.color = originalColor;
+            }
         }
     }
 }

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3167614720d14cd09a32cf2df8e0e57, type: 3}
+  m_Name: Overcharge
+  m_EditorClassIdentifier: Assembly-CSharp::DiceFaceData
+  faceName: Overcharge
+  icon: {fileID: 21300000, guid: 4b1a2c3d5e6f7a8b9c0d1e2f3a4b5c11, type: 3}
+  type: 5
+  valueV: 4
+  rarity: 2
+  skillKind: 13
+  description: Tích lũy +4 Năng lượng và giảm 1 chi phí Năng lượng cho kỹ năng tiếp theo trong lượt.
+

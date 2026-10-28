@@ -26,6 +26,10 @@ public class ForgeController : MonoBehaviour
     public Sprite diceFaceShieldSprite;
     public Sprite diceFacePoisonSprite;
     public Sprite diceFaceFireSprite;
+    public Sprite diceFaceEnergySprite;
+    public Sprite diceFaceHealSprite;
+    public Sprite diceFaceLightningSprite;
+    public Sprite diceFaceBlankSprite;
 
     // Runtime state
     private int selectedDiceIndex = 0;       // Viên xúc xắc đang xem (0..2)
@@ -41,6 +45,11 @@ public class ForgeController : MonoBehaviour
     private Component forgeTitleLabel;
     private Component forgeSubLabel;
     private Component curDiceLabel;
+
+    // Nút Cải tiến Kỹ năng Nhân vật tại Xưởng Rèn (GDD 3.2 & Nhom6 Phần 3 Mục 1.4)
+    private Button upgradeNormalSkillBtn;
+    private Button upgradeUltimateSkillBtn;
+    private int selectedSkillUpgradeOption = 0; // 0 = Không chọn, 1 = Nâng cấp Skill Thường, 2 = Nâng cấp Skill Tối Thượng
 
     private static readonly Color unselectedDim = new Color(0.55f, 0.55f, 0.55f, 0.72f);
     private readonly string[] rewardNames = { "Reward_Cleave", "Reward_Inferno", "Reward_Doom" };
@@ -84,6 +93,7 @@ public class ForgeController : MonoBehaviour
         AutoDiscover();
         CreateBackToMapButtonIfNeeded();
         CreateDiceSelectorTabsIfNeeded();
+        CreateSkillForgeUpgradeBarIfNeeded();
         SetupCurrentDiceFaceSlots();
         GenerateAndSetupRewards();
         SetupConfirmButton();
@@ -92,6 +102,7 @@ public class ForgeController : MonoBehaviour
         SelectBestDefaultFaceSlot();
         RefreshCurrentDiceUI();
         RefreshRewardCardsUI();
+        RefreshSkillForgeButtonsUI();
         RefreshHeaderAndConfirmState();
     }
 
@@ -144,6 +155,9 @@ public class ForgeController : MonoBehaviour
             TMP.GetProperty("color")?.SetValue(tmp, new Color(0.96f, 0.88f, 0.68f, 1f));
             TMP.GetProperty("raycastTarget")?.SetValue(tmp, false);
         }
+
+        // Thêm nút mở Bách Khoa 13 Mặt Xúc Xắc (Codex) ở góc phải trên Xưởng Rèn
+        PauseMenuUI.AttachToCanvas(canvas.transform);
     }
 
     public void OnBackToMapClicked()
@@ -270,6 +284,158 @@ public class ForgeController : MonoBehaviour
             }
 
             diceTabButtons.Add(btn);
+        }
+    }
+
+    private void CreateSkillForgeUpgradeBarIfNeeded()
+    {
+        Canvas canvas = FindAnyObjectByType<Canvas>();
+        if (canvas == null) return;
+        if (canvas.transform.Find("SkillForgeUpgradeBar") != null) return;
+
+        GameObject barGo = new GameObject("SkillForgeUpgradeBar");
+        barGo.transform.SetParent(canvas.transform, false);
+        RectTransform barRt = barGo.AddComponent<RectTransform>();
+        barRt.anchorMin = new Vector2(0.5f, 0f);
+        barRt.anchorMax = new Vector2(0.5f, 0f);
+        barRt.pivot = new Vector2(0.5f, 0f);
+        barRt.anchoredPosition = new Vector2(0f, 94f);
+        barRt.sizeDelta = new Vector2(880f, 44f);
+
+        HorizontalLayoutGroup hlg = barGo.AddComponent<HorizontalLayoutGroup>();
+        hlg.spacing = 18f;
+        hlg.childAlignment = TextAnchor.MiddleCenter;
+        hlg.childControlWidth = true;
+        hlg.childControlHeight = true;
+        hlg.childForceExpandWidth = true;
+        hlg.childForceExpandHeight = true;
+
+        upgradeNormalSkillBtn = CreateSkillUpgradeOptionButton(
+            barGo.transform,
+            "UpgradeNormalSkillBtn",
+            new Color(0.12f, 0.24f, 0.42f, 0.95f),
+            new Color(0.38f, 0.78f, 1f, 0.85f),
+            () => OnSelectSkillUpgradeOption(1));
+
+        upgradeUltimateSkillBtn = CreateSkillUpgradeOptionButton(
+            barGo.transform,
+            "UpgradeUltimateSkillBtn",
+            new Color(0.42f, 0.14f, 0.12f, 0.95f),
+            new Color(1f, 0.56f, 0.18f, 0.85f),
+            () => OnSelectSkillUpgradeOption(2));
+    }
+
+    private Button CreateSkillUpgradeOptionButton(
+        Transform parent,
+        string name,
+        Color bgColor,
+        Color borderColor,
+        UnityEngine.Events.UnityAction onClick)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(parent, false);
+
+        Image bg = obj.AddComponent<Image>();
+        bg.color = bgColor;
+
+        Outline ol = obj.AddComponent<Outline>();
+        ol.effectColor = borderColor;
+        ol.effectDistance = new Vector2(1.5f, -1.5f);
+
+        Button btn = obj.AddComponent<Button>();
+        btn.targetGraphic = bg;
+        btn.onClick.AddListener(onClick);
+
+        GameObject txtGo = new GameObject("Label");
+        txtGo.transform.SetParent(obj.transform, false);
+        RectTransform txtRt = txtGo.AddComponent<RectTransform>();
+        txtRt.anchorMin = Vector2.zero;
+        txtRt.anchorMax = Vector2.one;
+        txtRt.sizeDelta = Vector2.zero;
+
+        if (TMP != null)
+        {
+            Component tmp = txtGo.AddComponent(TMP);
+            TMP.GetProperty("fontSize")?.SetValue(tmp, 13.5f);
+            TMP.GetProperty("alignment")?.SetValue(tmp, 514);
+            TMP.GetProperty("color")?.SetValue(tmp, Color.white);
+            TMP.GetProperty("raycastTarget")?.SetValue(tmp, false);
+        }
+
+        return btn;
+    }
+
+    public void OnSelectSkillUpgradeOption(int option)
+    {
+        if (isForgingTransition) return;
+        selectedSkillUpgradeOption = (selectedSkillUpgradeOption == option) ? 0 : option;
+        if (selectedSkillUpgradeOption != 0)
+        {
+            selectedRewardIndex = -1;
+        }
+        RefreshRewardCardsUI();
+        RefreshSkillForgeButtonsUI();
+        RefreshHeaderAndConfirmState();
+    }
+
+    private void RefreshSkillForgeButtonsUI()
+    {
+        GameManager gm = GameManager.Instance;
+        int normLvl = gm != null ? gm.normalSkillLevel : 1;
+        int normDmg = gm != null ? gm.GetNormalSkillDamage() : 5;
+        int ultLvl = gm != null ? gm.ultimateSkillLevel : 1;
+        int ultDmg = gm != null ? gm.GetUltimateSkillDamage() : 14;
+        int ultBurn = gm != null ? gm.GetUltimateSkillBurnStacks() : 4;
+        bool hasUpgrade = HasAvailableForgeUpgrade();
+
+        if (upgradeNormalSkillBtn != null)
+        {
+            upgradeNormalSkillBtn.interactable = hasUpgrade && !isForgingTransition;
+            bool isSel = selectedSkillUpgradeOption == 1;
+            Image bg = upgradeNormalSkillBtn.GetComponent<Image>();
+            Outline ol = upgradeNormalSkillBtn.GetComponent<Outline>();
+            if (bg != null)
+            {
+                bg.color = isSel
+                    ? new Color(0.20f, 0.44f, 0.72f, 1f)
+                    : new Color(0.11f, 0.22f, 0.38f, 0.92f);
+            }
+            if (ol != null)
+            {
+                ol.effectColor = isSel
+                    ? new Color(1f, 0.86f, 0.25f, 1f)
+                    : new Color(0.38f, 0.78f, 1f, 0.8f);
+            }
+            if (TMP != null)
+            {
+                Component tmp = upgradeNormalSkillBtn.GetComponentInChildren(TMP);
+                SetTMPText(tmp, $"⚔ CẢI TIẾN SKILL THƯỜNG (Lv.{normLvl} ➔ Lv.{normLvl + 1}: {normDmg} ➔ {normDmg + 3} ST)");
+            }
+        }
+
+        if (upgradeUltimateSkillBtn != null)
+        {
+            upgradeUltimateSkillBtn.interactable = hasUpgrade && !isForgingTransition;
+            bool isSel = selectedSkillUpgradeOption == 2;
+            Image bg = upgradeUltimateSkillBtn.GetComponent<Image>();
+            Outline ol = upgradeUltimateSkillBtn.GetComponent<Outline>();
+            if (bg != null)
+            {
+                bg.color = isSel
+                    ? new Color(0.68f, 0.24f, 0.16f, 1f)
+                    : new Color(0.38f, 0.13f, 0.12f, 0.92f);
+            }
+            if (ol != null)
+            {
+                ol.effectColor = isSel
+                    ? new Color(1f, 0.86f, 0.25f, 1f)
+                    : new Color(1f, 0.56f, 0.18f, 0.8f);
+            }
+            if (TMP != null)
+            {
+                Component tmp = upgradeUltimateSkillBtn.GetComponentInChildren(TMP);
+                SetTMPText(tmp, $"🔥 CẢI TIẾN TỐI THƯỢNG (Lv.{ultLvl} ➔ Lv.{ultLvl + 1}: {ultDmg}➔{ultDmg + 4} ST & {ultBurn}➔{ultBurn + 2} Cháy)");
+            }
         }
     }
 
@@ -410,6 +576,7 @@ public class ForgeController : MonoBehaviour
         if (index < 0 || index >= rolledRewards.Count) return;
 
         selectedRewardIndex = index;
+        selectedSkillUpgradeOption = 0;
 
         for (int i = 0; i < rewardCards.Count; i++)
         {
@@ -422,6 +589,7 @@ public class ForgeController : MonoBehaviour
         }
 
         RefreshRewardCardsUI();
+        RefreshSkillForgeButtonsUI();
         RefreshCurrentDiceUI();
         RefreshHeaderAndConfirmState();
     }
@@ -563,13 +731,20 @@ public class ForgeController : MonoBehaviour
                 return diceFaceShieldSprite;
             case DiceSkillKind.PoisonSting:
                 return diceFacePoisonSprite != null ? diceFacePoisonSprite : diceFaceFireSprite;
-            case DiceSkillKind.Vampiric:
             case DiceSkillKind.Regenerate:
             case DiceSkillKind.Purify:
+                return diceFaceHealSprite != null ? diceFaceHealSprite : diceFaceShieldSprite;
             case DiceSkillKind.ShockStun:
-                return diceFaceFireSprite != null ? diceFaceFireSprite : diceFaceAttackSprite;
+                return diceFaceLightningSprite != null ? diceFaceLightningSprite : diceFaceFireSprite;
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge:
+                return diceFaceEnergySprite != null ? diceFaceEnergySprite : diceFaceFireSprite;
+            case DiceSkillKind.Blank:
+                return diceFaceBlankSprite != null ? diceFaceBlankSprite : diceFaceShieldSprite;
+            case DiceSkillKind.Vampiric:
             default:
-                return diceFaceAttackSprite;
+                return diceFaceFireSprite != null ? diceFaceFireSprite : diceFaceAttackSprite;
         }
     }
 
@@ -677,6 +852,27 @@ public class ForgeController : MonoBehaviour
             ? targetDie.faces[selectedFaceSlotIndex]
             : null;
 
+        if (selectedSkillUpgradeOption == 1 || selectedSkillUpgradeOption == 2)
+        {
+            string skillDesc = selectedSkillUpgradeOption == 1
+                ? "Kỹ năng Thường (+3 Sát thương chuẩn)"
+                : "Kỹ năng Tối thượng (+4 Sát thương & +2 tầng Thiêu đốt)";
+
+            if (forgeSubLabel != null)
+            {
+                SetTMPText(
+                    forgeSubLabel,
+                    $"⚡ Sẵn sàng Cải tiến Kỹ năng: Nâng cấp [{skillDesc}] cho Hiệp Sĩ!");
+            }
+
+            if (nextStageButton != null)
+            {
+                nextStageButton.interactable = true;
+                UpdateConfirmButtonText("⚡ CẢI TIẾN KỸ NĂNG & VỀ BẢN ĐỒ ẢI");
+            }
+            return;
+        }
+
         if (selectedRewardIndex >= 0 && selectedRewardIndex < rolledRewards.Count)
         {
             DiceFaceData rewardFace = rolledRewards[selectedRewardIndex];
@@ -748,9 +944,9 @@ public class ForgeController : MonoBehaviour
             return;
         }
 
-        if (selectedRewardIndex < 0 || selectedRewardIndex >= rolledRewards.Count)
+        if (selectedSkillUpgradeOption == 0 && (selectedRewardIndex < 0 || selectedRewardIndex >= rolledRewards.Count))
         {
-            Debug.LogWarning("[Forge] Chưa chọn mặt xúc xắc phần thưởng!");
+            Debug.LogWarning("[Forge] Chưa chọn mặt xúc xắc phần thưởng hoặc kỹ năng cần cải tiến!");
             return;
         }
 
@@ -761,6 +957,28 @@ public class ForgeController : MonoBehaviour
     {
         isForgingTransition = true;
         if (nextStageButton != null) nextStageButton.interactable = false;
+
+        if (selectedSkillUpgradeOption == 1 || selectedSkillUpgradeOption == 2)
+        {
+            if (GameManager.Instance != null)
+            {
+                if (selectedSkillUpgradeOption == 1) GameManager.Instance.UpgradeNormalSkill();
+                else GameManager.Instance.UpgradeUltimateSkill();
+                GameManager.Instance.ConsumeForgeUpgrade();
+            }
+
+            RefreshSkillForgeButtonsUI();
+            if (forgeSubLabel != null)
+            {
+                string upgMsg = selectedSkillUpgradeOption == 1 ? "Kỹ năng Thường" : "Kỹ năng Tối thượng";
+                SetTMPText(forgeSubLabel, $"⚡ CẢI TIẾN THÀNH CÔNG: Đã cường hóa [{upgMsg}]! Đang trở về Bản Đồ Ải...");
+            }
+
+            yield return new WaitForSeconds(0.55f);
+            if (GameManager.Instance != null) GameManager.Instance.LoadStageMapScene();
+            else UnityEngine.SceneManagement.SceneManager.LoadScene("StageMap");
+            yield break;
+        }
 
         DiceFaceData chosenReward = rolledRewards[selectedRewardIndex];
 

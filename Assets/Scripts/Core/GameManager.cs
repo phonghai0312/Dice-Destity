@@ -43,6 +43,16 @@ public class GameManager : MonoBehaviour
     public int playerCurrentHP = 70;
     public int maxRerollsPerTurn = 1; // GDD 3.1: Mặc định R_max = 1
 
+    [Header("Character Active Skills Progression (GDD 3.1 & 3.2)")]
+    public int normalSkillLevel = 1;
+    public int normalSkillBaseCost = 2;
+    public int normalSkillBaseDamage = 5;
+
+    public int ultimateSkillLevel = 1;
+    public int ultimateSkillBaseCost = 6;
+    public int ultimateSkillBaseDamage = 14;
+    public int ultimateSkillBaseBurnStacks = 4;
+
     [Tooltip("Túi xúc xắc lục diện (mỗi viên 6 mặt) đang trang bị")]
     public List<DiceInstance> playerDiceBag = new List<DiceInstance>();
 
@@ -176,6 +186,9 @@ public class GameManager : MonoBehaviour
         isRunVictory = false;
         cachedForgeRewards.Clear();
 
+        normalSkillLevel = 1;
+        ultimateSkillLevel = 1;
+
         playerCurrentHP = playerMaxHP;
         playerDiceBag = DiceCatalog.CreateStarterDiceBag();
         SyncLegacyDiceFaceList();
@@ -210,6 +223,33 @@ public class GameManager : MonoBehaviour
             pendingForgeUpgrades--;
         }
         cachedForgeRewards.Clear();
+    }
+
+    public int GetNormalSkillDamage()
+    {
+        return normalSkillBaseDamage + Mathf.Max(0, normalSkillLevel - 1) * 3;
+    }
+
+    public int GetUltimateSkillDamage()
+    {
+        return ultimateSkillBaseDamage + Mathf.Max(0, ultimateSkillLevel - 1) * 4;
+    }
+
+    public int GetUltimateSkillBurnStacks()
+    {
+        return ultimateSkillBaseBurnStacks + Mathf.Max(0, ultimateSkillLevel - 1) * 2;
+    }
+
+    public void UpgradeNormalSkill()
+    {
+        normalSkillLevel = Mathf.Max(1, normalSkillLevel) + 1;
+        Debug.Log($"[GameManager] Nâng cấp Kỹ năng Thường lên Cấp {normalSkillLevel}: Gây {GetNormalSkillDamage()} sát thương!");
+    }
+
+    public void UpgradeUltimateSkill()
+    {
+        ultimateSkillLevel = Mathf.Max(1, ultimateSkillLevel) + 1;
+        Debug.Log($"[GameManager] Nâng cấp Kỹ năng Tối thượng lên Cấp {ultimateSkillLevel}: Gây {GetUltimateSkillDamage()} sát thương + {GetUltimateSkillBurnStacks()} Thiêu đốt!");
     }
 
     public void LoadCombatScene()   => SceneManager.LoadScene("CombatScene");

@@ -149,6 +149,29 @@ public static class DiceCatalog
     }
 
     /// <summary>
+    /// Danh sách chuẩn 13 mặt xúc xắc (không trùng lặp) dùng cho Bách Khoa Xúc Xắc (Codex).
+    /// </summary>
+    public static List<DiceFaceData> GetAllCanonicalFaces()
+    {
+        return new List<DiceFaceData>
+        {
+            DiceFaceData.CreateRuntimeFace("Strike",       DiceFaceType.Attack,  DiceSkillKind.Strike,      4, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Heavy Slash",  DiceFaceType.Attack,  DiceSkillKind.HeavySlash,  7, DiceFaceRarity.Rare),
+            DiceFaceData.CreateRuntimeFace("Vampiric",     DiceFaceType.Attack,  DiceSkillKind.Vampiric,    4, DiceFaceRarity.Epic),
+            DiceFaceData.CreateRuntimeFace("Block",        DiceFaceType.Defend,  DiceSkillKind.Block,       4, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Iron Wall",    DiceFaceType.Defend,  DiceSkillKind.IronWall,    4, DiceFaceRarity.Rare),
+            DiceFaceData.CreateRuntimeFace("Regenerate",   DiceFaceType.Heal,    DiceSkillKind.Regenerate,  3, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Purify",       DiceFaceType.Heal,    DiceSkillKind.Purify,      0, DiceFaceRarity.Rare),
+            DiceFaceData.CreateRuntimeFace("Poison Sting", DiceFaceType.Status,  DiceSkillKind.PoisonSting, 2, DiceFaceRarity.Rare),
+            DiceFaceData.CreateRuntimeFace("Shock / Stun", DiceFaceType.Status,  DiceSkillKind.ShockStun,   1, DiceFaceRarity.Epic),
+            DiceFaceData.CreateRuntimeFace("Blank",        DiceFaceType.Special, DiceSkillKind.Blank,       0, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Mana Spark",   DiceFaceType.Energy,  DiceSkillKind.ManaSpark,   2, DiceFaceRarity.Common),
+            DiceFaceData.CreateRuntimeFace("Arcane Surge", DiceFaceType.Energy,  DiceSkillKind.ArcaneSurge, 3, DiceFaceRarity.Rare),
+            DiceFaceData.CreateRuntimeFace("Overcharge",   DiceFaceType.Energy,  DiceSkillKind.Overcharge,  4, DiceFaceRarity.Epic)
+        };
+    }
+
+    /// <summary>
     /// Rút ngẫu nhiên N mặt xúc xắc khác nhau để hiển thị tại Xưởng Rèn (TheForge).
     /// </summary>
     public static List<DiceFaceData> RollRandomRewards(int count = 3)

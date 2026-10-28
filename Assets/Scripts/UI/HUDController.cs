@@ -15,6 +15,7 @@ public class HUDController : MonoBehaviour
     public TextMeshProUGUI hpText;
     public TextMeshProUGUI shieldText;
     public TextMeshProUGUI statusText;
+    public TextMeshProUGUI energyText;
 
     private void OnEnable()
     {
@@ -23,11 +24,13 @@ public class HUDController : MonoBehaviour
             targetEntity.OnHPChanged += UpdateHPUI;
             targetEntity.OnShieldChanged += UpdateShieldUI;
             targetEntity.OnStatusChanged += UpdateStatusUI;
+            targetEntity.OnEnergyChanged += UpdateEnergyUI;
 
             // Đồng bộ ngay khi bật
             UpdateHPUI(targetEntity.GetCurrentHP(), targetEntity.GetMaxHP());
             UpdateShieldUI(targetEntity.GetCurrentShield());
             UpdateStatusUI();
+            UpdateEnergyUI(targetEntity.CurrentEnergy, targetEntity.MaxEnergy);
         }
     }
 
@@ -38,6 +41,7 @@ public class HUDController : MonoBehaviour
             targetEntity.OnHPChanged -= UpdateHPUI;
             targetEntity.OnShieldChanged -= UpdateShieldUI;
             targetEntity.OnStatusChanged -= UpdateStatusUI;
+            targetEntity.OnEnergyChanged -= UpdateEnergyUI;
         }
     }
 
@@ -57,6 +61,16 @@ public class HUDController : MonoBehaviour
         }
     }
 
+    private void UpdateEnergyUI(int currentEnergy, int maxEnergy)
+    {
+        if (energyText != null)
+        {
+            int discount = targetEntity != null ? targetEntity.NextSkillCostReduction : 0;
+            string discountTag = discount > 0 ? $" (-{discount}🔷)" : "";
+            energyText.text = $"🔷 {currentEnergy}/{maxEnergy}{discountTag}";
+        }
+    }
+
     private void UpdateStatusUI()
     {
         if (targetEntity == null || statusText == null) return;
@@ -64,12 +78,14 @@ public class HUDController : MonoBehaviour
         List<string> tags = new List<string>();
         if (targetEntity.PoisonStacks > 0)
             tags.Add($"<color=#a855f7>☠ Độc:{targetEntity.PoisonStacks}</color>");
+        if (targetEntity.BurnStacks > 0)
+            tags.Add($"<color=#fb923c>🔥 Thiêu đốt:{targetEntity.BurnStacks}</color>");
         if (targetEntity.StunStacks > 0)
             tags.Add($"<color=#facc15>⚡ Choáng:{targetEntity.StunStacks}</color>");
         if (targetEntity.WeakStacks > 0)
             tags.Add($"<color=#94a3b8>⬇ Suy yếu:{targetEntity.WeakStacks}</color>");
         if (targetEntity.BonusAttack > 0)
-            tags.Add($"<color=#f97316>🔥 +{targetEntity.BonusAttack} Công</color>");
+            tags.Add($"<color=#f97316>⚔ +{targetEntity.BonusAttack} Công</color>");
         if (targetEntity.RetainHalfShieldNextTurn)
             tags.Add($"<color=#38bdf8>🏰 Giữ 50% Giáp</color>");
 

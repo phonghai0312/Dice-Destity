@@ -645,17 +645,33 @@ public class StageMapController : MonoBehaviour
             15f,
             new Color(1f, 0.88f, 0.42f, 1f));
 
+        // Nút mở Bách Khoa 13 Mặt Xúc Xắc (Codex) trên Top Header
+        Button codexBtn = CreateStyledButton(
+            topBar.transform,
+            "MapCodexButton",
+            "📖 BÁCH KHOA",
+            new Vector2(695f, -42f),
+            new Vector2(148f, 46f),
+            new Color(0.14f, 0.24f, 0.42f, 0.96f),
+            new Color(0.38f, 0.78f, 1f, 0.85f),
+            new Color(0.92f, 0.96f, 1f, 1f),
+            14f);
+        codexBtn.onClick.AddListener(() =>
+        {
+            if (rootCanvas != null) DiceCodexModalUI.ToggleOrCreate(rootCanvas.transform);
+        });
+
         // Nút về Menu Chính ở góc phải trên
         Button menuBtn = CreateStyledButton(
             topBar.transform,
             "MainMenuButton",
             "🏠 MENU CHÍNH",
-            new Vector2(815f, -42f),
-            new Vector2(200f, 46f),
+            new Vector2(855f, -42f),
+            new Vector2(168f, 46f),
             new Color(0.16f, 0.14f, 0.22f, 0.96f),
             new Color(0.75f, 0.65f, 0.45f, 0.8f),
             new Color(0.92f, 0.88f, 0.82f, 1f),
-            15f);
+            14.5f);
         menuBtn.onClick.AddListener(OnMainMenuClicked);
     }
 
@@ -1398,6 +1414,9 @@ public class StageMapController : MonoBehaviour
             case DiceSkillKind.Purify: return "✨";
             case DiceSkillKind.PoisonSting: return "☠";
             case DiceSkillKind.ShockStun: return "⚡";
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge: return "🔷+";
             default: return "💨";
         }
     }
