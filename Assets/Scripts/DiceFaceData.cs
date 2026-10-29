@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public enum DiceFaceType { Attack, Defend, Heal, Special, Status, Energy }
 public enum DiceFaceRarity { Common, Rare, Epic }
@@ -21,7 +21,8 @@ public enum DiceSkillKind
     Blank,          // Common (0): Không tạo hiệu ứng (mặt rủi ro cần tìm cách rèn đè)
     ManaSpark,      // Common (1-2): Tích lũy ngay lập tức +V điểm Năng lượng vào thanh kỹ năng
     ArcaneSurge,    // Rare (2-3): Tích lũy +V Năng lượng và cộng thêm 2 Shield cho bản thân
-    Overcharge      // Epic (4): Tích lũy +4 Năng lượng; giảm 1 chi phí Năng lượng cho kỹ năng tiếp theo trong lượt
+    Overcharge,     // Epic (4): Tích lũy +4 Năng lượng; giảm 1 chi phí Năng lượng cho kỹ năng tiếp theo trong lượt
+    Ignite          // Rare (2-3): Gây V sát thương và áp +V tầng Thiêu đốt vào mục tiêu
 }
 
 [CreateAssetMenu(fileName = "NewDiceFace", menuName = "Dice & Destiny/Dice Face")]
@@ -54,6 +55,7 @@ public class DiceFaceData : ScriptableObject
         if (lower.Contains("iron") || lower.Contains("wall")) return DiceSkillKind.IronWall;
         if (lower.Contains("purify") || lower.Contains("cleanse") || lower.Contains("thanh tẩy")) return DiceSkillKind.Purify;
         if (lower.Contains("poison") || lower.Contains("venom") || lower.Contains("độc")) return DiceSkillKind.PoisonSting;
+        if (lower.Contains("ignite") || lower.Contains("fire") || lower.Contains("burn") || lower.Contains("thiêu") || lower.Contains("cháy") || lower.Contains("lửa")) return DiceSkillKind.Ignite;
         if (lower.Contains("shock") || lower.Contains("stun") || lower.Contains("choáng") || lower.Contains("doom")) return DiceSkillKind.ShockStun;
         if (lower.Contains("overcharge") || lower.Contains("quá tải")) return DiceSkillKind.Overcharge;
         if (lower.Contains("arcane") || lower.Contains("surge")) return DiceSkillKind.ArcaneSurge;
@@ -86,6 +88,7 @@ public class DiceFaceData : ScriptableObject
             case DiceSkillKind.Vampiric:
             case DiceSkillKind.PoisonSting:
             case DiceSkillKind.ShockStun:
+            case DiceSkillKind.Ignite:
                 return true;
             default:
                 return false;
@@ -132,6 +135,9 @@ public class DiceFaceData : ScriptableObject
                 break;
             case DiceSkillKind.ShockStun:
                 ruleText = "Đặt Choáng (Stun), vô hiệu hóa hành động của địch ở lượt kế.";
+                break;
+            case DiceSkillKind.Ignite:
+                ruleText = $"Gây {valueV} sát thương và áp +{valueV} tầng Thiêu đốt (Burn) lên mục tiêu.";
                 break;
             case DiceSkillKind.ManaSpark:
                 ruleText = $"Tích lũy ngay lập tức +{valueV} điểm Năng lượng vào thanh kỹ năng.";

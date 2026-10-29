@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor.SceneManagement;
@@ -125,6 +125,14 @@ public class WireCombatLogic
         GameObject oldCM = GameObject.Find("CombatManager");
         if (oldCM != null) Object.DestroyImmediate(oldCM);
 
+        scm.diceFaceAttackSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Attack.png");
+        scm.diceFaceShieldSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Shield.png");
+        scm.diceFacePoisonSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Poison.png");
+        scm.diceFaceFireSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Fire.png");
+        scm.diceFaceEnergySprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Energy.png");
+        scm.diceFaceHealSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Heal.png");
+        scm.diceFaceLightningSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Lightning.png");
+        scm.diceFaceBlankSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Blank.png");
         // ─── Save ─────────────────────────────────────────────────────────────
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);

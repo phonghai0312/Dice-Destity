@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
@@ -157,10 +157,10 @@ public class CombatResultModalUI : MonoBehaviour
 
         statsBoxText.text =
             $"♥ Máu Hiệp Sĩ bảo toàn: <b><color=#4ade80>{remainingHP} / {maxHP} HP</color></b>   •   ⏱ Số hiệp chiến đấu: <b>{totalRounds} Hiệp</b>\n" +
-            $"⚔ Kỹ năng Thường: <b>Lv.{normLvl}</b>   •   🔥 Kỹ năng Tối thượng: <b>Lv.{ultLvl}</b>   •   🔨 Phần thưởng: <b>+1 Lượt Rèn Xúc Xắc / Kỹ Năng</b>";
+            $"Kỹ năng Thường: <b>Lv.{normLvl}</b>   •   Kỹ năng Tối thượng: <b>Lv.{ultLvl}</b>   •   🔨 Phần thưởng: <b>+1 Lượt Rèn Xúc Xắc / Kỹ Năng</b>";
 
         primaryActionBtn.onClick.RemoveAllListeners();
-        primaryActionText.text = "🗺 VỀ BẢN ĐỒ HÀNH TRÌNH";
+        primaryActionText.text = "VỀ BẢN ĐỒ HÀNH TRÌNH";
         primaryActionBtn.onClick.AddListener(() =>
         {
             if (gm != null) gm.LoadStageMapScene();
@@ -186,17 +186,17 @@ public class CombatResultModalUI : MonoBehaviour
             dialogOutline.effectColor = new Color(0.95f, 0.25f, 0.25f, 1f);
         }
 
-        badgeTitleText.text = $"💀 THẤT BẠI TẠI ẢI {failedStage} • QUY TẮC PERMADEATH";
+        badgeTitleText.text = $"THẤT BẠI TẠI ẢI {failedStage} • QUY TẮC PERMADEATH";
         mainHeaderText.text = "⚔ HIỆP SĨ ĐÃ NGÃ XUỐNG";
         mainHeaderText.color = new Color(0.98f, 0.35f, 0.35f, 1f);
         subDescText.text = $"Hiệp Sĩ đã gục ngã trước <b>{enemyName}</b>. Theo luật <b>Permadeath</b> của dòng game Roguelike, hành trình này đã khép lại.";
 
         statsBoxText.text =
             $"📍 Dừng chân tại: <b>Ải {failedStage}/3 ({enemyName})</b>   •   ⏱ Số hiệp cầm cự: <b>{totalRounds} Hiệp</b>\n" +
-            "💡 <i>Mẹo: Tích lũy các mặt Năng lượng (🔷) và Giáp ảo (🛡) để tung Kỹ năng Tối thượng gây Thiêu đốt xuyên giáp!</i>";
+            "<i>Mẹo: Tích lũy các mặt Năng lượng (NL) và Giáp ảo để tung Kỹ năng Tối thượng gây Thiêu đốt xuyên giáp!</i>";
 
         primaryActionBtn.onClick.RemoveAllListeners();
-        primaryActionText.text = "🔄 THỬ LẠI TỪ ẢI 1 (NEW RUN)";
+        primaryActionText.text = "THỬ LẠI TỪ ẢI 1 (NEW RUN)";
         primaryActionBtn.onClick.AddListener(() =>
         {
             GameManager gm = GameManager.ResolveInstance();
@@ -205,7 +205,7 @@ public class CombatResultModalUI : MonoBehaviour
         });
 
         secondaryActionBtn.onClick.RemoveAllListeners();
-        secondaryActionText.text = "🏠 VỀ MENU CHÍNH";
+        secondaryActionText.text = "VỀ MENU CHÍNH";
         secondaryActionBtn.onClick.AddListener(() =>
         {
             GameManager gm = GameManager.ResolveInstance();

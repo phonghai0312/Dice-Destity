@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
@@ -108,8 +108,30 @@ public class SimpleCombatManager : MonoBehaviour
 
     private static Sprite cachedSoftOvalSprite;
 
+    private void EnsureDiceSpritesLoaded()
+    {
+#if UNITY_EDITOR
+        if (diceFaceAttackSprite == null)
+            diceFaceAttackSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Attack.png");
+        if (diceFaceShieldSprite == null)
+            diceFaceShieldSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Shield.png");
+        if (diceFacePoisonSprite == null)
+            diceFacePoisonSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Poison.png");
+        if (diceFaceFireSprite == null)
+            diceFaceFireSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Fire.png");
+        if (diceFaceEnergySprite == null)
+            diceFaceEnergySprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Energy.png");
+        if (diceFaceHealSprite == null)
+            diceFaceHealSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Heal.png");
+        if (diceFaceLightningSprite == null)
+            diceFaceLightningSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Lightning.png");
+        if (diceFaceBlankSprite == null)
+            diceFaceBlankSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Dice_Face_Blank.png");
+#endif
+    }
     private void Start()
     {
+        EnsureDiceSpritesLoaded();
         tmpType = System.Type.GetType("TMPro.TextMeshProUGUI, Unity.TextMeshPro");
 
         if (Camera.main != null && Camera.main.GetComponent<CameraShake>() == null)
@@ -275,7 +297,7 @@ public class SimpleCombatManager : MonoBehaviour
             if (tmpType != null)
             {
                 Component tmp = heroLabelTr.GetComponent(tmpType);
-                SetTMPText(tmp, "⚔ HIỆP SĨ BẤT KHUẤT");
+                SetTMPText(tmp, "HIỆP SĨ BẤT KHUẤT");
                 tmpType.GetProperty("fontSize")?.SetValue(tmp, 19f);
                 tmpType.GetProperty("color")?.SetValue(tmp, new Color(0.96f, 0.84f, 0.45f, 1f));
                 tmpType.GetProperty("alignment")?.SetValue(tmp, 514);
@@ -455,31 +477,15 @@ public class SimpleCombatManager : MonoBehaviour
                 if (tmpType != null)
                 {
                     Component tmp = trayLabelTr.GetComponent(tmpType);
-                    SetTMPText(tmp, "🎲 KHAY XÚC XẮC CHIẾN THUẬT");
+                    SetTMPText(tmp, "KHAY XÚC XẮC CHIẾN THUẬT");
                     tmpType.GetProperty("fontSize")?.SetValue(tmp, 18f);
                     tmpType.GetProperty("color")?.SetValue(tmp, new Color(0.95f, 0.78f, 0.32f, 1f));
                 }
             }
 
-            if (trayGuideLabel == null)
-            {
-                trayGuideLabel = CreateOverlayLabel(
-                    diceTrayTr,
-                    "TrayControlGuide",
-                    new Vector2(-690f, 88f),
-                    new Vector2(430f, 115f),
-                    15f,
-                    new Color(0.78f, 0.84f, 0.92f, 0.92f));
-                if (trayGuideLabel != null && tmpType != null)
-                {
-                    tmpType.GetProperty("alignment")?.SetValue(trayGuideLabel, 257); // Top-Left
-                    SetTMPText(
-                        trayGuideLabel,
-                        "• <b>Kéo-thả</b> hoặc <b>Click Phải / Double-Click</b>: Tung chiêu ngay\n" +
-                        "• <b>Click Trái</b>: Chọn xúc xắc để Gieo lại hoặc Kết thúc lượt\n" +
-                        "• <b>Phím [Z]</b> hoặc nút <b>UNDO</b>: Hoàn tác bước vừa đi");
-                }
-            }
+            // Gỡ bỏ hoàn toàn dòng chữ hướng dẫn thao tác khỏi khay xúc xắc
+            Transform oldGuide = diceTrayTr.Find("TrayControlGuide");
+            if (oldGuide != null) oldGuide.gameObject.SetActive(false);
         }
 
         // Cột Giữa: Căn giữa 3 Ô Xúc Xắc (Slot 0, 1, 2) tại (-195, 0, +195)
@@ -557,6 +563,7 @@ public class SimpleCombatManager : MonoBehaviour
                 Component tmp = nameTr.GetComponent(tmpType);
                 tmpType.GetProperty("fontSize")?.SetValue(tmp, 15.5f);
                 tmpType.GetProperty("alignment")?.SetValue(tmp, 514);
+                EnsureOutline(nameTr.gameObject, new Color(0.04f, 0.05f, 0.08f, 0.95f), 1.2f);
             }
         }
 
@@ -593,6 +600,7 @@ public class SimpleCombatManager : MonoBehaviour
                 Component tmp = valTr.GetComponent(tmpType);
                 tmpType.GetProperty("fontSize")?.SetValue(tmp, 28f);
                 tmpType.GetProperty("alignment")?.SetValue(tmp, 514);
+                EnsureOutline(valTr.gameObject, new Color(0.04f, 0.05f, 0.08f, 0.95f), 1.5f);
             }
         }
     }
@@ -760,7 +768,7 @@ public class SimpleCombatManager : MonoBehaviour
 
         if (enemyNameLabel != null)
         {
-            SetTMPText(enemyNameLabel, $"💀 {displayEnemyName.ToUpper()} (ẢI {currentStage}/3)");
+            SetTMPText(enemyNameLabel, $"{displayEnemyName.ToUpper()} (ẢI {currentStage}/3)");
         }
 
         // Khởi tạo chỉ số Hiệp Sĩ (giữ lượng HP hiện tại xuyên suốt hành trình)
@@ -1057,10 +1065,10 @@ public class SimpleCombatManager : MonoBehaviour
     private void UpdateStageProgressUI()
     {
         if (stageProgressLabel == null) return;
-        string s1 = currentStage == 1 ? "<color=#ffd166><b>[Ải 1: Goblin]</b></color>" : (currentStage > 1 ? "<color=#52b788>✓ Ải 1</color>" : "Ải 1");
-        string s2 = currentStage == 2 ? "<color=#ffd166><b>[Ải 2: Orc]</b></color>" : (currentStage > 2 ? "<color=#52b788>✓ Ải 2</color>" : "Ải 2");
+        string s1 = currentStage == 1 ? "<color=#ffd166><b>[Ải 1: Goblin]</b></color>" : (currentStage > 1 ? "<color=#52b788>[X] Ải 1</color>" : "Ải 1");
+        string s2 = currentStage == 2 ? "<color=#ffd166><b>[Ải 2: Orc]</b></color>" : (currentStage > 2 ? "<color=#52b788>[X] Ải 2</color>" : "Ải 2");
         string s3 = currentStage == 3 ? "<color=#ef476f><b>[Ải 3: Minotaur]</b></color>" : "Ải 3";
-        SetTMPText(stageProgressLabel, $"HÀNH TRÌNH:  {s1}  ➔  {s2}  ➔  {s3}");
+        SetTMPText(stageProgressLabel, $"HÀNH TRÌNH:  {s1}  >>  {s2}  >>  {s3}");
     }
 
     // =========================================================================
@@ -1099,7 +1107,7 @@ public class SimpleCombatManager : MonoBehaviour
 
             playerEntity.OnHealed += (healAmount) =>
             {
-                SpawnCustomFloatingText(playerEntity.transform, $"+{healAmount} 💚 HP", new Color(0.25f, 0.98f, 0.5f));
+                SpawnCustomFloatingText(playerEntity.transform, $"+{healAmount} HP", new Color(0.25f, 0.98f, 0.5f));
             };
 
             playerEntity.OnShieldChanged += (shield) =>
@@ -1145,7 +1153,7 @@ public class SimpleCombatManager : MonoBehaviour
 
             enemyEntity.OnHealed += (healAmount) =>
             {
-                SpawnCustomFloatingText(enemyEntity.transform, $"+{healAmount} 💚 HP", new Color(0.25f, 0.98f, 0.5f));
+                SpawnCustomFloatingText(enemyEntity.transform, $"+{healAmount} HP", new Color(0.25f, 0.98f, 0.5f));
             };
 
             enemyEntity.OnShieldChanged += (shield) =>
@@ -1166,15 +1174,15 @@ public class SimpleCombatManager : MonoBehaviour
         if (entity == null || statusLabel == null) return;
 
         List<string> badges = new List<string>();
-        if (entity.CurrentShield > 0) badges.Add($"<color=#38bdf8>🛡 Giáp: {entity.CurrentShield}</color>");
-        if (entity.RetainHalfShieldNextTurn) badges.Add("<color=#fde047>🏰 Giữ 50% Giáp</color>");
-        if (entity.PoisonStacks > 0) badges.Add($"<color=#c084fc>☠ Độc: {entity.PoisonStacks}</color>");
-        if (entity.BurnStacks > 0) badges.Add($"<color=#fb923c>🔥 Thiêu đốt: {entity.BurnStacks}</color>");
-        if (entity.StunStacks > 0) badges.Add($"<color=#facc15>⚡ Choáng: {entity.StunStacks}</color>");
-        if (entity.WeakStacks > 0) badges.Add($"<color=#94a3b8>⬇ Yếu: {entity.WeakStacks}</color>");
-        if (entity.BonusAttack > 0) badges.Add($"<color=#fb923c>⚔ +Công: {entity.BonusAttack}</color>");
+        if (entity.CurrentShield > 0) badges.Add($"<color=#38bdf8>Giáp: {entity.CurrentShield}</color>");
+        if (entity.RetainHalfShieldNextTurn) badges.Add("<color=#fde047>Giữ 50% Giáp</color>");
+        if (entity.PoisonStacks > 0) badges.Add($"<color=#c084fc>Độc: {entity.PoisonStacks}</color>");
+        if (entity.BurnStacks > 0) badges.Add($"<color=#fb923c>Thiêu đốt: {entity.BurnStacks}</color>");
+        if (entity.StunStacks > 0) badges.Add($"<color=#facc15>Choáng: {entity.StunStacks}</color>");
+        if (entity.WeakStacks > 0) badges.Add($"<color=#94a3b8>Yếu: {entity.WeakStacks}</color>");
+        if (entity.BonusAttack > 0) badges.Add($"<color=#fb923c>+Công: {entity.BonusAttack}</color>");
 
-        string text = badges.Count > 0 ? string.Join("   ", badges) : "<color=#94a3b8>🛡 Giáp: 0  •  Bình thường</color>";
+        string text = badges.Count > 0 ? string.Join("   ", badges) : "<color=#94a3b8>Giáp: 0  -  Bình thường</color>";
         SetTMPText(statusLabel, text);
     }
 
@@ -1293,7 +1301,7 @@ public class SimpleCombatManager : MonoBehaviour
         // Kiểm tra nếu Người chơi bị Choáng (Stun)
         if (playerEntity != null && playerEntity.CheckAndConsumeStun())
         {
-            SpawnCustomFloatingText(playerEntity.transform, "⚡ BỊ CHOÁNG!", new Color(1f, 0.85f, 0.2f));
+            SpawnCustomFloatingText(playerEntity.transform, "BỊ CHOÁNG!", new Color(1f, 0.85f, 0.2f));
             yield return new WaitForSeconds(0.8f);
             yield return StartCoroutine(ExecuteEnemyAndRoundEndCoroutine());
             yield break;
@@ -1357,7 +1365,7 @@ public class SimpleCombatManager : MonoBehaviour
         {
             foreach (int i in indicesToRoll)
             {
-                SetDiceSlotText(i, "🎲 ĐANG GIEO...", Random.Range(1, 9).ToString());
+                SetDiceSlotText(i, "ĐANG GIEO...", Random.Range(1, 9).ToString());
                 if (i >= 0 && i < diceSlots.Count && diceSlots[i] != null)
                 {
                     float tilt = Mathf.Sin((elapsed * 45f) + i) * 9f;
@@ -1433,7 +1441,7 @@ public class SimpleCombatManager : MonoBehaviour
             }
             if (tooltipLabel != null)
             {
-                SetTMPText(tooltipLabel, $"🎯 Thả [{face.faceName}] vào <b>QUÁI VẬT</b> ở bên phải để tung đòn!");
+                SetTMPText(tooltipLabel, $"Thả [{face.faceName}] vào <b>QUÁI VẬT</b> ở bên phải để tung đòn!");
             }
         }
         else
@@ -1444,7 +1452,7 @@ public class SimpleCombatManager : MonoBehaviour
             }
             if (tooltipLabel != null)
             {
-                SetTMPText(tooltipLabel, $"🛡 Thả [{face.faceName}] vào <b>HIỆP SĨ</b> ở bên trái để kích hoạt hỗ trợ!");
+                SetTMPText(tooltipLabel, $"Thả [{face.faceName}] vào <b>HIỆP SĨ</b> ở bên trái để kích hoạt hỗ trợ!");
             }
         }
     }
@@ -1608,6 +1616,10 @@ public class SimpleCombatManager : MonoBehaviour
                 if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.24f, 11f);
                 break;
 
+            case DiceSkillKind.Ignite:
+                pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: true);
+                break;
+
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
             case DiceSkillKind.Overcharge:
@@ -1635,7 +1647,7 @@ public class SimpleCombatManager : MonoBehaviour
         {
             if (tooltipLabel != null)
             {
-                SetTMPText(tooltipLabel, $"⚠ Không đủ Năng lượng để dùng Kỹ năng Thường! (Cần {cost} 🔷, hiện có {playerEntity.CurrentEnergy} 🔷)");
+                SetTMPText(tooltipLabel, $"Không đủ Năng lượng để dùng Kỹ năng Thường! (Cần {cost} NL, hiện có {playerEntity.CurrentEnergy} NL)");
             }
             return;
         }
@@ -1652,7 +1664,7 @@ public class SimpleCombatManager : MonoBehaviour
         {
             commandManager.RecordDiceAction(new CombatCommandRecord
             {
-                description = $"Skill Thường (-{cost}🔷, {finalDmg} Sát thương)",
+                description = $"Skill Thường (-{cost} NL, {finalDmg} Sát thương)",
                 primaryDiceSlotIndex = -1,
                 extraConsumedSlotIndex = -1,
                 playerBefore = playerSnapBefore,
@@ -1667,7 +1679,7 @@ public class SimpleCombatManager : MonoBehaviour
             if (pAnim != null) pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: false);
         }
 
-        SpawnCustomFloatingText(playerEntity.transform, $"⚔ SKILL THƯỜNG! (-{cost}🔷)", new Color(0.45f, 0.88f, 1f));
+        SpawnCustomFloatingText(playerEntity.transform, $"SKILL THƯỜNG! (-{cost} NL)", new Color(0.45f, 0.88f, 1f));
         UpdateControlButtonsUI();
     }
 
@@ -1685,7 +1697,7 @@ public class SimpleCombatManager : MonoBehaviour
         {
             if (tooltipLabel != null)
             {
-                SetTMPText(tooltipLabel, $"⚠ Không đủ Năng lượng để tung Kỹ năng Tối thượng! (Cần {cost} 🔷, hiện có {playerEntity.CurrentEnergy} 🔷)");
+                SetTMPText(tooltipLabel, $"Không đủ Năng lượng để tung Kỹ năng Tối thượng! (Cần {cost} NL, hiện có {playerEntity.CurrentEnergy} NL)");
             }
             return;
         }
@@ -1706,7 +1718,7 @@ public class SimpleCombatManager : MonoBehaviour
         {
             commandManager.RecordDiceAction(new CombatCommandRecord
             {
-                description = $"Skill Tối Thượng (-{cost}🔷, {finalDmg} Sát thương + {ultimateSkillBurnStacks} Thiêu đốt)",
+                description = $"Skill Tối Thượng (-{cost} NL, {finalDmg} Sát thương + {ultimateSkillBurnStacks} Thiêu đốt)",
                 primaryDiceSlotIndex = -1,
                 extraConsumedSlotIndex = -1,
                 playerBefore = playerSnapBefore,
@@ -1722,8 +1734,8 @@ public class SimpleCombatManager : MonoBehaviour
         }
 
         if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.32f, 16f);
-        SpawnCustomFloatingText(playerEntity.transform, $"🔥 TỐI THƯỢNG! (-{cost}🔷)", new Color(1f, 0.55f, 0.15f));
-        SpawnCustomFloatingText(enemyEntity.transform, $"🔥 +{ultimateSkillBurnStacks} THIÊU ĐỐT!", new Color(1f, 0.42f, 0.12f));
+        SpawnCustomFloatingText(playerEntity.transform, $"TỐI THƯỢNG! (-{cost} NL)", new Color(1f, 0.55f, 0.15f));
+        SpawnCustomFloatingText(enemyEntity.transform, $"+{ultimateSkillBurnStacks} THIÊU ĐỐT!", new Color(1f, 0.42f, 0.12f));
         UpdateControlButtonsUI();
     }
 
@@ -1752,43 +1764,46 @@ public class SimpleCombatManager : MonoBehaviour
         switch (kind)
         {
             case DiceSkillKind.Strike:
-                SpawnCustomFloatingText(playerEntity.transform, "⚔ CHÉM!", new Color(1f, 0.88f, 0.45f));
+                SpawnCustomFloatingText(playerEntity.transform, "CHÉM!", new Color(1f, 0.88f, 0.45f));
                 break;
             case DiceSkillKind.HeavySlash:
-                SpawnCustomFloatingText(playerEntity.transform, "💥 TRỌNG KÍCH!", new Color(1f, 0.45f, 0.2f));
+                SpawnCustomFloatingText(playerEntity.transform, "TRỌNG KÍCH!", new Color(1f, 0.45f, 0.2f));
                 break;
             case DiceSkillKind.Vampiric:
-                SpawnCustomFloatingText(playerEntity.transform, "🩸 HÚT HUYẾT!", new Color(1f, 0.3f, 0.55f));
+                SpawnCustomFloatingText(playerEntity.transform, "HÚT HUYẾT!", new Color(1f, 0.3f, 0.55f));
                 break;
             case DiceSkillKind.Block:
-                SpawnCustomFloatingText(playerEntity.transform, $"🛡 DỰNG KHIÊN +{face.valueV}", new Color(0.35f, 0.82f, 1f));
+                SpawnCustomFloatingText(playerEntity.transform, $"DỰNG KHIÊN +{face.valueV}", new Color(0.35f, 0.82f, 1f));
                 break;
             case DiceSkillKind.IronWall:
-                SpawnCustomFloatingText(playerEntity.transform, $"🏰 BẤT KHUẤT +{face.valueV}", new Color(1f, 0.85f, 0.35f));
+                SpawnCustomFloatingText(playerEntity.transform, $"BẤT KHUẤT +{face.valueV}", new Color(1f, 0.85f, 0.35f));
                 break;
             case DiceSkillKind.Regenerate:
-                SpawnCustomFloatingText(playerEntity.transform, "💚 GỒNG HỒI PHỤC!", new Color(0.35f, 0.98f, 0.55f));
+                SpawnCustomFloatingText(playerEntity.transform, "HỒI PHỤC!", new Color(0.35f, 0.98f, 0.55f));
                 break;
             case DiceSkillKind.Purify:
-                SpawnCustomFloatingText(playerEntity.transform, "✨ THANH TẨY!", new Color(0.55f, 0.98f, 1f));
+                SpawnCustomFloatingText(playerEntity.transform, "THANH TẨY!", new Color(0.55f, 0.98f, 1f));
                 break;
             case DiceSkillKind.PoisonSting:
-                SpawnCustomFloatingText(enemyEntity.transform, $"+{face.valueV} ☠ TRÚNG ĐỘC", new Color(0.75f, 0.38f, 1f));
+                SpawnCustomFloatingText(enemyEntity.transform, $"+{face.valueV} TRÚNG ĐỘC", new Color(0.75f, 0.38f, 1f));
                 break;
             case DiceSkillKind.ShockStun:
-                SpawnCustomFloatingText(enemyEntity.transform, "⚡ GIÁNG SẤM CHOÁNG!", new Color(1f, 0.92f, 0.25f));
+                SpawnCustomFloatingText(enemyEntity.transform, "CHOÁNG!", new Color(1f, 0.92f, 0.25f));
+                break;
+            case DiceSkillKind.Ignite:
+                SpawnCustomFloatingText(enemyEntity.transform, $"+{face.valueV} THIÊU ĐỐT!", new Color(1f, 0.55f, 0.15f));
                 break;
             case DiceSkillKind.ManaSpark:
-                SpawnCustomFloatingText(playerEntity.transform, $"🔷 +{face.valueV} NĂNG LƯỢNG!", new Color(0.38f, 0.88f, 1f));
+                SpawnCustomFloatingText(playerEntity.transform, $"+{face.valueV} NĂNG LƯỢNG!", new Color(0.38f, 0.88f, 1f));
                 break;
             case DiceSkillKind.ArcaneSurge:
-                SpawnCustomFloatingText(playerEntity.transform, $"🔷 +{face.valueV} NĂNG LƯỢNG & +2 GIÁP!", new Color(0.45f, 0.92f, 1f));
+                SpawnCustomFloatingText(playerEntity.transform, $"+{face.valueV} NĂNG LƯỢNG & +2 GIÁP!", new Color(0.45f, 0.92f, 1f));
                 break;
             case DiceSkillKind.Overcharge:
-                SpawnCustomFloatingText(playerEntity.transform, $"🔷 +{face.valueV} QUÁ TẢI (-1🔷 SKILL)!", new Color(0.95f, 0.78f, 0.25f));
+                SpawnCustomFloatingText(playerEntity.transform, $"+{face.valueV} QUÁ TẢI (-1 NL SKILL)!", new Color(0.95f, 0.78f, 0.25f));
                 break;
             case DiceSkillKind.Blank:
-                SpawnCustomFloatingText(playerEntity.transform, "💨 TRƯỢT ĐÀ!", new Color(0.75f, 0.75f, 0.75f));
+                SpawnCustomFloatingText(playerEntity.transform, "TRƯỢT ĐÀ!", new Color(0.75f, 0.75f, 0.75f));
                 break;
         }
     }
@@ -1818,7 +1833,7 @@ public class SimpleCombatManager : MonoBehaviour
 
             if (tooltipLabel != null)
             {
-                SetTMPText(tooltipLabel, $"⏪ Đã hoàn tác (Undo): <b>[{record.description}]</b>");
+                SetTMPText(tooltipLabel, $"Đã hoàn tác (Undo): <b>[{record.description}]</b>");
             }
         }
     }
@@ -1894,7 +1909,7 @@ public class SimpleCombatManager : MonoBehaviour
         {
             if (enemyEntity.CheckAndConsumeStun())
             {
-                SpawnCustomFloatingText(enemyEntity.transform, "⚡ BỊ CHOÁNG (MẤT LƯỢT)!", new Color(1f, 0.9f, 0.25f));
+                SpawnCustomFloatingText(enemyEntity.transform, "BỊ CHOÁNG (MẤT LƯỢT)!", new Color(1f, 0.9f, 0.25f));
                 yield return new WaitForSeconds(0.75f);
             }
             else
@@ -1915,11 +1930,11 @@ public class SimpleCombatManager : MonoBehaviour
 
         if (enemyEntity.PoisonStacks > 0)
         {
-            SpawnCustomFloatingText(enemyEntity.transform, $"☠ ĐỘC -{enemyEntity.PoisonStacks}", new Color(0.68f, 0.32f, 0.95f));
+            SpawnCustomFloatingText(enemyEntity.transform, $"ĐỘC -{enemyEntity.PoisonStacks}", new Color(0.68f, 0.32f, 0.95f));
         }
         if (enemyEntity.BurnStacks > 0)
         {
-            SpawnCustomFloatingText(enemyEntity.transform, $"🔥 THIÊU ĐỐT -{enemyEntity.BurnStacks}", new Color(1f, 0.45f, 0.15f));
+            SpawnCustomFloatingText(enemyEntity.transform, $"THIÊU ĐỐT -{enemyEntity.BurnStacks}", new Color(1f, 0.45f, 0.15f));
         }
         enemyEntity.ProcessRoundEndStatuses(false);
 
@@ -1927,11 +1942,11 @@ public class SimpleCombatManager : MonoBehaviour
 
         if (playerEntity.PoisonStacks > 0)
         {
-            SpawnCustomFloatingText(playerEntity.transform, $"☠ ĐỘC -{playerEntity.PoisonStacks}", new Color(0.68f, 0.32f, 0.95f));
+            SpawnCustomFloatingText(playerEntity.transform, $"ĐỘC -{playerEntity.PoisonStacks}", new Color(0.68f, 0.32f, 0.95f));
         }
         if (playerEntity.BurnStacks > 0)
         {
-            SpawnCustomFloatingText(playerEntity.transform, $"🔥 THIÊU ĐỐT -{playerEntity.BurnStacks}", new Color(1f, 0.45f, 0.15f));
+            SpawnCustomFloatingText(playerEntity.transform, $"THIÊU ĐỐT -{playerEntity.BurnStacks}", new Color(1f, 0.45f, 0.15f));
         }
         playerEntity.ProcessRoundEndStatuses(false);
 
@@ -2003,7 +2018,7 @@ public class SimpleCombatManager : MonoBehaviour
             case EnemyIntentType.Defend:
             {
                 enemyEntity.AddShield(currentEnemyIntent.primaryValue);
-                SpawnCustomFloatingText(enemyEntity.transform, $"+{currentEnemyIntent.primaryValue} 🛡 DỰNG GIÁP", new Color(0.4f, 0.82f, 1f));
+                SpawnCustomFloatingText(enemyEntity.transform, $"+{currentEnemyIntent.primaryValue} DỰNG GIÁP", new Color(0.4f, 0.82f, 1f));
                 break;
             }
             case EnemyIntentType.AttackAndPoison:
@@ -2011,13 +2026,13 @@ public class SimpleCombatManager : MonoBehaviour
                 int dmg = enemyEntity.CalculateOutgoingDamage(currentEnemyIntent.primaryValue);
                 playerEntity.TakeDamage(dmg);
                 playerEntity.AddPoison(currentEnemyIntent.secondaryValue);
-                SpawnCustomFloatingText(playerEntity.transform, $"+{currentEnemyIntent.secondaryValue} ☠ TRÚNG ĐỘC", new Color(0.75f, 0.35f, 0.98f));
+                SpawnCustomFloatingText(playerEntity.transform, $"+{currentEnemyIntent.secondaryValue} TRÚNG ĐỘC", new Color(0.75f, 0.35f, 0.98f));
                 break;
             }
             case EnemyIntentType.ChargeBuffAttack:
             {
                 enemyEntity.AddBonusAttack(currentEnemyIntent.primaryValue);
-                SpawnCustomFloatingText(enemyEntity.transform, $"🔥 GỒNG CUỒNG NỘ +{currentEnemyIntent.primaryValue} CÔNG!", new Color(1f, 0.5f, 0.2f));
+                SpawnCustomFloatingText(enemyEntity.transform, $"CUỒNG NỘ +{currentEnemyIntent.primaryValue} CÔNG!", new Color(1f, 0.5f, 0.2f));
                 break;
             }
             case EnemyIntentType.AttackAndHeal:
@@ -2057,7 +2072,7 @@ public class SimpleCombatManager : MonoBehaviour
             if (face != null)
             {
                 string valDisplay = GetFaceValueSymbol(face);
-                string targetTag = face.TargetsEnemy() ? "<size=11><color=#fca5a5>🎯 Địch</color></size>" : "<size=11><color=#86efac>🛡 Hiệp Sĩ</color></size>";
+                string targetTag = face.TargetsEnemy() ? "<size=11><color=#fca5a5>Địch</color></size>" : "<size=11><color=#86efac>Hiệp Sĩ</color></size>";
                 string titleDisplay = used
                     ? $"{face.faceName}\n<size=11><color=#94a3b8>(ĐÃ DÙNG)</color></size>"
                     : $"{face.faceName}\n{targetTag}";
@@ -2074,7 +2089,7 @@ public class SimpleCombatManager : MonoBehaviour
                 }
                 else if (selected)
                 {
-                    img.color = new Color(0.86f, 0.64f, 0.14f, 0.98f);
+                    img.color = face != null ? Color.Lerp(GetSkillTintColor(face.GetResolvedSkillKind(), slotBaseColors[i]), Color.white, 0.45f) : new Color(0.86f, 0.64f, 0.14f, 0.98f);
                 }
                 else if (face != null)
                 {
@@ -2095,61 +2110,81 @@ public class SimpleCombatManager : MonoBehaviour
         {
             case DiceSkillKind.Strike:
             case DiceSkillKind.HeavySlash:
-                return $"⚔ {face.valueV}";
+                return face.valueV.ToString();
             case DiceSkillKind.Vampiric:
-                return $"🩸 {face.valueV}";
+                return face.valueV.ToString();
             case DiceSkillKind.Block:
             case DiceSkillKind.IronWall:
-                return $"🛡 {face.valueV}";
+                return face.valueV.ToString();
             case DiceSkillKind.Regenerate:
-                return $"💚 {face.valueV}";
+                return face.valueV.ToString();
             case DiceSkillKind.Purify:
-                return "✨ 0";
+                return "0";
             case DiceSkillKind.PoisonSting:
-                return $"☠ {face.valueV}";
+                return face.valueV.ToString();
             case DiceSkillKind.ShockStun:
-                return $"⚡ {face.valueV}";
+                return face.valueV.ToString();
+            case DiceSkillKind.Ignite:
+                return face.valueV.ToString();
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
             case DiceSkillKind.Overcharge:
-                return $"🔷 +{face.valueV}";
+                return $"+{face.valueV}";
             case DiceSkillKind.Blank:
-                return "💨 0";
+                return "0";
             default:
                 return face.valueV.ToString();
         }
     }
 
+    /// <summary>
+    /// Màu nền các ô xúc xắc khớp logic với màu file sprite xúc xắc theo yêu cầu:
+    /// - Xanh lá - Hồi máu
+    /// - Trắng - Giáp
+    /// - Vàng - Choáng
+    /// - Đỏ - Tấn công
+    /// - Tím - Độc
+    /// - Cam - Thiêu đốt
+    /// - Xanh dương - Năng lượng
+    /// </summary>
     private Color GetSkillTintColor(DiceSkillKind kind, Color fallback)
     {
         switch (kind)
         {
             case DiceSkillKind.Strike:
             case DiceSkillKind.HeavySlash:
-                return new Color(0.44f, 0.15f, 0.17f, 0.95f);
             case DiceSkillKind.Vampiric:
-                return new Color(0.48f, 0.12f, 0.28f, 0.95f);
+                return new Color(0.70f, 0.14f, 0.16f, 0.96f);   // Đỏ - Tấn công
+
             case DiceSkillKind.Block:
             case DiceSkillKind.IronWall:
-                return new Color(0.13f, 0.28f, 0.48f, 0.95f);
+                return new Color(0.90f, 0.92f, 0.95f, 0.98f);   // Trắng - Giáp
+
             case DiceSkillKind.Regenerate:
             case DiceSkillKind.Purify:
-                return new Color(0.13f, 0.38f, 0.26f, 0.95f);
+                return new Color(0.12f, 0.58f, 0.26f, 0.96f);   // Xanh lá - Hồi máu
+
             case DiceSkillKind.PoisonSting:
-                return new Color(0.32f, 0.15f, 0.46f, 0.95f);
+                return new Color(0.54f, 0.18f, 0.74f, 0.96f);   // Tím - Độc
+
             case DiceSkillKind.ShockStun:
-                return new Color(0.48f, 0.36f, 0.11f, 0.95f);
+                return new Color(0.86f, 0.70f, 0.10f, 0.96f);   // Vàng - Choáng
+
+            case DiceSkillKind.Ignite:
+                return new Color(0.92f, 0.46f, 0.08f, 0.96f);   // Cam - Thiêu đốt
+
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
             case DiceSkillKind.Overcharge:
-                return new Color(0.11f, 0.36f, 0.58f, 0.95f);
+                return new Color(0.12f, 0.46f, 0.88f, 0.96f);   // Xanh dương - Năng lượng
+
             case DiceSkillKind.Blank:
-                return new Color(0.24f, 0.24f, 0.28f, 0.88f);
+                return new Color(0.24f, 0.25f, 0.30f, 0.88f);   // Xám - Blank
+
             default:
                 return fallback;
         }
     }
-
     private Sprite GetSkillSprite(DiceFaceData face)
     {
         if (face == null) return null;
@@ -2159,29 +2194,30 @@ public class SimpleCombatManager : MonoBehaviour
         {
             case DiceSkillKind.Strike:
             case DiceSkillKind.HeavySlash:
+            case DiceSkillKind.Vampiric:
                 return diceFaceAttackSprite;
             case DiceSkillKind.Block:
             case DiceSkillKind.IronWall:
                 return diceFaceShieldSprite;
             case DiceSkillKind.PoisonSting:
-                return diceFacePoisonSprite != null ? diceFacePoisonSprite : diceFaceFireSprite;
+                return diceFacePoisonSprite != null ? diceFacePoisonSprite : diceFaceAttackSprite;
             case DiceSkillKind.Regenerate:
             case DiceSkillKind.Purify:
                 return diceFaceHealSprite != null ? diceFaceHealSprite : diceFaceShieldSprite;
             case DiceSkillKind.ShockStun:
-                return diceFaceLightningSprite != null ? diceFaceLightningSprite : diceFaceFireSprite;
+                return diceFaceLightningSprite != null ? diceFaceLightningSprite : diceFaceAttackSprite;
+            case DiceSkillKind.Ignite:
+                return diceFaceFireSprite != null ? diceFaceFireSprite : diceFaceAttackSprite;
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
             case DiceSkillKind.Overcharge:
-                return diceFaceEnergySprite != null ? diceFaceEnergySprite : diceFaceFireSprite;
+                return diceFaceEnergySprite != null ? diceFaceEnergySprite : diceFaceShieldSprite;
             case DiceSkillKind.Blank:
                 return diceFaceBlankSprite != null ? diceFaceBlankSprite : diceFaceShieldSprite;
-            case DiceSkillKind.Vampiric:
             default:
-                return diceFaceFireSprite != null ? diceFaceFireSprite : diceFaceAttackSprite;
+                return diceFaceAttackSprite;
         }
     }
-
     private void SetDiceSlotIcon(int slotIndex, Sprite sprite)
     {
         if (sprite == null || slotIndex < 0 || slotIndex >= diceSlots.Count || diceSlots[slotIndex] == null) return;
@@ -2236,19 +2272,20 @@ public class SimpleCombatManager : MonoBehaviour
     {
         switch (kind)
         {
-            case DiceSkillKind.Strike: return "Hành động: ⚔ Lao tới chém kiếm";
-            case DiceSkillKind.HeavySlash: return "Hành động: 💥 Trọng kích chém chữ X";
-            case DiceSkillKind.Vampiric: return "Hành động: 🩸 Chém huyết kiếm & Hấp thụ";
-            case DiceSkillKind.Block: return "Hành động: 🛡 Dậm chân dựng khiên chắn";
-            case DiceSkillKind.IronWall: return "Hành động: 🏰 Thế thủ Kim Cang Bất Khuất";
-            case DiceSkillKind.Regenerate: return "Hành động: 💚 Gồng tụ khí hồi máu";
-            case DiceSkillKind.Purify: return "Hành động: ✨ Gồng thanh tẩy độc tố";
-            case DiceSkillKind.PoisonSting: return "Hành động: ☠ Đâm mũi kiếm kịch độc";
-            case DiceSkillKind.ShockStun: return "Hành động: ⚡ Giáng sấm sét gây choáng";
+            case DiceSkillKind.Strike: return "Hành động: Lao tới chém kiếm";
+            case DiceSkillKind.HeavySlash: return "Hành động: Trọng kích chém chữ X";
+            case DiceSkillKind.Vampiric: return "Hành động: Chém huyết kiếm & Hấp thụ";
+            case DiceSkillKind.Block: return "Hành động: Dậm chân dựng khiên chắn";
+            case DiceSkillKind.IronWall: return "Hành động: Thế thủ Kim Cang Bất Khuất";
+            case DiceSkillKind.Regenerate: return "Hành động: Gồng tụ khí hồi máu";
+            case DiceSkillKind.Purify: return "Hành động: Gồng thanh tẩy độc tố";
+            case DiceSkillKind.PoisonSting: return "Hành động: Đâm mũi kiếm kịch độc";
+            case DiceSkillKind.ShockStun: return "Hành động: Giáng sấm sét gây choáng";
+            case DiceSkillKind.Ignite: return "Hành động: Chém bốc lửa & Thiêu đốt";
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
-            case DiceSkillKind.Overcharge: return "Hành động: 🔷 Tụ khí nạp Năng lượng kỹ năng";
-            default: return "Hành động: 💨 Trượt đà";
+            case DiceSkillKind.Overcharge: return "Hành động: Tụ khí nạp Năng lượng kỹ năng";
+            default: return "Hành động: Trượt đà";
         }
     }
 
@@ -2271,11 +2308,22 @@ public class SimpleCombatManager : MonoBehaviour
     private void SetDefaultHintText()
     {
         if (tooltipLabel == null) return;
-        SetTMPText(
-            tooltipLabel,
-            "💡 <b>Chiến thuật:</b> Kéo-thả xúc xắc vào nhân vật (hoặc Click phải / Double-Click) để tung đòn  |  Click trái chọn viên muốn Gieo lại");
+        SetTMPText(tooltipLabel, string.Empty);
     }
 
+    private void LateUpdate()
+    {
+        // Panel tooltip chỉ hiển thị khi có nội dung (hover xúc xắc, hover skill hoặc thông báo lỗi)
+        if (tooltipPanel != null && tooltipLabel != null && tmpType != null)
+        {
+            string txt = tmpType.GetProperty("text")?.GetValue(tooltipLabel) as string;
+            bool shouldShow = !string.IsNullOrWhiteSpace(txt);
+            if (tooltipPanel.activeSelf != shouldShow)
+            {
+                tooltipPanel.SetActive(shouldShow);
+            }
+        }
+    }
     private void UpdateEnemyIntentUI()
     {
         int bonusAtk = enemyEntity != null ? enemyEntity.BonusAttack : 0;
@@ -2284,7 +2332,7 @@ public class SimpleCombatManager : MonoBehaviour
         {
             if (enemyEntity != null && enemyEntity.StunStacks > 0)
             {
-                SetTMPText(enemyIntentLabel, "⚡ ĐANG BỊ CHOÁNG — Mất lượt hành động kế tiếp!");
+                SetTMPText(enemyIntentLabel, "ĐANG BỊ CHOÁNG — Mất lượt hành động kế tiếp!");
             }
             else
             {
@@ -2317,7 +2365,7 @@ public class SimpleCombatManager : MonoBehaviour
         {
             Component turnTmp = turnBadgeGo.GetComponentInChildren(tmpType);
             string phaseText = GetPhaseDisplayName(currentPhase);
-            SetTMPText(turnTmp, $"⚔ ẢI {currentStage}/3   •   HIỆP {currentRound}   •   {phaseText}");
+            SetTMPText(turnTmp, $"ẢI {currentStage}/3   -   HIỆP {currentRound}   -   {phaseText}");
         }
     }
 
@@ -2339,15 +2387,15 @@ public class SimpleCombatManager : MonoBehaviour
         if (rerollButton != null)
         {
             rerollButton.interactable = !isAnimating && currentPhase == CombatPhase.PlayerAction && rerollsLeft > 0;
-            UpdateButtonCaption(rerollButton, $"🎲 GIEO LẠI ({rerollsLeft})");
+            UpdateButtonCaption(rerollButton, $"GIEO LẠI ({rerollsLeft})");
         }
 
         if (endTurnButton != null)
         {
             endTurnButton.interactable = !isAnimating && currentPhase == CombatPhase.PlayerAction;
             string endCaption = selectedDiceIndices.Count > 0
-                ? $"⚔ DÙNG ({selectedDiceIndices.Count}) & KẾT THÚC LƯỢT"
-                : "⏭ KẾT THÚC LƯỢT (END TURN)";
+                ? $"DÙNG ({selectedDiceIndices.Count}) & KẾT THÚC LƯỢT"
+                : "KẾT THÚC LƯỢT (END TURN)";
             UpdateButtonCaption(endTurnButton, endCaption);
         }
 
@@ -2358,7 +2406,7 @@ public class SimpleCombatManager : MonoBehaviour
                            currentPhase == CombatPhase.PlayerAction &&
                            undoCount > 0;
             undoButton.interactable = canUndo;
-            UpdateButtonCaption(undoButton, $"⏪ UNDO ({undoCount}) [Z]");
+            UpdateButtonCaption(undoButton, $"UNDO ({undoCount}) [Z]");
         }
 
         UpdateCharacterSkillsUI();
@@ -2474,7 +2522,7 @@ public class SimpleCombatManager : MonoBehaviour
     private void UpdateHPLabel(Component label, int current, int max)
     {
         if (label == null) return;
-        SetTMPText(label, $"♥ {current} / {max} HP");
+        SetTMPText(label, $"{current} / {max} HP");
     }
 
     private void SetTMPText(Component tmpComp, string value)
@@ -2494,7 +2542,7 @@ public class SimpleCombatManager : MonoBehaviour
         UpdateEnemyIntentUI();
         if (enemyIntentLabel != null)
         {
-            SetTMPText(enemyIntentLabel, "🎉 CHIẾN THẮNG! QUÁI VẬT ĐÃ BỊ TIÊU DIỆT!");
+            SetTMPText(enemyIntentLabel, "CHIẾN THẮNG! QUÁI VẬT ĐÃ BỊ TIÊU DIỆT!");
         }
 
         // Hiệp sĩ gồng ăn mừng chiến thắng
@@ -2561,7 +2609,7 @@ public class SimpleCombatManager : MonoBehaviour
         UpdateEnemyIntentUI();
         if (enemyIntentLabel != null)
         {
-            SetTMPText(enemyIntentLabel, "💀 HIỆP SĨ ĐÃ NGÃ XUỐNG — HÀNH TRÌNH KHÉP LẠI!");
+            SetTMPText(enemyIntentLabel, "HIỆP SĨ ĐÃ NGÃ XUỐNG — HÀNH TRÌNH KHÉP LẠI!");
         }
 
         yield return new WaitForSeconds(0.95f);

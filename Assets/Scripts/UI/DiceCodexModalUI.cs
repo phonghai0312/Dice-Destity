@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
@@ -80,7 +80,7 @@ public class DiceCodexModalUI : MonoBehaviour
         TextMeshProUGUI titleTmp = CreateTMP(
             panel.transform,
             "CodexTitle",
-            "📖 BÁCH KHOA XÚC XẮC & TÚI ĐỒ CHIẾN THUẬT (CODEX)",
+            "BÁCH KHOA XÚC XẮC & TÚI ĐỒ CHIẾN THUẬT (CODEX)",
             new Vector2(-240f, 376f),
             new Vector2(880f, 44f),
             25f,
@@ -92,7 +92,7 @@ public class DiceCodexModalUI : MonoBehaviour
         tabCatalogBtn = CreateStyledButton(
             panel.transform,
             "TabCatalogButton",
-            "🎲 13 MẶT XÚC XẮC CHUẨN GDD",
+            "13 MẶT XÚC XẮC CHUẨN GDD",
             new Vector2(210f, 376f),
             new Vector2(260f, 42f),
             new Color(0.48f, 0.32f, 0.08f, 0.98f),
@@ -103,7 +103,7 @@ public class DiceCodexModalUI : MonoBehaviour
         tabBagBtn = CreateStyledButton(
             panel.transform,
             "TabBagButton",
-            "🎒 TÚI XÚC XẮC & KỸ NĂNG HIỆN TẠI",
+            "TÚI XÚC XẮC & KỸ NĂNG HIỆN TẠI",
             new Vector2(485f, 376f),
             new Vector2(270f, 42f),
             new Color(0.14f, 0.16f, 0.26f, 0.96f),
@@ -115,7 +115,7 @@ public class DiceCodexModalUI : MonoBehaviour
         Button closeBtn = CreateStyledButton(
             panel.transform,
             "CloseCodexButton",
-            "✖ ĐÓNG",
+            "ĐÓNG",
             new Vector2(655f, 376f),
             new Vector2(76f, 42f),
             new Color(0.56f, 0.14f, 0.16f, 0.98f),
@@ -247,7 +247,7 @@ public class DiceCodexModalUI : MonoBehaviour
             TextMeshProUGUI header = CreateTMP(
                 card.transform,
                 "CardHeader",
-                $"<b>#{i + 1}. {symbol} {face.faceName.ToUpper()}</b>   {rarityTag}\n<size=12><color=#cbd5e1>Nhóm: {typeLabel}  •  Chỉ số V = {face.valueV}</color></size>",
+                $"<b>#{i + 1}. {face.faceName.ToUpper()}</b>   {rarityTag}\n<size=12><color=#cbd5e1>Nhóm: {typeLabel}  •  Chỉ số V = {face.valueV}</color></size>",
                 new Vector2(0f, 44f),
                 new Vector2(302f, 52f),
                 14.5f,
@@ -317,19 +317,19 @@ public class DiceCodexModalUI : MonoBehaviour
             int maxHP = gm != null ? gm.playerMaxHP : 70;
 
             skillsSummaryText.text =
-                "<size=20><color=#fde047><b>⚡ HỆ THỐNG KỸ NĂNG NHÂN VẬT & NĂNG LƯỢNG</b></color></size>\n\n" +
+                "<size=20><color=#fde047><b>HỆ THỐNG KỸ NĂNG NHÂN VẬT & NĂNG LƯỢNG</b></color></size>\n\n" +
                 $"• <b>Máu Hiệp Sĩ hiện tại:</b> <color=#4ade80>{curHP} / {maxHP} HP</color>\n" +
-                "• <b>Thanh Năng Lượng (Energy):</b> Khởi đầu mỗi trận ở mức <b>0 / 10 🔷</b>.\n" +
-                "  Sử dụng các mặt xúc xắc <i>Mana Spark (+2🔷)</i>, <i>Arcane Surge (+3🔷, +2🛡)</i> hoặc <i>Overcharge (+4🔷, giảm 1🔷 chi phí)</i> để nạp đầy thanh kỹ năng.\n\n" +
-                $"<color=#38bdf8><b>1. ⚔ KỸ NĂNG THƯỜNG — CẤP {normLvl} (Phím tắt [1])</b></color>\n" +
-                $"   • Chi phí: <b>{normCost} Năng lượng (🔷)</b>\n" +
+                "• <b>Thanh Năng Lượng (Energy):</b> Khởi đầu mỗi trận ở mức <b>0 / 10 NL</b>.\n" +
+                "  Sử dụng các mặt xúc xắc <i>Mana Spark (+2 NL)</i>, <i>Arcane Surge (+3 NL, +2 Giáp)</i> hoặc <i>Overcharge (+4 NL, giảm 1 NL chi phí)</i> để nạp đầy thanh kỹ năng.\n\n" +
+                $"<color=#38bdf8><b>1. KỸ NĂNG THƯỜNG — CẤP {normLvl} (Phím tắt [1])</b></color>\n" +
+                $"   • Chi phí: <b>{normCost} Năng lượng (NL)</b>\n" +
                 $"   • Hiệu ứng: Gây ngay <b>{normDmg} sát thương đơn vị</b> lên mục tiêu.\n" +
                 "   • Nâng cấp tại Xưởng Rèn: <b>+3 Sát thương</b> mỗi cấp.\n\n" +
-                $"<color=#fb923c><b>2. 🔥 KỸ NĂNG TỐI THƯỢNG (ULTIMATE) — CẤP {ultLvl} (Phím tắt [2])</b></color>\n" +
-                $"   • Chi phí: <b>{ultCost} Năng lượng (🔷)</b>\n" +
-                $"   • Hiệu ứng: Giáng đòn hủy diệt gây <b>{ultDmg} sát thương lớn</b> và áp <b>+{ultBurn} tầng Thiêu đốt (🔥 Burn)</b> lên đối thủ!\n" +
+                $"<color=#fb923c><b>2. KỸ NĂNG TỐI THƯỢNG (ULTIMATE) — CẤP {ultLvl} (Phím tắt [2])</b></color>\n" +
+                $"   • Chi phí: <b>{ultCost} Năng lượng (NL)</b>\n" +
+                $"   • Hiệu ứng: Giáng đòn hủy diệt gây <b>{ultDmg} sát thương lớn</b> và áp <b>+{ultBurn} tầng Thiêu đốt (Burn)</b> lên đối thủ!\n" +
                 "   • Nâng cấp tại Xưởng Rèn: <b>+4 Sát thương & +2 tầng Thiêu đốt</b> mỗi cấp.\n\n" +
-                "<color=#facc15><b>🔥 CƠ CHẾ HIỆU ỨNG THIÊU ĐỐT (BURN):</b></color>\n" +
+                "<color=#facc15><b>CƠ CHẾ HIỆU ỨNG THIÊU ĐỐT (BURN):</b></color>\n" +
                 "   • Vào cuối mỗi hiệp (RoundEnd), mục tiêu dính Thiêu đốt chịu <b>sát thương chuẩn bỏ qua Giáp</b> bằng đúng số tầng Thiêu đốt hiện có, sau đó giảm đi 1 tầng.";
         }
     }
@@ -347,6 +347,7 @@ public class DiceCodexModalUI : MonoBehaviour
             case DiceSkillKind.Purify: return "✨";
             case DiceSkillKind.PoisonSting: return "☠";
             case DiceSkillKind.ShockStun: return "⚡";
+            case DiceSkillKind.Ignite: return "🔥";
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
             case DiceSkillKind.Overcharge: return "🔷";

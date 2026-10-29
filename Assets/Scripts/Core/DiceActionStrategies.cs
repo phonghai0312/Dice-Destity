@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -302,6 +302,28 @@ public class OverchargeActionStrategy : IDiceAction
     }
 }
 
+// ─── 14. IGNITE (Rare, 2-3): Gây V sát thương và áp +V tầng Thiêu đốt vào mục tiêu ──
+public class IgniteActionStrategy : IDiceAction
+{
+    public bool CanExecute(DiceActionContext ctx, out string failReason)
+    {
+        if (ctx.Target == null || !ctx.Target.IsAlive())
+        {
+            failReason = "Mục tiêu không hợp lệ!";
+            return false;
+        }
+        failReason = null;
+        return true;
+    }
+
+    public void Execute(DiceActionContext ctx)
+    {
+        int raw = Mathf.Max(1, ctx.FaceData.valueV);
+        int finalDmg = ctx.User != null ? ctx.User.CalculateOutgoingDamage(raw) : raw;
+        ctx.Target.TakeDamage(finalDmg);
+        ctx.Target.AddBurn(raw);
+    }
+}
 /// <summary>
 /// Registry ánh xạ từng DiceSkillKind sang Strategy tương ứng (không cần switch-case ở Controller).
 /// </summary>
@@ -322,7 +344,8 @@ public static class DiceActionRegistry
             { DiceSkillKind.Blank,       new BlankActionStrategy() },
             { DiceSkillKind.ManaSpark,   new ManaSparkActionStrategy() },
             { DiceSkillKind.ArcaneSurge, new ArcaneSurgeActionStrategy() },
-            { DiceSkillKind.Overcharge,  new OverchargeActionStrategy() }
+            { DiceSkillKind.Overcharge,  new OverchargeActionStrategy() },
+            { DiceSkillKind.Ignite,      new IgniteActionStrategy() }
         };
 
     public static IDiceAction GetStrategy(DiceFaceData faceData)

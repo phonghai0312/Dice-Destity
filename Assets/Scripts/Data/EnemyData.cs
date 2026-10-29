@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 
 /// <summary>
@@ -38,17 +38,17 @@ public struct EnemyIntentStep
         {
             case EnemyIntentType.Attack:
                 int totalAtk = primaryValue + bonusAtk;
-                return $"⚔ Ý định: {intentTitle} ({totalAtk} ST)";
+                return $"Ý định: {intentTitle} ({totalAtk} ST)";
             case EnemyIntentType.Defend:
-                return $"🛡 Ý định: {intentTitle} (+{primaryValue} Giáp)";
+                return $"Ý định: {intentTitle} (+{primaryValue} Giáp)";
             case EnemyIntentType.AttackAndPoison:
                 int totalPoisonAtk = primaryValue + bonusAtk;
-                return $"☠ Ý định: {intentTitle} ({totalPoisonAtk} ST + {secondaryValue} Độc)";
+                return $"Ý định: {intentTitle} ({totalPoisonAtk} ST + {secondaryValue} Độc)";
             case EnemyIntentType.ChargeBuffAttack:
-                return $"🔥 Ý định: {intentTitle} (+{primaryValue} Công lượt sau)";
+                return $"Ý định: {intentTitle} (+{primaryValue} Công lượt sau)";
             case EnemyIntentType.AttackAndHeal:
                 int totalSweepAtk = primaryValue + bonusAtk;
-                return $"🩸 Ý định: {intentTitle} ({totalSweepAtk} ST + Hồi {secondaryValue} HP)";
+                return $"Ý định: {intentTitle} ({totalSweepAtk} ST + Hồi {secondaryValue} HP)";
             default:
                 return intentTitle;
         }

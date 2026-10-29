@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
 
@@ -142,7 +142,8 @@ public static class DiceCatalog
             DiceFaceData.CreateRuntimeFace("Strike",       DiceFaceType.Attack, DiceSkillKind.Strike,      4, DiceFaceRarity.Common),
             DiceFaceData.CreateRuntimeFace("Mana Spark",   DiceFaceType.Energy, DiceSkillKind.ManaSpark,   2, DiceFaceRarity.Common),
             DiceFaceData.CreateRuntimeFace("Arcane Surge", DiceFaceType.Energy, DiceSkillKind.ArcaneSurge, 3, DiceFaceRarity.Rare),
-            DiceFaceData.CreateRuntimeFace("Overcharge",   DiceFaceType.Energy, DiceSkillKind.Overcharge,  4, DiceFaceRarity.Epic)
+            DiceFaceData.CreateRuntimeFace("Overcharge",   DiceFaceType.Energy, DiceSkillKind.Overcharge,  4, DiceFaceRarity.Epic),
+            DiceFaceData.CreateRuntimeFace("Ignite",       DiceFaceType.Status, DiceSkillKind.Ignite,      3, DiceFaceRarity.Rare)
         };
 
         return cachedRewardPool;
@@ -167,7 +168,8 @@ public static class DiceCatalog
             DiceFaceData.CreateRuntimeFace("Blank",        DiceFaceType.Special, DiceSkillKind.Blank,       0, DiceFaceRarity.Common),
             DiceFaceData.CreateRuntimeFace("Mana Spark",   DiceFaceType.Energy,  DiceSkillKind.ManaSpark,   2, DiceFaceRarity.Common),
             DiceFaceData.CreateRuntimeFace("Arcane Surge", DiceFaceType.Energy,  DiceSkillKind.ArcaneSurge, 3, DiceFaceRarity.Rare),
-            DiceFaceData.CreateRuntimeFace("Overcharge",   DiceFaceType.Energy,  DiceSkillKind.Overcharge,  4, DiceFaceRarity.Epic)
+            DiceFaceData.CreateRuntimeFace("Overcharge",   DiceFaceType.Energy,  DiceSkillKind.Overcharge,  4, DiceFaceRarity.Epic),
+            DiceFaceData.CreateRuntimeFace("Ignite",       DiceFaceType.Status,  DiceSkillKind.Ignite,      3, DiceFaceRarity.Rare)
         };
     }
 

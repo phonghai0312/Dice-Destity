@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
@@ -79,7 +79,7 @@ public class PauseMenuUI : MonoBehaviour
         Button codexBtn = CreateButton(
             transform,
             "QuickCodexButton",
-            "📖 BÁCH KHOA (13 MẶT)",
+            "BÁCH KHOA (13 MẶT)",
             new Vector2(610f, 498f),
             new Vector2(215f, 38f),
             new Color(0.12f, 0.22f, 0.38f, 0.94f),
@@ -91,7 +91,7 @@ public class PauseMenuUI : MonoBehaviour
         Button pauseBtn = CreateButton(
             transform,
             "QuickPauseButton",
-            "⚙ MENU [ESC]",
+            "MENU [ESC]",
             new Vector2(810f, 498f),
             new Vector2(150f, 38f),
             new Color(0.16f, 0.14f, 0.24f, 0.94f),
@@ -153,7 +153,7 @@ public class PauseMenuUI : MonoBehaviour
         Button codexBtn = CreateButton(
             box.transform,
             "CodexInPauseButton",
-            "📖 BÁCH KHOA 13 MẶT XÚC XẮC & TÚI ĐỒ",
+            "BÁCH KHOA 13 MẶT XÚC XẮC & TÚI ĐỒ",
             new Vector2(0f, 10f),
             new Vector2(360f, 50f),
             new Color(0.14f, 0.26f, 0.46f, 0.98f),
@@ -165,7 +165,7 @@ public class PauseMenuUI : MonoBehaviour
         Button restartBtn = CreateButton(
             box.transform,
             "RestartRunButton",
-            "🔄 CHƠI LẠI HÀNH TRÌNH MỚI (ẢI 1)",
+            "CHƠI LẠI HÀNH TRÌNH MỚI (ẢI 1)",
             new Vector2(0f, -55f),
             new Vector2(360f, 50f),
             new Color(0.48f, 0.26f, 0.08f, 0.98f),
@@ -183,7 +183,7 @@ public class PauseMenuUI : MonoBehaviour
         Button mainMenuBtn = CreateButton(
             box.transform,
             "ReturnMainMenuButton",
-            "🏠 VỀ MENU CHÍNH (MAIN MENU)",
+            "VỀ MENU CHÍNH (MAIN MENU)",
             new Vector2(0f, -120f),
             new Vector2(360f, 50f),
             new Color(0.52f, 0.14f, 0.16f, 0.98f),

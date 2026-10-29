@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
@@ -99,15 +99,15 @@ public class CharacterSkillBarUI : MonoBehaviour
         rootRt.anchorMin = new Vector2(0.5f, 0.5f);
         rootRt.anchorMax = new Vector2(0.5f, 0.5f);
         rootRt.pivot = new Vector2(0.5f, 0.5f);
-        rootRt.anchoredPosition = new Vector2(0f, -158f);
-        rootRt.sizeDelta = new Vector2(460f, 102f);
+        rootRt.anchoredPosition = Vector2.zero;
+        rootRt.sizeDelta = Vector2.zero;
 
         // 1. Thanh Năng Lượng (Energy Panel + 10 Pips)
         GameObject energyBox = new GameObject("PlayerEnergyPanel", typeof(RectTransform), typeof(Image), typeof(Outline));
         energyBox.transform.SetParent(rootObj.transform, false);
         RectTransform ebRt = energyBox.GetComponent<RectTransform>();
-        ebRt.anchoredPosition = new Vector2(0f, 26f);
-        ebRt.sizeDelta = new Vector2(448f, 40f);
+        ebRt.anchoredPosition = new Vector2(-450f, -246f);
+        ebRt.sizeDelta = new Vector2(340f, 44f);
 
         Image ebBg = energyBox.GetComponent<Image>();
         ebBg.color = new Color(0.06f, 0.08f, 0.14f, 0.94f);
@@ -121,8 +121,8 @@ public class CharacterSkillBarUI : MonoBehaviour
         GameObject lblGo = new GameObject("PlayerEnergyText", typeof(RectTransform), typeof(TextMeshProUGUI));
         lblGo.transform.SetParent(energyBox.transform, false);
         RectTransform lblRt = lblGo.GetComponent<RectTransform>();
-        lblRt.anchoredPosition = new Vector2(0f, 7f);
-        lblRt.sizeDelta = new Vector2(430f, 22f);
+        lblRt.anchoredPosition = new Vector2(0f, 9f);
+        lblRt.sizeDelta = new Vector2(320f, 20f);
 
         energyHeaderText = lblGo.GetComponent<TextMeshProUGUI>();
         energyHeaderText.fontSize = 14.5f;
@@ -134,8 +134,8 @@ public class CharacterSkillBarUI : MonoBehaviour
         GameObject pipsRow = new GameObject("EnergyPipsRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         pipsRow.transform.SetParent(energyBox.transform, false);
         RectTransform pipsRt = pipsRow.GetComponent<RectTransform>();
-        pipsRt.anchoredPosition = new Vector2(0f, -9f);
-        pipsRt.sizeDelta = new Vector2(390f, 10f);
+        pipsRt.anchoredPosition = new Vector2(0f, -11f);
+        pipsRt.sizeDelta = new Vector2(310f, 10f);
 
         HorizontalLayoutGroup hlg = pipsRow.GetComponent<HorizontalLayoutGroup>();
         hlg.spacing = 5f;
@@ -160,8 +160,8 @@ public class CharacterSkillBarUI : MonoBehaviour
         normalSkillBtn = CreateSkillButtonWidget(
             rootObj.transform,
             "NormalSkillButton",
-            new Vector2(-114f, -24f),
-            new Vector2(220f, 46f),
+            new Vector2(-780f, 110f),
+            new Vector2(230f, 66f),
             new Color(0.11f, 0.26f, 0.46f, 0.96f),
             new Color(0.38f, 0.78f, 1f, 0.9f),
             out normalSkillText,
@@ -178,8 +178,8 @@ public class CharacterSkillBarUI : MonoBehaviour
         ultimateSkillBtn = CreateSkillButtonWidget(
             rootObj.transform,
             "UltimateSkillButton",
-            new Vector2(114f, -24f),
-            new Vector2(220f, 46f),
+            new Vector2(-780f, 30f),
+            new Vector2(230f, 66f),
             new Color(0.46f, 0.14f, 0.12f, 0.96f),
             new Color(1f, 0.56f, 0.18f, 0.92f),
             out ultimateSkillText,
@@ -250,14 +250,14 @@ public class CharacterSkillBarUI : MonoBehaviour
                 int cost = playerEntity.GetEffectiveSkillCost(combatManager.ultimateSkillBaseCost);
                 int lvl = GameManager.Instance != null ? GameManager.Instance.ultimateSkillLevel : 1;
                 combatManager.ShowCustomBannerTooltip(
-                    $"🔥 <b>KỸ NĂNG TỐI THƯỢNG (Lv.{lvl})</b> [{cost} 🔷]: Gây <b>{combatManager.ultimateSkillDamage} Sát thương</b> lớn và áp <b>+{combatManager.ultimateSkillBurnStacks} tầng Thiêu đốt</b> lên đối thủ (Phím tắt: [2]).");
+                    $"<b>KỸ NĂNG TỐI THƯỢNG (Lv.{lvl})</b> [{cost} NL]: Gây <b>{combatManager.ultimateSkillDamage} Sát thương</b> lớn và áp <b>+{combatManager.ultimateSkillBurnStacks} tầng Thiêu đốt</b> lên đối thủ.");
             }
             else
             {
                 int cost = playerEntity.GetEffectiveSkillCost(combatManager.normalSkillBaseCost);
                 int lvl = GameManager.Instance != null ? GameManager.Instance.normalSkillLevel : 1;
                 combatManager.ShowCustomBannerTooltip(
-                    $"⚔ <b>KỸ NĂNG THƯỜNG (Lv.{lvl})</b> [{cost} 🔷]: Tiêu hao {cost} Năng lượng để gây ngay <b>{combatManager.normalSkillDamage} Sát thương</b> đơn vị lên đối thủ (Phím tắt: [1]).");
+                    $"<b>KỸ NĂNG THƯỜNG (Lv.{lvl})</b> [{cost} NL]: Tiêu hao {cost} Năng lượng để gây ngay <b>{combatManager.normalSkillDamage} Sát thương</b> đơn vị lên đối thủ.");
             }
         });
         trigger.triggers.Add(enterEntry);
@@ -280,8 +280,8 @@ public class CharacterSkillBarUI : MonoBehaviour
 
         if (energyHeaderText != null)
         {
-            string discountStr = discount > 0 ? $"  <color=#fde047>(-{discount}🔷 chi phí)</color>" : "";
-            energyHeaderText.text = $"🔷 NĂNG LƯỢNG KỸ NĂNG: <b>{curEnergy} / {maxEnergy}</b>{discountStr}";
+            string discountStr = discount > 0 ? $"  <color=#fde047>(-{discount} NL)</color>" : "";
+            energyHeaderText.text = $"NĂNG LƯỢNG: <b>{curEnergy} / {maxEnergy}</b>{discountStr}";
         }
 
         for (int i = 0; i < energyPipImages.Count; i++)
@@ -320,7 +320,7 @@ public class CharacterSkillBarUI : MonoBehaviour
         }
         if (normalSkillText != null)
         {
-            normalSkillText.text = $"⚔ SKILL THƯỜNG Lv.{normLvl} [{normalCost}🔷]\n<size=11>Gây {combatManager.normalSkillDamage} Sát thương [Phím 1]</size>";
+            normalSkillText.text = $"SKILL THƯỜNG Lv.{normLvl} [{normalCost} NL]\n<size=11>Gây {combatManager.normalSkillDamage} Sát thương</size>";
         }
 
         if (ultimateSkillBtn != null)
@@ -329,7 +329,7 @@ public class CharacterSkillBarUI : MonoBehaviour
         }
         if (ultimateSkillText != null)
         {
-            ultimateSkillText.text = $"🔥 TỐI THƯỢNG Lv.{ultLvl} [{ultCost}🔷]\n<size=11>{combatManager.ultimateSkillDamage} ST + {combatManager.ultimateSkillBurnStacks} Cháy [Phím 2]</size>";
+            ultimateSkillText.text = $"TỐI THƯỢNG Lv.{ultLvl} [{ultCost} NL]\n<size=11>{combatManager.ultimateSkillDamage} ST + {combatManager.ultimateSkillBurnStacks} Cháy</size>";
         }
     }
 }

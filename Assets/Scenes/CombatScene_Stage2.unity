@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!29 &1
 OcclusionCullingSettings:
@@ -2186,6 +2186,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 21300000, guid: 4b1a2c3d5e6f7a8b9c0d1e2f3a4b5c11, type: 3}
+  diceFaceHealSprite: {fileID: 21300000, guid: 4b1a2c3d5e6f7a8b9c0d1e2f3a4b5c12, type: 3}
+  diceFaceLightningSprite: {fileID: 21300000, guid: 4b1a2c3d5e6f7a8b9c0d1e2f3a4b5c13, type: 3}
+  diceFaceBlankSprite: {fileID: 21300000, guid: 4b1a2c3d5e6f7a8b9c0d1e2f3a4b5c14, type: 3}
 --- !u!4 &599374761
 Transform:
   m_ObjectHideFlags: 0
