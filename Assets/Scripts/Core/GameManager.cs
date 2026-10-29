@@ -56,6 +56,9 @@ public class GameManager : MonoBehaviour
     [Tooltip("Túi xúc xắc lục diện (mỗi viên 6 mặt) đang trang bị")]
     public List<DiceInstance> playerDiceBag = new List<DiceInstance>();
 
+    [Tooltip("Túi mặt xúc xắc dự trữ của người chơi (dùng để rèn đè và cường hóa trong Lò Rèn)")]
+    public List<DiceFaceData> playerFacePool = new List<DiceFaceData>();
+
     [Tooltip("Danh sách mặt xúc xắc (giữ tương thích ngược)")]
     public List<DiceFaceData> currentDiceFaces = new List<DiceFaceData>();
 
@@ -96,6 +99,11 @@ public class GameManager : MonoBehaviour
         {
             playerDiceBag = DiceCatalog.CreateStarterDiceBag();
             SyncLegacyDiceFaceList();
+        }
+
+        if (playerFacePool == null || playerFacePool.Count == 0)
+        {
+            playerFacePool = DiceCatalog.CreateStarterReservePool();
         }
     }
 
@@ -191,6 +199,7 @@ public class GameManager : MonoBehaviour
 
         playerCurrentHP = playerMaxHP;
         playerDiceBag = DiceCatalog.CreateStarterDiceBag();
+        playerFacePool = DiceCatalog.CreateStarterReservePool();
         SyncLegacyDiceFaceList();
 
         Debug.Log($"[GameManager] StartNewRun → stage={currentStageIndex}, hp={playerCurrentHP}, diceCount={playerDiceBag.Count}, enemies={stageEnemies.Length}");
@@ -279,5 +288,199 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"[GameManager] Enemy defeated! Cleared Stage {lastClearedStageIndex}/{totalStages} (Next Stage={currentStageIndex}, Player HP={playerCurrentHP}/{playerMaxHP}). Loading StageMap...");
         LoadStageMapScene();
+    }
+
+    /// <summary>
+    /// Mở khóa tuần tự 1 ô mặt xúc xắc bị khóa (bắt đầu từ Viên 1, rồi Viên 2, Viên 3).
+    /// </summary>
+    public bool UnlockNextLockedSlot(out int unlockedDieIndex, out int unlockedSlotIndex)
+    {
+        unlockedDieIndex = -1;
+        unlockedSlotIndex = -1;
+        EnsureDiceBagInitialized();
+
+        if (playerDiceBag == null) return false;
+
+        for (int d = 0; d < playerDiceBag.Count; d++)
+        {
+            DiceInstance die = playerDiceBag[d];
+            if (die == null) continue;
+
+            for (int s = 0; s < DiceInstance.FACES_COUNT; s++)
+            {
+                if (die.IsSlotLocked(s))
+                {
+                    die.UnlockSlot(s);
+                    // Đảm bảo ô mới mở là mặt Trống để người chơi dán mặt lên
+                    if (die.faces[s] == null)
+                    {
+                        die.faces[s] = DiceFaceData.CreateRuntimeFace("Trống", DiceFaceType.Special, DiceSkillKind.Blank, 0, DiceFaceRarity.Common, null, null, 1);
+                    }
+                    unlockedDieIndex = d;
+                    unlockedSlotIndex = s;
+                    SyncLegacyDiceFaceList();
+                    Debug.Log($"[GameManager] Đã mở khóa ô mặt mới: Viên #{d + 1} - Ô #{s + 1}!");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Thêm 1 mặt xúc xắc mới vào Pool dự trữ của người chơi.
+    /// </summary>
+    public void AddFaceToPool(DiceFaceData face)
+    {
+        if (face == null) return;
+        if (playerFacePool == null) playerFacePool = new List<DiceFaceData>();
+        playerFacePool.Add(face);
+        Debug.Log($"[GameManager] Thêm mặt '{face.faceName}' Lv.{face.level} vào Pool dự trữ (Tổng: {playerFacePool.Count} mặt).");
+    }
+
+    /// <summary>
+    /// Đếm tổng số mặt thuộc loại kind trên cả 3 viên xúc xắc (chỉ tính các ô đã mở khóa và không phải mặt Trống).
+    /// </summary>
+    public int CountTotalFaceKindAcrossAllDice(DiceSkillKind kind)
+    {
+        if (playerDiceBag == null) return 0;
+        int total = 0;
+        for (int d = 0; d < playerDiceBag.Count; d++)
+        {
+            DiceInstance die = playerDiceBag[d];
+            if (die == null) continue;
+            total += die.CountFaceKind(kind);
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// Gán / Ghi đè 1 mặt xúc xắc từ Pool vào ô mặt của một viên xúc xắc:
+    /// - Không thể gán vào ô đang khóa.
+    /// - Mỗi loại mặt chỉ được xuất hiện tối đa 2 lần trên cùng 1 viên xúc xắc.
+    /// - Mỗi loại mặt chỉ được xuất hiện tối đa 4 lần trên toàn bộ 3 viên xúc xắc.
+    /// - Nếu vi phạm logic, trả về false và lý do chi tiết.
+    /// - Mặt trong Pool KHÔNG BỊ BIẾN MẤT (chỉ hiển thị thư viện để gán).
+    /// </summary>
+    public bool EquipFaceFromPoolToDie(int poolIndex, int dieIndex, int slotIndex, out string errorMessage)
+    {
+        errorMessage = null;
+        EnsureDiceBagInitialized();
+
+        if (playerFacePool == null || poolIndex < 0 || poolIndex >= playerFacePool.Count)
+        {
+            errorMessage = "Mặt xúc xắc trong túi không tồn tại.";
+            return false;
+        }
+
+        if (playerDiceBag == null || dieIndex < 0 || dieIndex >= playerDiceBag.Count)
+        {
+            errorMessage = "Viên xúc xắc không hợp lệ.";
+            return false;
+        }
+
+        DiceInstance die = playerDiceBag[dieIndex];
+        DiceFaceData faceToEquip = playerFacePool[poolIndex];
+
+        if (slotIndex < 0 || slotIndex >= DiceInstance.FACES_COUNT)
+        {
+            errorMessage = "Vị trí ô xúc xắc không hợp lệ.";
+            return false;
+        }
+
+        if (die.IsSlotLocked(slotIndex))
+        {
+            errorMessage = "Ô này đang bị khóa! Hãy vượt thêm Ải trên Bản Đồ để mở khóa.";
+            return false;
+        }
+
+        DiceFaceData currentFace = die.faces[slotIndex];
+        DiceSkillKind currentKind = (currentFace != null) ? currentFace.GetResolvedSkillKind() : DiceSkillKind.Blank;
+        DiceSkillKind newKind = faceToEquip.GetResolvedSkillKind();
+
+        // 1. Kiểm tra Giới hạn tối đa 2 mặt cùng loại trên 1 viên
+        int countOnThisDie = die.CountFaceKind(newKind);
+        if (currentKind != newKind && countOnThisDie >= 2)
+        {
+            errorMessage = $"Loại mặt '{faceToEquip.faceName}' đã có {countOnThisDie}/2 mặt trên viên này! (Tối đa 2 mặt cùng loại trên 1 viên xúc xắc)";
+            return false;
+        }
+
+        // 2. Kiểm tra Giới hạn tối đa 4 mặt cùng loại trên cả 3 viên xúc xắc
+        int countAcrossAllDice = CountTotalFaceKindAcrossAllDice(newKind);
+        if (currentKind != newKind && countAcrossAllDice >= 4)
+        {
+            errorMessage = $"Loại mặt '{faceToEquip.faceName}' đã có {countAcrossAllDice}/4 mặt trên toàn bộ bộ xúc xắc! (Tối đa 4 mặt cùng loại trên cả 3 viên)";
+            return false;
+        }
+
+        // Thực hiện gán / ghi đè mặt mới (mặt trong pool KHÔNG biến mất)
+        die.ReplaceFace(slotIndex, faceToEquip.Clone());
+        SyncLegacyDiceFaceList();
+        Debug.Log($"[GameManager] Gán thành công mặt '{faceToEquip.faceName}' Lv.{faceToEquip.level} vào {die.diceName} - Ô #{slotIndex + 1} (Mặt trong pool vẫn được giữ nguyên).");
+        return true;
+    }
+
+    /// <summary>
+    /// Cường hóa (kết hợp) 2 mặt giống nhau trong Pool để nâng cấp lên cấp cao hơn
+    /// VÀ TỰ ĐỘNG THAY THẾ các mặt cũ tương ứng trên cả 3 viên xúc xắc thành mặt mới được cường hóa.
+    /// </summary>
+    public bool MergeFacesInPoolAndUpgradeDice(int indexA, int indexB, out DiceFaceData upgradedFace, out int autoUpgradedDiceCount)
+    {
+        upgradedFace = null;
+        autoUpgradedDiceCount = 0;
+
+        if (playerFacePool == null) return false;
+        if (indexA < 0 || indexA >= playerFacePool.Count) return false;
+        if (indexB < 0 || indexB >= playerFacePool.Count) return false;
+        if (indexA == indexB) return false;
+
+        DiceFaceData faceA = playerFacePool[indexA];
+        DiceFaceData faceB = playerFacePool[indexB];
+
+        if (faceA == null || faceB == null) return false;
+        if (!faceA.CanMergeWith(faceB)) return false;
+
+        DiceSkillKind oldKind = faceA.GetResolvedSkillKind();
+        int oldLevel = faceA.level;
+
+        upgradedFace = DiceFaceData.CreateUpgradedFace(faceA, faceB);
+
+        // Gộp trong Pool: Thay indexA bằng mặt nâng cấp, loại bỏ indexB
+        playerFacePool[indexA] = upgradedFace;
+        playerFacePool.RemoveAt(indexB);
+
+        // Tự động thay thế các mặt cũ tương ứng trên cả 3 viên xúc xắc
+        if (playerDiceBag != null)
+        {
+            for (int d = 0; d < playerDiceBag.Count; d++)
+            {
+                DiceInstance die = playerDiceBag[d];
+                if (die == null || die.faces == null) continue;
+
+                for (int s = 0; s < die.faces.Length; s++)
+                {
+                    if (die.IsSlotLocked(s)) continue;
+                    DiceFaceData currentFace = die.faces[s];
+                    if (currentFace != null && currentFace.GetResolvedSkillKind() == oldKind && currentFace.level == oldLevel)
+                    {
+                        die.faces[s] = upgradedFace.Clone();
+                        autoUpgradedDiceCount++;
+                    }
+                }
+            }
+        }
+
+        SyncLegacyDiceFaceList();
+        Debug.Log($"[GameManager] Cường hóa thành công: {faceA.faceName} + {faceB.faceName} -> {upgradedFace.faceName} Lv.{upgradedFace.level}. Tự động nâng cấp {autoUpgradedDiceCount} mặt trên các viên xúc xắc!");
+        return true;
+    }
+
+    /// <summary>
+    /// Wrapper giữ tương thích ngược cho MergeFacesInPool
+    /// </summary>
+    public bool MergeFacesInPool(int indexA, int indexB, out DiceFaceData upgradedFace)
+    {
+        return MergeFacesInPoolAndUpgradeDice(indexA, indexB, out upgradedFace, out _);
     }
 }

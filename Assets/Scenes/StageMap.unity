@@ -528,7 +528,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b48c930a6e145f29823d41bc85f910a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageMapController
-  mapBackgroundSprite: {fileID: 999852474204008283, guid: 2a8ae4791c5b63844b44c1557b978b18, type: 3}
+  mapBackgroundSprite: {fileID: 21300000, guid: abed2d7ee5494cbc8f90e6000a0b9918, type: 3}
   heroTokenSprite: {fileID: 6661966315181472805, guid: ae6ab35f893a82e49b85bae3044046d1, type: 3}
   goblinSprite: {fileID: 5959680874715522592, guid: 55312091932af8040be5dc04f8f42d54, type: 3}
   orcSprite: {fileID: 3009389792317556743, guid: a70b0c1187a42c54b877a13d55387ce5, type: 3}

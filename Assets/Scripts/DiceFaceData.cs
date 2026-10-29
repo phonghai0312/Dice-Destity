@@ -34,6 +34,10 @@ public class DiceFaceData : ScriptableObject
     public int valueV;
     public DiceFaceRarity rarity;
 
+    [Header("Enhancement & Level")]
+    public int level = 1;
+    public int upgradeCount = 0;
+
     [Header("Skill Behavior (GDD 3.2)")]
     public DiceSkillKind skillKind = DiceSkillKind.AutoDetect;
     [TextArea(2, 4)]
@@ -167,7 +171,8 @@ public class DiceFaceData : ScriptableObject
         int value,
         DiceFaceRarity faceRarity,
         Sprite faceIcon = null,
-        string customDesc = null)
+        string customDesc = null,
+        int faceLevel = 1)
     {
         DiceFaceData data = CreateInstance<DiceFaceData>();
         data.name = $"Face_{name}_{value}";
@@ -178,6 +183,98 @@ public class DiceFaceData : ScriptableObject
         data.rarity = faceRarity;
         data.icon = faceIcon;
         data.description = customDesc;
+        data.level = faceLevel;
         return data;
+    }
+
+    public string GetBaseFaceName()
+    {
+        if (string.IsNullOrEmpty(faceName)) return "Mặt Xúc Xắc";
+        int lvIdx = faceName.IndexOf(" Lv.");
+        if (lvIdx > 0) return faceName.Substring(0, lvIdx).Trim();
+        return faceName.Trim();
+    }
+
+    public bool CanMergeWith(DiceFaceData other)
+    {
+        if (other == null || other == this) return false;
+        DiceSkillKind k1 = GetResolvedSkillKind();
+        DiceSkillKind k2 = other.GetResolvedSkillKind();
+        if (k1 == DiceSkillKind.Blank || k2 == DiceSkillKind.Blank) return false;
+        return k1 == k2 && level == other.level;
+    }
+
+    public static DiceFaceData CreateUpgradedFace(DiceFaceData f1, DiceFaceData f2)
+    {
+        if (f1 == null) return f2;
+        if (f2 == null) return f1;
+
+        DiceSkillKind kind = f1.GetResolvedSkillKind();
+        int newLevel = Mathf.Max(f1.level, f2.level) + 1;
+        int newValue = CalculateUpgradedValue(kind, newLevel, f1.valueV);
+        DiceFaceRarity newRarity = newLevel >= 3 ? DiceFaceRarity.Epic : (newLevel >= 2 ? DiceFaceRarity.Rare : DiceFaceRarity.Common);
+        string baseName = f1.GetBaseFaceName();
+
+        DiceFaceData upgraded = CreateInstance<DiceFaceData>();
+        upgraded.name = $"Face_{baseName}_Lv{newLevel}";
+        upgraded.faceName = $"{baseName} Lv.{newLevel}";
+        upgraded.type = f1.type;
+        upgraded.skillKind = kind;
+        upgraded.valueV = newValue;
+        upgraded.rarity = newRarity;
+        upgraded.level = newLevel;
+        upgraded.upgradeCount = Mathf.Max(f1.upgradeCount, f2.upgradeCount) + 1;
+        upgraded.icon = f1.icon != null ? f1.icon : f2.icon;
+        upgraded.description = f1.description;
+        return upgraded;
+    }
+
+    public static int CalculateUpgradedValue(DiceSkillKind kind, int targetLevel, int baseValue)
+    {
+        switch (kind)
+        {
+            case DiceSkillKind.Strike:
+                return targetLevel == 2 ? 5 : (targetLevel >= 3 ? 8 : 3);
+            case DiceSkillKind.Block:
+                return targetLevel == 2 ? 5 : (targetLevel >= 3 ? 8 : 3);
+            case DiceSkillKind.Regenerate:
+                return targetLevel == 2 ? 4 : (targetLevel >= 3 ? 6 : 2);
+            case DiceSkillKind.ManaSpark:
+                return targetLevel == 2 ? 2 : (targetLevel >= 3 ? 3 : 1);
+            case DiceSkillKind.PoisonSting:
+                return targetLevel == 2 ? 3 : (targetLevel >= 3 ? 5 : 2);
+            case DiceSkillKind.Ignite:
+                return targetLevel == 2 ? 3 : (targetLevel >= 3 ? 5 : 2);
+            case DiceSkillKind.HeavySlash:
+                return targetLevel == 2 ? 9 : (targetLevel >= 3 ? 12 : 6);
+            case DiceSkillKind.IronWall:
+                return targetLevel == 2 ? 6 : (targetLevel >= 3 ? 8 : 4);
+            case DiceSkillKind.Vampiric:
+                return targetLevel == 2 ? 5 : (targetLevel >= 3 ? 7 : 3);
+            case DiceSkillKind.ArcaneSurge:
+                return targetLevel == 2 ? 3 : (targetLevel >= 3 ? 4 : 2);
+            case DiceSkillKind.Overcharge:
+                return targetLevel == 2 ? 4 : (targetLevel >= 3 ? 5 : 3);
+            case DiceSkillKind.ShockStun:
+                return targetLevel >= 2 ? 2 : 1;
+            default:
+                return baseValue + (targetLevel - 1) * 2;
+        }
+    }
+
+    public DiceFaceData Clone()
+    {
+        DiceFaceData c = CreateInstance<DiceFaceData>();
+        c.name = this.name;
+        c.faceName = this.faceName;
+        c.type = this.type;
+        c.skillKind = this.skillKind;
+        c.valueV = this.valueV;
+        c.rarity = this.rarity;
+        c.level = this.level;
+        c.upgradeCount = this.upgradeCount;
+        c.icon = this.icon;
+        c.description = this.description;
+        return c;
     }
 }

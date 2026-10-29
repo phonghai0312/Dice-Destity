@@ -65,7 +65,8 @@ public class RebuildStageMapScene
         cs.matchWidthOrHeight = 0.5f;
         cvGo.AddComponent<GraphicRaycaster>();
 
-        Sprite mapSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/World_Map_Overworld.png");
+        Sprite mapSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Backgrounds 1/World_Map_3Stages_Overworld.png");
+        if (mapSpr == null) mapSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/World_Map_Overworld.png");
         GameObject bgGo = new GameObject("PreviewBackground");
         bgGo.transform.SetParent(cvGo.transform, false);
         RectTransform bgRt = bgGo.AddComponent<RectTransform>();
