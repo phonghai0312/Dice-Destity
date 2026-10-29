@@ -830,15 +830,15 @@ public class SimpleCombatManager : MonoBehaviour
                 "PlayerStatusPanel",
                 new Vector2(-450f, -195f),
                 new Vector2(340f, 34f),
-                new Color(0.18f, 0.55f, 0.85f, 0.6f));
+                new Color(0.75f, 0.58f, 0.22f, 0.85f));
 
             playerStatusLabel = CreateOverlayLabel(
                 pBadgeBg.transform,
                 "PlayerStatusBadge",
                 Vector2.zero,
                 new Vector2(330f, 32f),
-                16.5f,
-                new Color(0.68f, 0.92f, 1f, 1f));
+                16f,
+                new Color(0.92f, 0.95f, 1f, 1f));
         }
 
         // 2. Nhãn trạng thái & Giáp của Enemy (đặt ngay dưới Thanh Máu Quái Vật)
@@ -849,15 +849,15 @@ public class SimpleCombatManager : MonoBehaviour
                 "EnemyStatusPanel",
                 new Vector2(450f, -195f),
                 new Vector2(340f, 34f),
-                new Color(0.85f, 0.35f, 0.25f, 0.6f));
+                new Color(0.75f, 0.58f, 0.22f, 0.85f));
 
             enemyStatusLabel = CreateOverlayLabel(
                 eBadgeBg.transform,
                 "EnemyStatusBadge",
                 Vector2.zero,
                 new Vector2(330f, 32f),
-                16.5f,
-                new Color(1f, 0.88f, 0.55f, 1f));
+                16f,
+                new Color(0.95f, 0.92f, 0.85f, 1f));
         }
 
         // 3. Banner Ý Định Quái Vật (Enemy Intent)
@@ -891,23 +891,12 @@ public class SimpleCombatManager : MonoBehaviour
                 new Color(1f, 0.94f, 0.78f, 1f));
         }
 
-        // 4. Huy hiệu Tiến Trình Hành Trình 3 Ải ở Góc Trái Đỉnh
-        if (stageProgressLabel == null)
+        // 4. Huy hiệu Tiến Trình Hành Trình 3 Ải ở Góc Trái Đỉnh (Ẩn đi để màn hình thông thoáng như mockup)
+        Transform existingProg = rootCanvas.transform.Find("StageProgressBanner");
+        if (existingProg != null)
         {
-            GameObject progBg = CreateStatusPillPanel(
-                rootCanvas.transform,
-                "StageProgressBanner",
-                new Vector2(-650f, 498f),
-                new Vector2(460f, 38f),
-                new Color(0.72f, 0.55f, 0.18f, 0.65f));
-
-            stageProgressLabel = CreateOverlayLabel(
-                progBg.transform,
-                "StageProgressText",
-                Vector2.zero,
-                new Vector2(445f, 34f),
-                15.5f,
-                new Color(0.95f, 0.9f, 0.75f, 1f));
+            if (tmpType != null) stageProgressLabel = existingProg.GetComponentInChildren(tmpType);
+            existingProg.gameObject.SetActive(false);
         }
 
         // 5. Panel Tooltip Chiến Thuật nằm ngay trên Khay Xúc Xắc (DiceTray)
@@ -1018,20 +1007,32 @@ public class SimpleCombatManager : MonoBehaviour
         Vector2 size,
         Color outlineColor)
     {
-        GameObject go = new GameObject(name);
-        go.transform.SetParent(parent, false);
-        RectTransform rt = go.AddComponent<RectTransform>();
+        Transform existing = parent.Find(name);
+        GameObject go;
+        if (existing != null)
+        {
+            go = existing.gameObject;
+        }
+        else
+        {
+            go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+        }
+
+        RectTransform rt = go.GetComponent<RectTransform>();
+        if (rt == null) rt = go.AddComponent<RectTransform>();
         rt.anchorMin = new Vector2(0.5f, 0.5f);
         rt.anchorMax = new Vector2(0.5f, 0.5f);
         rt.pivot = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = anchoredPos;
         rt.sizeDelta = size;
 
-        Image bg = go.AddComponent<Image>();
-        bg.color = new Color(0.06f, 0.07f, 0.12f, 0.88f);
+        Image bg = go.GetComponent<Image>();
+        if (bg == null) bg = go.AddComponent<Image>();
+        bg.color = new Color(0.08f, 0.09f, 0.14f, 0.95f);
         bg.raycastTarget = false;
 
-        EnsureOutline(go, outlineColor, 1.2f);
+        EnsureOutline(go, outlineColor, 1.4f);
         return go;
     }
 
@@ -1043,15 +1044,27 @@ public class SimpleCombatManager : MonoBehaviour
         float fontSize,
         Color color)
     {
-        GameObject go = new GameObject(name);
-        go.transform.SetParent(parent, false);
-        RectTransform rt = go.AddComponent<RectTransform>();
+        Transform existing = parent.Find(name);
+        GameObject go;
+        if (existing != null)
+        {
+            go = existing.gameObject;
+        }
+        else
+        {
+            go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+        }
+
+        RectTransform rt = go.GetComponent<RectTransform>();
+        if (rt == null) rt = go.AddComponent<RectTransform>();
         rt.anchoredPosition = anchoredPos;
         rt.sizeDelta = size;
 
         if (tmpType != null)
         {
-            Component tmp = go.AddComponent(tmpType);
+            Component tmp = go.GetComponent(tmpType);
+            if (tmp == null) tmp = go.AddComponent(tmpType);
             tmpType.GetProperty("fontSize")?.SetValue(tmp, fontSize);
             tmpType.GetProperty("color")?.SetValue(tmp, color);
             tmpType.GetProperty("alignment")?.SetValue(tmp, 514); // Center
@@ -1117,6 +1130,7 @@ public class SimpleCombatManager : MonoBehaviour
 
             playerEntity.OnEnergyChanged += (curEnergy, maxEnergy) =>
             {
+                RefreshEntityStatusDisplay(playerEntity, playerStatusLabel);
                 UpdateCharacterSkillsUI();
             };
 
@@ -1182,7 +1196,23 @@ public class SimpleCombatManager : MonoBehaviour
         if (entity.WeakStacks > 0) badges.Add($"<color=#94a3b8>Yếu: {entity.WeakStacks}</color>");
         if (entity.BonusAttack > 0) badges.Add($"<color=#fb923c>+Công: {entity.BonusAttack}</color>");
 
-        string text = badges.Count > 0 ? string.Join("   ", badges) : "<color=#94a3b8>Giáp: 0  -  Bình thường</color>";
+        string text;
+        if (entity == playerEntity)
+        {
+            string energyStr = $"Năng lượng: {entity.CurrentEnergy} / {entity.MaxEnergy}";
+            if (badges.Count > 0)
+            {
+                text = $"{string.Join("   ", badges)}   -   <b><color=#38bdf8>{energyStr}</color></b>";
+            }
+            else
+            {
+                text = $"<b><color=#e2e8f0>{energyStr}</color></b>";
+            }
+        }
+        else
+        {
+            text = badges.Count > 0 ? string.Join("   ", badges) : "<color=#94a3b8>Giáp: 0  -  Bình thường</color>";
+        }
         SetTMPText(statusLabel, text);
     }
 
@@ -2085,11 +2115,13 @@ public class SimpleCombatManager : MonoBehaviour
             {
                 if (used)
                 {
-                    img.color = new Color(0.18f, 0.18f, 0.22f, 0.65f);
+                    img.color = new Color(0.12f, 0.12f, 0.16f, 0.65f);
                 }
                 else if (selected)
                 {
-                    img.color = face != null ? Color.Lerp(GetSkillTintColor(face.GetResolvedSkillKind(), slotBaseColors[i]), Color.white, 0.45f) : new Color(0.86f, 0.64f, 0.14f, 0.98f);
+                    img.color = face != null
+                        ? Color.Lerp(GetSkillTintColor(face.GetResolvedSkillKind(), slotBaseColors[i]), Color.white, 0.35f)
+                        : new Color(0.35f, 0.30f, 0.15f, 0.95f);
                 }
                 else if (face != null)
                 {
@@ -2097,8 +2129,32 @@ public class SimpleCombatManager : MonoBehaviour
                 }
                 else
                 {
-                    img.color = slotBaseColors[i];
+                    img.color = new Color(0.10f, 0.11f, 0.15f, 0.85f);
                 }
+            }
+
+            Outline outline = slotObj.GetComponent<Outline>();
+            if (outline == null) outline = slotObj.AddComponent<Outline>();
+
+            if (used)
+            {
+                outline.effectColor = new Color(0.3f, 0.32f, 0.38f, 0.35f);
+                outline.effectDistance = new Vector2(1f, -1f);
+            }
+            else if (selected)
+            {
+                outline.effectColor = new Color(1f, 0.92f, 0.35f, 1f);
+                outline.effectDistance = new Vector2(2.5f, -2.5f);
+            }
+            else if (face != null)
+            {
+                outline.effectColor = GetSkillOutlineColor(face.GetResolvedSkillKind());
+                outline.effectDistance = new Vector2(1.8f, -1.8f);
+            }
+            else
+            {
+                outline.effectColor = new Color(0.55f, 0.45f, 0.22f, 0.65f);
+                outline.effectDistance = new Vector2(1.2f, -1.2f);
             }
         }
     }
@@ -2147,6 +2203,39 @@ public class SimpleCombatManager : MonoBehaviour
     /// - Cam - Thiêu đốt
     /// - Xanh dương - Năng lượng
     /// </summary>
+    public static Color GetSkillOutlineColor(DiceSkillKind kind)
+    {
+        switch (kind)
+        {
+            case DiceSkillKind.Strike:
+            case DiceSkillKind.HeavySlash:
+                return new Color(0.95f, 0.26f, 0.26f, 0.95f); // Đỏ rực
+            case DiceSkillKind.Block:
+            case DiceSkillKind.IronWall:
+                return new Color(0.75f, 0.88f, 1f, 0.95f);     // Trắng tuyết / Bạc
+            case DiceSkillKind.Regenerate:
+                return new Color(0.22f, 0.88f, 0.45f, 0.95f); // Lục bảo
+            case DiceSkillKind.Purify:
+                return new Color(0.35f, 0.95f, 0.75f, 0.95f); // Ngọc bích
+            case DiceSkillKind.PoisonSting:
+                return new Color(0.76f, 0.35f, 0.98f, 0.95f); // Tím độc
+            case DiceSkillKind.ShockStun:
+                return new Color(1f, 0.85f, 0.18f, 0.95f);    // Vàng đồng
+            case DiceSkillKind.Ignite:
+                return new Color(1f, 0.52f, 0.14f, 0.95f);    // Cam lửa
+            case DiceSkillKind.ManaSpark:
+            case DiceSkillKind.ArcaneSurge:
+            case DiceSkillKind.Overcharge:
+                return new Color(0.2f, 0.82f, 1f, 0.95f);     // Lam mana
+            case DiceSkillKind.Vampiric:
+                return new Color(0.85f, 0.15f, 0.38f, 0.95f); // Đỏ thẫm
+            case DiceSkillKind.Blank:
+                return new Color(0.45f, 0.45f, 0.50f, 0.65f); // Xám
+            default:
+                return new Color(0.85f, 0.72f, 0.32f, 0.85f); // Vàng kim
+        }
+    }
+
     private Color GetSkillTintColor(DiceSkillKind kind, Color fallback)
     {
         switch (kind)
@@ -2154,35 +2243,35 @@ public class SimpleCombatManager : MonoBehaviour
             case DiceSkillKind.Strike:
             case DiceSkillKind.HeavySlash:
             case DiceSkillKind.Vampiric:
-                return new Color(0.70f, 0.14f, 0.16f, 0.96f);   // Đỏ - Tấn công
+                return new Color(0.32f, 0.10f, 0.12f, 0.96f);   // Đỏ sẫm huyền ảo
 
             case DiceSkillKind.Block:
             case DiceSkillKind.IronWall:
-                return new Color(0.90f, 0.92f, 0.95f, 0.98f);   // Trắng - Giáp
+                return new Color(0.16f, 0.20f, 0.26f, 0.96f);   // Bạc xám đậm tinh tế
 
             case DiceSkillKind.Regenerate:
             case DiceSkillKind.Purify:
-                return new Color(0.12f, 0.58f, 0.26f, 0.96f);   // Xanh lá - Hồi máu
+                return new Color(0.08f, 0.28f, 0.16f, 0.96f);   // Xanh lục bảo sẫm
 
             case DiceSkillKind.PoisonSting:
-                return new Color(0.54f, 0.18f, 0.74f, 0.96f);   // Tím - Độc
+                return new Color(0.24f, 0.10f, 0.35f, 0.96f);   // Tím độc sẫm
 
             case DiceSkillKind.ShockStun:
-                return new Color(0.86f, 0.70f, 0.10f, 0.96f);   // Vàng - Choáng
+                return new Color(0.35f, 0.28f, 0.08f, 0.96f);   // Vàng đồng sẫm
 
             case DiceSkillKind.Ignite:
-                return new Color(0.92f, 0.46f, 0.08f, 0.96f);   // Cam - Thiêu đốt
+                return new Color(0.38f, 0.16f, 0.06f, 0.96f);   // Cam lửa sẫm
 
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
             case DiceSkillKind.Overcharge:
-                return new Color(0.12f, 0.46f, 0.88f, 0.96f);   // Xanh dương - Năng lượng
+                return new Color(0.08f, 0.22f, 0.42f, 0.96f);   // Lam mana sẫm
 
             case DiceSkillKind.Blank:
-                return new Color(0.24f, 0.25f, 0.30f, 0.88f);   // Xám - Blank
+                return new Color(0.14f, 0.15f, 0.18f, 0.88f);   // Xám - Blank
 
             default:
-                return fallback;
+                return new Color(0.12f, 0.13f, 0.18f, 0.95f);
         }
     }
     private Sprite GetSkillSprite(DiceFaceData face)

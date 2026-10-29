@@ -1,13 +1,13 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using TMPro;
 
 /// <summary>
-/// CharacterSkillBarUI — Quản lý giao diện Thanh Năng Lượng (10 vạch Energy Pips),
-/// Nút Kỹ năng Thường (Normal Skill) và Nút Kỹ năng Tối thượng (Ultimate Skill)
-/// kèm hiệu ứng phát sáng khi đủ Năng lượng và Tooltip chi tiết khi hover chuột.
+/// CharacterSkillBarUI - Quản lý giao diện Nút Kỹ năng Thường (Normal Skill) và Nút Kỹ năng Tối thượng (Ultimate Skill)
+/// được đặt ngay bên dưới dòng chữ "KHAY XÚC XẮC CHIẾN THUẬT" trong DiceTray,
+/// kèm hiệu ứng phát sáng viền khi đủ Năng lượng và Tooltip chi tiết khi hover chuột.
 /// </summary>
 public class CharacterSkillBarUI : MonoBehaviour
 {
@@ -15,7 +15,6 @@ public class CharacterSkillBarUI : MonoBehaviour
     public SimpleCombatManager combatManager;
     public BattleEntity playerEntity;
 
-    private TextMeshProUGUI energyHeaderText;
     private Button normalSkillBtn;
     private TextMeshProUGUI normalSkillText;
     private Outline normalSkillOutline;
@@ -24,7 +23,6 @@ public class CharacterSkillBarUI : MonoBehaviour
     private TextMeshProUGUI ultimateSkillText;
     private Outline ultimateSkillOutline;
 
-    private readonly List<Image> energyPipImages = new List<Image>();
     private bool isInitialized = false;
 
     public void Initialize(SimpleCombatManager manager, BattleEntity player, Transform parentCanvas)
@@ -74,14 +72,14 @@ public class CharacterSkillBarUI : MonoBehaviour
         {
             normalSkillOutline.effectColor = (canAct && curEnergy >= normCost)
                 ? new Color(0.35f, 0.85f, 1f, pulse)
-                : new Color(0.22f, 0.35f, 0.52f, 0.5f);
+                : new Color(0.22f, 0.35f, 0.52f, 0.45f);
         }
 
         if (ultimateSkillOutline != null)
         {
             ultimateSkillOutline.effectColor = (canAct && curEnergy >= ultCost)
                 ? new Color(1f, 0.62f, 0.15f, pulse)
-                : new Color(0.45f, 0.22f, 0.18f, 0.5f);
+                : new Color(0.45f, 0.22f, 0.18f, 0.45f);
         }
     }
 
@@ -92,78 +90,43 @@ public class CharacterSkillBarUI : MonoBehaviour
 
     private void BuildSkillBarHierarchy(Transform parentCanvas)
     {
-        // Container đặt ở trung tâm sàn đấu phía trên thanh Tooltip
-        GameObject rootObj = new GameObject("CharacterSkillBarRoot", typeof(RectTransform));
-        rootObj.transform.SetParent(parentCanvas, false);
-        RectTransform rootRt = rootObj.GetComponent<RectTransform>();
-        rootRt.anchorMin = new Vector2(0.5f, 0.5f);
-        rootRt.anchorMax = new Vector2(0.5f, 0.5f);
-        rootRt.pivot = new Vector2(0.5f, 0.5f);
-        rootRt.anchoredPosition = Vector2.zero;
-        rootRt.sizeDelta = Vector2.zero;
+        // Gắn trực tiếp vào DiceTray dưới dòng chữ "KHAY XÚC XẮC CHIẾN THUẬT" theo layout thiết kế
+        Transform diceTrayTr = parentCanvas.Find("DiceTray");
+        Transform buttonsParent = diceTrayTr != null ? diceTrayTr : parentCanvas;
 
-        // 1. Thanh Năng Lượng (Energy Panel + 10 Pips)
-        GameObject energyBox = new GameObject("PlayerEnergyPanel", typeof(RectTransform), typeof(Image), typeof(Outline));
-        energyBox.transform.SetParent(rootObj.transform, false);
-        RectTransform ebRt = energyBox.GetComponent<RectTransform>();
-        ebRt.anchoredPosition = new Vector2(-450f, -246f);
-        ebRt.sizeDelta = new Vector2(340f, 44f);
+        Transform existingNorm = buttonsParent.Find("NormalSkillButton");
+        if (existingNorm != null) Destroy(existingNorm.gameObject);
 
-        Image ebBg = energyBox.GetComponent<Image>();
-        ebBg.color = new Color(0.06f, 0.08f, 0.14f, 0.94f);
-        ebBg.raycastTarget = false;
+        Transform existingUlt = buttonsParent.Find("UltimateSkillButton");
+        if (existingUlt != null) Destroy(existingUlt.gameObject);
 
-        Outline ebOl = energyBox.GetComponent<Outline>();
-        ebOl.effectColor = new Color(0.25f, 0.78f, 1f, 0.85f);
-        ebOl.effectDistance = new Vector2(1.4f, -1.4f);
+        Vector2 normalPos;
+        Vector2 ultPos;
+        Vector2 buttonSize = new Vector2(195f, 136f);
+        bool isInsideTray = diceTrayTr != null;
 
-        // Nhãn Năng lượng phía trên
-        GameObject lblGo = new GameObject("PlayerEnergyText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        lblGo.transform.SetParent(energyBox.transform, false);
-        RectTransform lblRt = lblGo.GetComponent<RectTransform>();
-        lblRt.anchoredPosition = new Vector2(0f, 9f);
-        lblRt.sizeDelta = new Vector2(320f, 20f);
-
-        energyHeaderText = lblGo.GetComponent<TextMeshProUGUI>();
-        energyHeaderText.fontSize = 14.5f;
-        energyHeaderText.alignment = TextAlignmentOptions.Center;
-        energyHeaderText.color = new Color(0.65f, 0.94f, 1f, 1f);
-        energyHeaderText.raycastTarget = false;
-
-        // 10 vạch Năng lượng (Energy Pips)
-        GameObject pipsRow = new GameObject("EnergyPipsRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-        pipsRow.transform.SetParent(energyBox.transform, false);
-        RectTransform pipsRt = pipsRow.GetComponent<RectTransform>();
-        pipsRt.anchoredPosition = new Vector2(0f, -11f);
-        pipsRt.sizeDelta = new Vector2(310f, 10f);
-
-        HorizontalLayoutGroup hlg = pipsRow.GetComponent<HorizontalLayoutGroup>();
-        hlg.spacing = 5f;
-        hlg.childAlignment = TextAnchor.MiddleCenter;
-        hlg.childControlWidth = true;
-        hlg.childControlHeight = true;
-        hlg.childForceExpandWidth = true;
-        hlg.childForceExpandHeight = true;
-
-        energyPipImages.Clear();
-        for (int i = 0; i < 10; i++)
+        if (isInsideTray)
         {
-            GameObject pipGo = new GameObject($"EnergyPip_{i + 1}", typeof(RectTransform), typeof(Image));
-            pipGo.transform.SetParent(pipsRow.transform, false);
-            Image pipImg = pipGo.GetComponent<Image>();
-            pipImg.color = new Color(0.16f, 0.22f, 0.32f, 0.85f);
-            pipImg.raycastTarget = false;
-            energyPipImages.Add(pipImg);
+            // DiceTrayLabel ở anchorMin=(0, 1), anchoredPosition=(42, -22)
+            // 2 ô kỹ năng nằm trực tiếp phía dưới dòng chữ Khay Xúc Xắc
+            normalPos = new Vector2(42f, -56f);
+            ultPos = new Vector2(247f, -56f);
+        }
+        else
+        {
+            normalPos = new Vector2(-785f, -442f);
+            ultPos = new Vector2(-575f, -442f);
         }
 
-        // 2. Nút Kỹ năng Thường (Normal Skill)
+        // 1. Nút Kỹ năng Thường (Normal Skill)
         normalSkillBtn = CreateSkillButtonWidget(
-            rootObj.transform,
+            buttonsParent,
             "NormalSkillButton",
-            new Vector2(-780f, 110f),
-            new Vector2(230f, 66f),
-            new Color(0.11f, 0.26f, 0.46f, 0.96f),
-            new Color(0.38f, 0.78f, 1f, 0.9f),
+            normalPos,
+            buttonSize,
+            new Color(0.08f, 0.15f, 0.25f, 0.96f),
+            new Color(0.24f, 0.75f, 1f, 0.85f),
+            isInsideTray,
             out normalSkillText,
             out normalSkillOutline);
 
@@ -174,14 +137,15 @@ public class CharacterSkillBarUI : MonoBehaviour
 
         AddSkillHoverTooltip(normalSkillBtn.gameObject, isUltimate: false);
 
-        // 3. Nút Kỹ năng Tối thượng (Ultimate Skill)
+        // 2. Nút Kỹ năng Tối thượng (Ultimate Skill)
         ultimateSkillBtn = CreateSkillButtonWidget(
-            rootObj.transform,
+            buttonsParent,
             "UltimateSkillButton",
-            new Vector2(-780f, 30f),
-            new Vector2(230f, 66f),
-            new Color(0.46f, 0.14f, 0.12f, 0.96f),
-            new Color(1f, 0.56f, 0.18f, 0.92f),
+            ultPos,
+            buttonSize,
+            new Color(0.26f, 0.08f, 0.07f, 0.96f),
+            new Color(1f, 0.55f, 0.18f, 0.85f),
+            isInsideTray,
             out ultimateSkillText,
             out ultimateSkillOutline);
 
@@ -200,12 +164,25 @@ public class CharacterSkillBarUI : MonoBehaviour
         Vector2 size,
         Color bgColor,
         Color outlineColor,
+        bool useTopLeftAnchor,
         out TextMeshProUGUI captionTmp,
         out Outline outlineComp)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Outline), typeof(Button));
         go.transform.SetParent(parent, false);
         RectTransform rt = go.GetComponent<RectTransform>();
+        if (useTopLeftAnchor)
+        {
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+        }
+        else
+        {
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+        }
         rt.anchoredPosition = anchoredPos;
         rt.sizeDelta = size;
 
@@ -224,13 +201,15 @@ public class CharacterSkillBarUI : MonoBehaviour
         RectTransform txtRt = txtGo.GetComponent<RectTransform>();
         txtRt.anchorMin = Vector2.zero;
         txtRt.anchorMax = Vector2.one;
-        txtRt.offsetMin = new Vector2(4f, 2f);
-        txtRt.offsetMax = new Vector2(-4f, -2f);
+        txtRt.offsetMin = new Vector2(8f, 6f);
+        txtRt.offsetMax = new Vector2(-8f, -6f);
 
         captionTmp = txtGo.GetComponent<TextMeshProUGUI>();
-        captionTmp.fontSize = 13f;
+        captionTmp.fontSize = 13.5f;
         captionTmp.alignment = TextAlignmentOptions.Center;
         captionTmp.color = Color.white;
+        captionTmp.lineSpacing = 4f;
+        captionTmp.richText = true;
         captionTmp.raycastTarget = false;
 
         return btn;
@@ -278,28 +257,6 @@ public class CharacterSkillBarUI : MonoBehaviour
         int maxEnergy = playerEntity != null ? playerEntity.MaxEnergy : 10;
         int discount = playerEntity != null ? playerEntity.NextSkillCostReduction : 0;
 
-        if (energyHeaderText != null)
-        {
-            string discountStr = discount > 0 ? $"  <color=#fde047>(-{discount} NL)</color>" : "";
-            energyHeaderText.text = $"NĂNG LƯỢNG: <b>{curEnergy} / {maxEnergy}</b>{discountStr}";
-        }
-
-        for (int i = 0; i < energyPipImages.Count; i++)
-        {
-            Image pip = energyPipImages[i];
-            if (pip == null) continue;
-            if (i < curEnergy)
-            {
-                pip.color = i >= 6
-                    ? new Color(1f, 0.65f, 0.18f, 0.98f)
-                    : new Color(0.22f, 0.85f, 1f, 0.98f);
-            }
-            else
-            {
-                pip.color = new Color(0.14f, 0.18f, 0.26f, 0.78f);
-            }
-        }
-
         if (combatManager == null) return;
 
         int normalCost = playerEntity != null
@@ -320,7 +277,8 @@ public class CharacterSkillBarUI : MonoBehaviour
         }
         if (normalSkillText != null)
         {
-            normalSkillText.text = $"SKILL THƯỜNG Lv.{normLvl} [{normalCost} NL]\n<size=11>Gây {combatManager.normalSkillDamage} Sát thương</size>";
+            string costStr = discount > 0 ? $"[{normalCost} NL <color=#fde047>(-{discount})</color>]" : $"[{normalCost} NL]";
+            normalSkillText.text = $"<b>SKILL THƯỜNG Lv.{normLvl}</b>\n<color=#38bdf8><b>{costStr}</b></color>\n<size=11.5><color=#93c5fd>Gây {combatManager.normalSkillDamage} Sát thương</color></size>";
         }
 
         if (ultimateSkillBtn != null)
@@ -329,8 +287,8 @@ public class CharacterSkillBarUI : MonoBehaviour
         }
         if (ultimateSkillText != null)
         {
-            ultimateSkillText.text = $"TỐI THƯỢNG Lv.{ultLvl} [{ultCost} NL]\n<size=11>{combatManager.ultimateSkillDamage} ST + {combatManager.ultimateSkillBurnStacks} Cháy</size>";
+            string costStr = discount > 0 ? $"[{ultCost} NL <color=#fde047>(-{discount})</color>]" : $"[{ultCost} NL]";
+            ultimateSkillText.text = $"<b>TỐI THƯỢNG Lv.{ultLvl}</b>\n<color=#fb923c><b>{costStr}</b></color>\n<size=11.5><color=#fed7aa>{combatManager.ultimateSkillDamage} ST + {combatManager.ultimateSkillBurnStacks} Cháy</color></size>";
         }
     }
 }
-
