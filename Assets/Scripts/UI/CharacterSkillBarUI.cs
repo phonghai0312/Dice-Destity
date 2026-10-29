@@ -90,43 +90,35 @@ public class CharacterSkillBarUI : MonoBehaviour
 
     private void BuildSkillBarHierarchy(Transform parentCanvas)
     {
-        // Gắn trực tiếp vào DiceTray dưới dòng chữ "KHAY XÚC XẮC CHIẾN THUẬT" theo layout thiết kế
-        Transform diceTrayTr = parentCanvas.Find("DiceTray");
-        Transform buttonsParent = diceTrayTr != null ? diceTrayTr : parentCanvas;
-
-        Transform existingNorm = buttonsParent.Find("NormalSkillButton");
+        // 2 nút Kỹ năng đặt bên trái sàn đấu cạnh Hiệp Sĩ đúng như ảnh thiết kế mẫu
+        Transform existingNorm = parentCanvas.Find("NormalSkillButton");
         if (existingNorm != null) Destroy(existingNorm.gameObject);
 
-        Transform existingUlt = buttonsParent.Find("UltimateSkillButton");
+        Transform existingUlt = parentCanvas.Find("UltimateSkillButton");
         if (existingUlt != null) Destroy(existingUlt.gameObject);
 
-        Vector2 normalPos;
-        Vector2 ultPos;
-        Vector2 buttonSize = new Vector2(195f, 136f);
-        bool isInsideTray = diceTrayTr != null;
+        // Vị trí nổi bên trái Hiệp Sĩ theo đúng phối cảnh ảnh tham khảo
+        Vector2 normalPos = new Vector2(-780f, 96f);
+        Vector2 ultPos = new Vector2(-780f, 28f);
+        Vector2 buttonSize = new Vector2(236f, 62f);
 
-        if (isInsideTray)
-        {
-            // DiceTrayLabel ở anchorMin=(0, 1), anchoredPosition=(42, -22)
-            // 2 ô kỹ năng nằm trực tiếp phía dưới dòng chữ Khay Xúc Xắc
-            normalPos = new Vector2(42f, -56f);
-            ultPos = new Vector2(247f, -56f);
-        }
-        else
-        {
-            normalPos = new Vector2(-785f, -442f);
-            ultPos = new Vector2(-575f, -442f);
-        }
+        Sprite normalBg = null;
+        Sprite ultBg = null;
+#if UNITY_EDITOR
+        normalBg = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI 1/SkillButton_Normal_Frame.png");
+        ultBg = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI 1/SkillButton_Ultimate_Frame.png");
+#endif
 
         // 1. Nút Kỹ năng Thường (Normal Skill)
         normalSkillBtn = CreateSkillButtonWidget(
-            buttonsParent,
+            parentCanvas,
             "NormalSkillButton",
             normalPos,
             buttonSize,
+            normalBg,
             new Color(0.08f, 0.15f, 0.25f, 0.96f),
             new Color(0.24f, 0.75f, 1f, 0.85f),
-            isInsideTray,
+            false,
             out normalSkillText,
             out normalSkillOutline);
 
@@ -139,13 +131,14 @@ public class CharacterSkillBarUI : MonoBehaviour
 
         // 2. Nút Kỹ năng Tối thượng (Ultimate Skill)
         ultimateSkillBtn = CreateSkillButtonWidget(
-            buttonsParent,
+            parentCanvas,
             "UltimateSkillButton",
             ultPos,
             buttonSize,
+            ultBg,
             new Color(0.26f, 0.08f, 0.07f, 0.96f),
             new Color(1f, 0.55f, 0.18f, 0.85f),
-            isInsideTray,
+            false,
             out ultimateSkillText,
             out ultimateSkillOutline);
 
@@ -162,6 +155,7 @@ public class CharacterSkillBarUI : MonoBehaviour
         string name,
         Vector2 anchoredPos,
         Vector2 size,
+        Sprite bgSprite,
         Color bgColor,
         Color outlineColor,
         bool useTopLeftAnchor,
@@ -187,7 +181,15 @@ public class CharacterSkillBarUI : MonoBehaviour
         rt.sizeDelta = size;
 
         Image img = go.GetComponent<Image>();
-        img.color = bgColor;
+        if (bgSprite != null)
+        {
+            img.sprite = bgSprite;
+            img.color = Color.white;
+        }
+        else
+        {
+            img.color = bgColor;
+        }
 
         outlineComp = go.GetComponent<Outline>();
         outlineComp.effectColor = outlineColor;

@@ -106,6 +106,20 @@ public class SimpleCombatManager : MonoBehaviour
     private Button normalSkillButton;
     private Button ultimateSkillButton;
 
+    private Sprite GetUISprite(string path)
+    {
+#if UNITY_EDITOR
+        return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+#else
+        string resName = System.IO.Path.GetFileNameWithoutExtension(path);
+        return Resources.Load<Sprite>(resName);
+#endif
+    }
+
+    private readonly List<GameObject> leftDiceSockets = new List<GameObject>();
+    private readonly List<Image> leftDiceFaceImages = new List<Image>();
+    private readonly List<Outline> leftDiceOutlines = new List<Outline>();
+
     private static Sprite cachedSoftOvalSprite;
 
     private void EnsureDiceSpritesLoaded()
@@ -460,10 +474,19 @@ public class SimpleCombatManager : MonoBehaviour
             Image trayImg = diceTrayTr.GetComponent<Image>();
             if (trayImg != null)
             {
-                trayImg.color = new Color(0.06f, 0.06f, 0.1f, 0.95f);
+                Sprite bgSprite = GetUISprite("Assets/Sprites/UI 1/DiceTray_Background.png");
+                if (bgSprite != null)
+                {
+                    trayImg.sprite = bgSprite;
+                    trayImg.color = Color.white;
+                }
+                else
+                {
+                    trayImg.color = new Color(0.06f, 0.06f, 0.1f, 0.95f);
+                }
             }
 
-            // Cột Trái: Tiêu đề Khay Xúc Xắc & Hướng dẫn thao tác
+            // Cột Trái: Tiêu đề Khay Xúc Xắc
             Transform trayLabelTr = diceTrayTr.Find("DiceTrayLabel");
             if (trayLabelTr != null)
             {
@@ -471,25 +494,28 @@ public class SimpleCombatManager : MonoBehaviour
                 tlRt.anchorMin = new Vector2(0f, 1f);
                 tlRt.anchorMax = new Vector2(0f, 1f);
                 tlRt.pivot = new Vector2(0f, 1f);
-                tlRt.anchoredPosition = new Vector2(42f, -22f);
-                tlRt.sizeDelta = new Vector2(380f, 32f);
+                tlRt.anchoredPosition = new Vector2(40f, -22f);
+                tlRt.sizeDelta = new Vector2(460f, 32f);
 
                 if (tmpType != null)
                 {
                     Component tmp = trayLabelTr.GetComponent(tmpType);
                     SetTMPText(tmp, "KHAY XÚC XẮC CHIẾN THUẬT");
                     tmpType.GetProperty("fontSize")?.SetValue(tmp, 18f);
-                    tmpType.GetProperty("color")?.SetValue(tmp, new Color(0.95f, 0.78f, 0.32f, 1f));
+                    tmpType.GetProperty("color")?.SetValue(tmp, new Color(0.92f, 0.76f, 0.42f, 1f));
                 }
             }
 
-            // Gỡ bỏ hoàn toàn dòng chữ hướng dẫn thao tác khỏi khay xúc xắc
+            // Gỡ bỏ hoàn toàn dòng chữ hướng dẫn thao tác cũ
             Transform oldGuide = diceTrayTr.Find("TrayControlGuide");
             if (oldGuide != null) oldGuide.gameObject.SetActive(false);
+
+            // Xây dựng 4 ô Khay Xúc Xắc dạng ô lõm (Square Dice Sockets) ở góc trái dưới tiêu đề
+            SetupLeftDiceSockets(diceTrayTr);
         }
 
-        // Cột Giữa: Căn giữa 3 Ô Xúc Xắc (Slot 0, 1, 2) tại (-195, 0, +195)
-        float[] slotXPositions = { -195f, 0f, 195f };
+        // Cột Giữa: 3 Thẻ Bài Hành Động / Xúc Xắc tại vị trí trung tâm (-160, 0, +160)
+        float[] slotXPositions = { -160f, 0f, 160f };
         for (int i = 0; i < diceSlots.Count; i++)
         {
             if (diceSlots[i] == null) continue;
@@ -499,16 +525,23 @@ public class SimpleCombatManager : MonoBehaviour
                 slotRt.anchorMin = new Vector2(0.5f, 0f);
                 slotRt.anchorMax = new Vector2(0.5f, 0f);
                 slotRt.pivot = new Vector2(0.5f, 0.5f);
-                float posX = i < slotXPositions.Length ? slotXPositions[i] : (-195f + i * 195f);
-                slotRt.anchoredPosition = new Vector2(posX, 106f);
-                slotRt.sizeDelta = new Vector2(154f, 172f);
+                float posX = i < slotXPositions.Length ? slotXPositions[i] : (-160f + i * 160f);
+                slotRt.anchoredPosition = new Vector2(posX, 102f);
+                slotRt.sizeDelta = new Vector2(146f, 175f);
+            }
+
+            Image sImg = diceSlots[i].GetComponent<Image>();
+            if (sImg != null)
+            {
+                Sprite cardFrame = GetUISprite("Assets/Sprites/UI 1/CombatCard_Frame_Grey.png");
+                if (cardFrame != null) sImg.sprite = cardFrame;
             }
 
             EnsureOutline(diceSlots[i], new Color(0.92f, 0.74f, 0.28f, 0.65f), 1.5f);
             StyleDiceCardChildren(diceSlots[i].transform);
         }
 
-        // Cột Phải: Cụm nút RE-ROLL, UNDO và END TURN gọn gàng trong lòng DiceTray
+        // Cột Phải: Cụm nút RE-ROLL, UNDO và END TURN viền đá cổ điển
         if (rerollButton != null)
         {
             RectTransform rrRt = rerollButton.GetComponent<RectTransform>();
@@ -517,10 +550,16 @@ public class SimpleCombatManager : MonoBehaviour
                 rrRt.anchorMin = new Vector2(0.5f, 0f);
                 rrRt.anchorMax = new Vector2(0.5f, 0f);
                 rrRt.pivot = new Vector2(0.5f, 0.5f);
-                rrRt.anchoredPosition = new Vector2(510f, 146f);
+                rrRt.anchoredPosition = new Vector2(520f, 146f);
                 rrRt.sizeDelta = new Vector2(180f, 48f);
             }
-            EnsureOutline(rerollButton.gameObject, new Color(0.45f, 0.72f, 1f, 0.75f), 1.2f);
+            Image rrImg = rerollButton.GetComponent<Image>();
+            if (rrImg != null)
+            {
+                Sprite rrSprite = GetUISprite("Assets/Sprites/UI 1/Button_Reroll_Frame.png");
+                if (rrSprite != null) { rrImg.sprite = rrSprite; rrImg.color = Color.white; }
+            }
+            EnsureOutline(rerollButton.gameObject, new Color(0.72f, 0.52f, 0.25f, 0.85f), 1.2f);
         }
 
         if (endTurnButton != null)
@@ -531,10 +570,184 @@ public class SimpleCombatManager : MonoBehaviour
                 etRt.anchorMin = new Vector2(0.5f, 0f);
                 etRt.anchorMax = new Vector2(0.5f, 0f);
                 etRt.pivot = new Vector2(0.5f, 0.5f);
-                etRt.anchoredPosition = new Vector2(606f, 70f);
-                etRt.sizeDelta = new Vector2(372f, 58f);
+                etRt.anchoredPosition = new Vector2(615f, 70f);
+                etRt.sizeDelta = new Vector2(370f, 58f);
+            }
+            Image etImg = endTurnButton.GetComponent<Image>();
+            if (etImg != null)
+            {
+                Sprite etSprite = GetUISprite("Assets/Sprites/UI 1/Button_EndTurn_Frame.png");
+                if (etSprite != null) { etImg.sprite = etSprite; etImg.color = Color.white; }
             }
             EnsureOutline(endTurnButton.gameObject, new Color(1f, 0.78f, 0.28f, 0.9f), 1.5f);
+        }
+    }
+
+    private void SetupLeftDiceSockets(Transform diceTrayTr)
+    {
+        Transform existingTray = diceTrayTr.Find("DiceSocketTray");
+        GameObject trayObj;
+        if (existingTray != null)
+        {
+            trayObj = existingTray.gameObject;
+        }
+        else
+        {
+            trayObj = new GameObject("DiceSocketTray", typeof(RectTransform));
+            trayObj.transform.SetParent(diceTrayTr, false);
+        }
+
+        RectTransform trayRt = trayObj.GetComponent<RectTransform>();
+        trayRt.anchorMin = new Vector2(0f, 1f);
+        trayRt.anchorMax = new Vector2(0f, 1f);
+        trayRt.pivot = new Vector2(0f, 1f);
+        trayRt.anchoredPosition = new Vector2(38f, -60f);
+        trayRt.sizeDelta = new Vector2(470f, 136f);
+
+        leftDiceSockets.Clear();
+        leftDiceFaceImages.Clear();
+        leftDiceOutlines.Clear();
+
+        Sprite wellSprite = GetUISprite("Assets/Sprites/UI 1/DiceSlot_Well.png");
+        float slotW = 105f;
+        float spacing = 12f;
+
+        for (int i = 0; i < 4; i++)
+        {
+            string sName = $"DiceWell_{i}";
+            Transform sTr = trayObj.transform.Find(sName);
+            GameObject sGo;
+            if (sTr != null)
+            {
+                sGo = sTr.gameObject;
+            }
+            else
+            {
+                sGo = new GameObject(sName, typeof(RectTransform), typeof(Image));
+                sGo.transform.SetParent(trayObj.transform, false);
+            }
+
+            RectTransform sRt = sGo.GetComponent<RectTransform>();
+            sRt.anchorMin = new Vector2(0f, 0.5f);
+            sRt.anchorMax = new Vector2(0f, 0.5f);
+            sRt.pivot = new Vector2(0f, 0.5f);
+            sRt.anchoredPosition = new Vector2(i * (slotW + spacing), 0f);
+            sRt.sizeDelta = new Vector2(slotW, 115f);
+
+            Image sImg = sGo.GetComponent<Image>();
+            if (wellSprite != null)
+            {
+                sImg.sprite = wellSprite;
+                sImg.color = Color.white;
+            }
+            else
+            {
+                sImg.color = new Color(0.12f, 0.12f, 0.16f, 0.95f);
+            }
+
+            // Khối xúc xắc bên trong (chỉ hiển thị khi có xúc xắc)
+            Transform faceTr = sGo.transform.Find("DieFace");
+            GameObject faceGo;
+            if (faceTr != null)
+            {
+                faceGo = faceTr.gameObject;
+            }
+            else
+            {
+                faceGo = new GameObject("DieFace", typeof(RectTransform), typeof(Image), typeof(Outline), typeof(Button));
+                faceGo.transform.SetParent(sGo.transform, false);
+            }
+
+            RectTransform fRt = faceGo.GetComponent<RectTransform>();
+            fRt.anchorMin = Vector2.zero;
+            fRt.anchorMax = Vector2.one;
+            fRt.offsetMin = new Vector2(6f, 6f);
+            fRt.offsetMax = new Vector2(-6f, -6f);
+
+            Image fImg = faceGo.GetComponent<Image>();
+            fImg.color = Color.white;
+
+            Outline fOut = faceGo.GetComponent<Outline>();
+            fOut.effectDistance = new Vector2(1.8f, -1.8f);
+
+            Button fBtn = faceGo.GetComponent<Button>();
+            int capturedIdx = i;
+            fBtn.onClick.RemoveAllListeners();
+            fBtn.onClick.AddListener(() =>
+            {
+                if (capturedIdx < diceSlots.Count) OnDiceSlotLeftClicked(capturedIdx);
+            });
+
+            leftDiceSockets.Add(sGo);
+            leftDiceFaceImages.Add(fImg);
+            leftDiceOutlines.Add(fOut);
+        }
+    }
+
+    private void RefreshLeftDiceSockets()
+    {
+        Sprite redDie = GetUISprite("Assets/Sprites/UI 1/DiceDie_Red.png");
+        Sprite greenDie = GetUISprite("Assets/Sprites/UI 1/DiceDie_Green.png");
+        Sprite greyDie = GetUISprite("Assets/Sprites/UI 1/DiceDie_Grey.png");
+
+        for (int i = 0; i < leftDiceSockets.Count; i++)
+        {
+            if (i >= leftDiceFaceImages.Count || leftDiceFaceImages[i] == null) continue;
+
+            Image fImg = leftDiceFaceImages[i];
+            Outline fOut = leftDiceOutlines[i];
+            GameObject faceGo = fImg.gameObject;
+
+            // Ô thứ 4 là ô dự bị trống
+            if (i >= diceSlots.Count || i >= rolledFaces.Count || rolledFaces[i] == null)
+            {
+                faceGo.SetActive(false);
+                continue;
+            }
+
+            faceGo.SetActive(true);
+            DiceFaceData face = rolledFaces[i];
+            bool used = i < diceUsed.Count && diceUsed[i];
+            bool selected = selectedDiceIndices.Contains(i);
+
+            // Gán sprite xúc xắc theo loại kỹ năng
+            switch (face.GetResolvedSkillKind())
+            {
+                case DiceSkillKind.Strike:
+                case DiceSkillKind.HeavySlash:
+                case DiceSkillKind.Vampiric:
+                    fImg.sprite = redDie != null ? redDie : null;
+                    break;
+                case DiceSkillKind.Regenerate:
+                case DiceSkillKind.Purify:
+                    fImg.sprite = greenDie != null ? greenDie : null;
+                    break;
+                default:
+                    fImg.sprite = greyDie != null ? greyDie : null;
+                    break;
+            }
+
+            fImg.color = used ? new Color(1f, 1f, 1f, 0.35f) : Color.white;
+
+            if (fOut != null)
+            {
+                if (used)
+                {
+                    fOut.effectColor = new Color(0.3f, 0.32f, 0.38f, 0.35f);
+                }
+                else if (selected)
+                {
+                    fOut.effectColor = new Color(1f, 0.92f, 0.35f, 1f);
+                    fOut.effectDistance = new Vector2(2.5f, -2.5f);
+                }
+                else
+                {
+                    fOut.effectColor = GetSkillOutlineColor(face.GetResolvedSkillKind());
+                    fOut.effectDistance = new Vector2(1.8f, -1.8f);
+                }
+            }
+
+            faceGo.transform.localScale = selected && !used ? new Vector3(1.08f, 1.08f, 1f) : Vector3.one;
         }
     }
 
@@ -831,6 +1044,12 @@ public class SimpleCombatManager : MonoBehaviour
                 new Vector2(-450f, -195f),
                 new Vector2(340f, 34f),
                 new Color(0.75f, 0.58f, 0.22f, 0.85f));
+            Image pImg = pBadgeBg.GetComponent<Image>();
+            if (pImg != null)
+            {
+                Sprite pSp = GetUISprite("Assets/Sprites/UI 1/Pill_Bracket_Hero.png");
+                if (pSp != null) { pImg.sprite = pSp; pImg.color = Color.white; }
+            }
 
             playerStatusLabel = CreateOverlayLabel(
                 pBadgeBg.transform,
@@ -850,6 +1069,12 @@ public class SimpleCombatManager : MonoBehaviour
                 new Vector2(450f, -195f),
                 new Vector2(340f, 34f),
                 new Color(0.75f, 0.58f, 0.22f, 0.85f));
+            Image eImg = eBadgeBg.GetComponent<Image>();
+            if (eImg != null)
+            {
+                Sprite eSp = GetUISprite("Assets/Sprites/UI 1/Pill_Bracket_Enemy.png");
+                if (eSp != null) { eImg.sprite = eSp; eImg.color = Color.white; }
+            }
 
             enemyStatusLabel = CreateOverlayLabel(
                 eBadgeBg.transform,
@@ -941,7 +1166,13 @@ public class SimpleCombatManager : MonoBehaviour
                 undoRt.anchoredPosition = new Vector2(702f, 146f);
                 undoRt.sizeDelta = new Vector2(180f, 48f);
             }
-            EnsureOutline(undoObj, new Color(0.85f, 0.65f, 0.25f, 0.75f), 1.2f);
+            Image undoImg = undoObj.GetComponent<Image>();
+            if (undoImg != null)
+            {
+                Sprite unSprite = GetUISprite("Assets/Sprites/UI 1/Button_Undo_Frame.png");
+                if (unSprite != null) { undoImg.sprite = unSprite; undoImg.color = Color.white; }
+            }
+            EnsureOutline(undoObj, new Color(0.28f, 0.62f, 0.95f, 0.85f), 1.2f);
 
             undoButton = undoObj.GetComponent<Button>();
             undoButton.onClick.RemoveAllListeners();
@@ -2113,23 +2344,38 @@ public class SimpleCombatManager : MonoBehaviour
             Image img = slotObj.GetComponent<Image>();
             if (img != null)
             {
-                if (used)
+                Sprite cardSprite = null;
+                if (face != null)
                 {
-                    img.color = new Color(0.12f, 0.12f, 0.16f, 0.65f);
-                }
-                else if (selected)
-                {
-                    img.color = face != null
-                        ? Color.Lerp(GetSkillTintColor(face.GetResolvedSkillKind(), slotBaseColors[i]), Color.white, 0.35f)
-                        : new Color(0.35f, 0.30f, 0.15f, 0.95f);
-                }
-                else if (face != null)
-                {
-                    img.color = GetSkillTintColor(face.GetResolvedSkillKind(), slotBaseColors[i]);
+                    switch (face.GetResolvedSkillKind())
+                    {
+                        case DiceSkillKind.Strike:
+                        case DiceSkillKind.HeavySlash:
+                        case DiceSkillKind.Vampiric:
+                            cardSprite = GetUISprite("Assets/Sprites/UI 1/CombatCard_Frame_Red.png");
+                            break;
+                        case DiceSkillKind.Regenerate:
+                        case DiceSkillKind.Purify:
+                            cardSprite = GetUISprite("Assets/Sprites/UI 1/CombatCard_Frame_Green.png");
+                            break;
+                        default:
+                            cardSprite = GetUISprite("Assets/Sprites/UI 1/CombatCard_Frame_Grey.png");
+                            break;
+                    }
                 }
                 else
                 {
-                    img.color = new Color(0.10f, 0.11f, 0.15f, 0.85f);
+                    cardSprite = GetUISprite("Assets/Sprites/UI 1/CombatCard_Frame_Grey.png");
+                }
+
+                if (cardSprite != null)
+                {
+                    img.sprite = cardSprite;
+                    img.color = used ? new Color(1f, 1f, 1f, 0.4f) : Color.white;
+                }
+                else
+                {
+                    img.color = used ? new Color(0.12f, 0.12f, 0.16f, 0.65f) : (face != null ? GetSkillTintColor(face.GetResolvedSkillKind(), slotBaseColors[i]) : new Color(0.10f, 0.11f, 0.15f, 0.85f));
                 }
             }
 
@@ -2157,6 +2403,8 @@ public class SimpleCombatManager : MonoBehaviour
                 outline.effectDistance = new Vector2(1.2f, -1.2f);
             }
         }
+
+        RefreshLeftDiceSockets();
     }
 
     private string GetFaceValueSymbol(DiceFaceData face)
