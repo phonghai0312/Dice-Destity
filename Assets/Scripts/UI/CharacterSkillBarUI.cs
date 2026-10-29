@@ -1,13 +1,13 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using TMPro;
 
 /// <summary>
-/// CharacterSkillBarUI — Quản lý giao diện Thanh Năng Lượng (10 vạch Energy Pips),
-/// Nút Kỹ năng Thường (Normal Skill) và Nút Kỹ năng Tối thượng (Ultimate Skill)
-/// kèm hiệu ứng phát sáng khi đủ Năng lượng và Tooltip chi tiết khi hover chuột.
+/// CharacterSkillBarUI — Quản lý giao diện 2 Kỹ Năng Nhân Vật (Skill Thường & Skill Tối Thượng)
+/// kèm icon minh họa hình ảnh tuyệt chiêu, đặt gọn gàng bên dưới dòng chữ "KHAY XÚC XẮC CHIẾN THUẬT"
+/// trong lòng DiceTray.
 /// </summary>
 public class CharacterSkillBarUI : MonoBehaviour
 {
@@ -15,22 +15,30 @@ public class CharacterSkillBarUI : MonoBehaviour
     public SimpleCombatManager combatManager;
     public BattleEntity playerEntity;
 
-    private TextMeshProUGUI energyHeaderText;
+    [Header("Skill Icons")]
+    public Sprite normalSkillIconSprite;
+    public Sprite ultimateSkillIconSprite;
+
     private Button normalSkillBtn;
-    private TextMeshProUGUI normalSkillText;
+    private TextMeshProUGUI normalSkillTitleText;
+    private TextMeshProUGUI normalSkillDescText;
+    private Image normalSkillIconImg;
     private Outline normalSkillOutline;
 
     private Button ultimateSkillBtn;
-    private TextMeshProUGUI ultimateSkillText;
+    private TextMeshProUGUI ultimateSkillTitleText;
+    private TextMeshProUGUI ultimateSkillDescText;
+    private Image ultimateSkillIconImg;
     private Outline ultimateSkillOutline;
 
-    private readonly List<Image> energyPipImages = new List<Image>();
     private bool isInitialized = false;
 
     public void Initialize(SimpleCombatManager manager, BattleEntity player, Transform parentCanvas)
     {
         combatManager = manager;
         playerEntity = player;
+
+        LoadSkillIconSprites();
 
         if (!isInitialized && parentCanvas != null)
         {
@@ -49,6 +57,36 @@ public class CharacterSkillBarUI : MonoBehaviour
         RefreshSkillBarState();
     }
 
+    private void LoadSkillIconSprites()
+    {
+#if UNITY_EDITOR
+        if (normalSkillIconSprite == null)
+            normalSkillIconSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Skills/Skill_Normal_Slash.png");
+        if (ultimateSkillIconSprite == null)
+            ultimateSkillIconSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Skills/Skill_Ultimate_Cleave.png");
+#endif
+        if (normalSkillIconSprite == null)
+            normalSkillIconSprite = LoadSpriteFromFile("Assets/Sprites/Skills/Skill_Normal_Slash.png");
+        if (ultimateSkillIconSprite == null)
+            ultimateSkillIconSprite = LoadSpriteFromFile("Assets/Sprites/Skills/Skill_Ultimate_Cleave.png");
+    }
+
+    private static Sprite LoadSpriteFromFile(string path)
+    {
+        if (!System.IO.File.Exists(path)) return null;
+        try
+        {
+            byte[] bytes = System.IO.File.ReadAllBytes(path);
+            Texture2D tex = new Texture2D(2, 2);
+            if (tex.LoadImage(bytes))
+            {
+                return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+            }
+        }
+        catch { }
+        return null;
+    }
+
     private void OnDestroy()
     {
         if (playerEntity != null)
@@ -62,7 +100,6 @@ public class CharacterSkillBarUI : MonoBehaviour
     {
         if (!isInitialized || playerEntity == null || combatManager == null) return;
 
-        // Hiệu ứng nhấp nháy viền sáng khi Kỹ năng Tối thượng hoặc Kỹ năng Thường sẵn sàng kích hoạt
         bool canAct = combatManager.currentPhase == SimpleCombatManager.CombatPhase.PlayerAction;
         int curEnergy = playerEntity.CurrentEnergy;
         int normCost = playerEntity.GetEffectiveSkillCost(combatManager.normalSkillBaseCost);
@@ -74,14 +111,14 @@ public class CharacterSkillBarUI : MonoBehaviour
         {
             normalSkillOutline.effectColor = (canAct && curEnergy >= normCost)
                 ? new Color(0.35f, 0.85f, 1f, pulse)
-                : new Color(0.22f, 0.35f, 0.52f, 0.5f);
+                : new Color(0.22f, 0.35f, 0.52f, 0.45f);
         }
 
         if (ultimateSkillOutline != null)
         {
             ultimateSkillOutline.effectColor = (canAct && curEnergy >= ultCost)
                 ? new Color(1f, 0.62f, 0.15f, pulse)
-                : new Color(0.45f, 0.22f, 0.18f, 0.5f);
+                : new Color(0.45f, 0.22f, 0.18f, 0.45f);
         }
     }
 
@@ -92,79 +129,38 @@ public class CharacterSkillBarUI : MonoBehaviour
 
     private void BuildSkillBarHierarchy(Transform parentCanvas)
     {
-        // Container đặt ở trung tâm sàn đấu phía trên thanh Tooltip
-        GameObject rootObj = new GameObject("CharacterSkillBarRoot", typeof(RectTransform));
-        rootObj.transform.SetParent(parentCanvas, false);
-        RectTransform rootRt = rootObj.GetComponent<RectTransform>();
-        rootRt.anchorMin = new Vector2(0.5f, 0.5f);
-        rootRt.anchorMax = new Vector2(0.5f, 0.5f);
-        rootRt.pivot = new Vector2(0.5f, 0.5f);
-        rootRt.anchoredPosition = Vector2.zero;
-        rootRt.sizeDelta = Vector2.zero;
+        // Dọn dẹp root cũ nếu có
+        Transform oldRoot = parentCanvas.Find("CharacterSkillBarRoot");
+        if (oldRoot != null) Destroy(oldRoot.gameObject);
 
-        // 1. Thanh Năng Lượng (Energy Panel + 10 Pips)
-        GameObject energyBox = new GameObject("PlayerEnergyPanel", typeof(RectTransform), typeof(Image), typeof(Outline));
-        energyBox.transform.SetParent(rootObj.transform, false);
-        RectTransform ebRt = energyBox.GetComponent<RectTransform>();
-        ebRt.anchoredPosition = new Vector2(-450f, -246f);
-        ebRt.sizeDelta = new Vector2(340f, 44f);
+        // Đặt 2 ô kỹ năng trực tiếp bên trong DiceTray dưới nhãn DiceTrayLabel
+        Transform diceTrayTr = parentCanvas.Find("DiceTray");
+        Transform containerParent = diceTrayTr != null ? diceTrayTr : parentCanvas;
 
-        Image ebBg = energyBox.GetComponent<Image>();
-        ebBg.color = new Color(0.06f, 0.08f, 0.14f, 0.94f);
-        ebBg.raycastTarget = false;
+        Transform existingGroup = containerParent.Find("SkillButtonsGroup");
+        if (existingGroup != null) Destroy(existingGroup.gameObject);
 
-        Outline ebOl = energyBox.GetComponent<Outline>();
-        ebOl.effectColor = new Color(0.25f, 0.78f, 1f, 0.85f);
-        ebOl.effectDistance = new Vector2(1.4f, -1.4f);
+        GameObject skillGroup = new GameObject("SkillButtonsGroup", typeof(RectTransform));
+        skillGroup.transform.SetParent(containerParent, false);
+        RectTransform groupRt = skillGroup.GetComponent<RectTransform>();
+        groupRt.anchorMin = new Vector2(0f, 1f);
+        groupRt.anchorMax = new Vector2(0f, 1f);
+        groupRt.pivot = new Vector2(0f, 1f);
+        groupRt.anchoredPosition = new Vector2(40f, -54f);
+        groupRt.sizeDelta = new Vector2(400f, 142f);
 
-        // Nhãn Năng lượng phía trên
-        GameObject lblGo = new GameObject("PlayerEnergyText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        lblGo.transform.SetParent(energyBox.transform, false);
-        RectTransform lblRt = lblGo.GetComponent<RectTransform>();
-        lblRt.anchoredPosition = new Vector2(0f, 9f);
-        lblRt.sizeDelta = new Vector2(320f, 20f);
-
-        energyHeaderText = lblGo.GetComponent<TextMeshProUGUI>();
-        energyHeaderText.fontSize = 14.5f;
-        energyHeaderText.alignment = TextAlignmentOptions.Center;
-        energyHeaderText.color = new Color(0.65f, 0.94f, 1f, 1f);
-        energyHeaderText.raycastTarget = false;
-
-        // 10 vạch Năng lượng (Energy Pips)
-        GameObject pipsRow = new GameObject("EnergyPipsRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-        pipsRow.transform.SetParent(energyBox.transform, false);
-        RectTransform pipsRt = pipsRow.GetComponent<RectTransform>();
-        pipsRt.anchoredPosition = new Vector2(0f, -11f);
-        pipsRt.sizeDelta = new Vector2(310f, 10f);
-
-        HorizontalLayoutGroup hlg = pipsRow.GetComponent<HorizontalLayoutGroup>();
-        hlg.spacing = 5f;
-        hlg.childAlignment = TextAnchor.MiddleCenter;
-        hlg.childControlWidth = true;
-        hlg.childControlHeight = true;
-        hlg.childForceExpandWidth = true;
-        hlg.childForceExpandHeight = true;
-
-        energyPipImages.Clear();
-        for (int i = 0; i < 10; i++)
-        {
-            GameObject pipGo = new GameObject($"EnergyPip_{i + 1}", typeof(RectTransform), typeof(Image));
-            pipGo.transform.SetParent(pipsRow.transform, false);
-            Image pipImg = pipGo.GetComponent<Image>();
-            pipImg.color = new Color(0.16f, 0.22f, 0.32f, 0.85f);
-            pipImg.raycastTarget = false;
-            energyPipImages.Add(pipImg);
-        }
-
-        // 2. Nút Kỹ năng Thường (Normal Skill)
+        // 1. Nút Kỹ năng Thường (Normal Skill)
         normalSkillBtn = CreateSkillButtonWidget(
-            rootObj.transform,
+            skillGroup.transform,
             "NormalSkillButton",
-            new Vector2(-780f, 110f),
-            new Vector2(230f, 66f),
-            new Color(0.11f, 0.26f, 0.46f, 0.96f),
-            new Color(0.38f, 0.78f, 1f, 0.9f),
-            out normalSkillText,
+            new Vector2(0f, 0f),
+            new Vector2(195f, 142f),
+            new Color(0.10f, 0.16f, 0.28f, 0.95f),
+            new Color(0.35f, 0.78f, 1f, 0.9f),
+            normalSkillIconSprite,
+            out normalSkillTitleText,
+            out normalSkillIconImg,
+            out normalSkillDescText,
             out normalSkillOutline);
 
         normalSkillBtn.onClick.AddListener(() =>
@@ -174,15 +170,18 @@ public class CharacterSkillBarUI : MonoBehaviour
 
         AddSkillHoverTooltip(normalSkillBtn.gameObject, isUltimate: false);
 
-        // 3. Nút Kỹ năng Tối thượng (Ultimate Skill)
+        // 2. Nút Kỹ năng Tối thượng (Ultimate Skill)
         ultimateSkillBtn = CreateSkillButtonWidget(
-            rootObj.transform,
+            skillGroup.transform,
             "UltimateSkillButton",
-            new Vector2(-780f, 30f),
-            new Vector2(230f, 66f),
-            new Color(0.46f, 0.14f, 0.12f, 0.96f),
-            new Color(1f, 0.56f, 0.18f, 0.92f),
-            out ultimateSkillText,
+            new Vector2(205f, 0f),
+            new Vector2(195f, 142f),
+            new Color(0.28f, 0.12f, 0.10f, 0.95f),
+            new Color(1f, 0.58f, 0.18f, 0.92f),
+            ultimateSkillIconSprite,
+            out ultimateSkillTitleText,
+            out ultimateSkillIconImg,
+            out ultimateSkillDescText,
             out ultimateSkillOutline);
 
         ultimateSkillBtn.onClick.AddListener(() =>
@@ -200,12 +199,18 @@ public class CharacterSkillBarUI : MonoBehaviour
         Vector2 size,
         Color bgColor,
         Color outlineColor,
-        out TextMeshProUGUI captionTmp,
+        Sprite iconSprite,
+        out TextMeshProUGUI titleTmp,
+        out Image iconImg,
+        out TextMeshProUGUI descTmp,
         out Outline outlineComp)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Outline), typeof(Button));
         go.transform.SetParent(parent, false);
         RectTransform rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot = new Vector2(0f, 1f);
         rt.anchoredPosition = anchoredPos;
         rt.sizeDelta = size;
 
@@ -214,24 +219,61 @@ public class CharacterSkillBarUI : MonoBehaviour
 
         outlineComp = go.GetComponent<Outline>();
         outlineComp.effectColor = outlineColor;
-        outlineComp.effectDistance = new Vector2(1.5f, -1.5f);
+        outlineComp.effectDistance = new Vector2(1.6f, -1.6f);
 
         Button btn = go.GetComponent<Button>();
         btn.targetGraphic = img;
 
-        GameObject txtGo = new GameObject("SkillCaption", typeof(RectTransform), typeof(TextMeshProUGUI));
-        txtGo.transform.SetParent(go.transform, false);
-        RectTransform txtRt = txtGo.GetComponent<RectTransform>();
-        txtRt.anchorMin = Vector2.zero;
-        txtRt.anchorMax = Vector2.one;
-        txtRt.offsetMin = new Vector2(4f, 2f);
-        txtRt.offsetMax = new Vector2(-4f, -2f);
+        // 1. Tiêu đề kỹ năng + Cost ở phía trên
+        GameObject titleGo = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        titleGo.transform.SetParent(go.transform, false);
+        RectTransform titleRt = titleGo.GetComponent<RectTransform>();
+        titleRt.anchorMin = new Vector2(0f, 1f);
+        titleRt.anchorMax = new Vector2(1f, 1f);
+        titleRt.pivot = new Vector2(0.5f, 1f);
+        titleRt.anchoredPosition = new Vector2(0f, -5f);
+        titleRt.sizeDelta = new Vector2(-10f, 34f);
 
-        captionTmp = txtGo.GetComponent<TextMeshProUGUI>();
-        captionTmp.fontSize = 13f;
-        captionTmp.alignment = TextAlignmentOptions.Center;
-        captionTmp.color = Color.white;
-        captionTmp.raycastTarget = false;
+        titleTmp = titleGo.GetComponent<TextMeshProUGUI>();
+        titleTmp.fontSize = 12f;
+        titleTmp.alignment = TextAlignmentOptions.Center;
+        titleTmp.color = Color.white;
+        titleTmp.raycastTarget = false;
+
+        // 2. Icon hình ảnh tuyệt chiêu ở giữa
+        GameObject iconGo = new GameObject("SkillIcon", typeof(RectTransform), typeof(Image), typeof(Outline));
+        iconGo.transform.SetParent(go.transform, false);
+        RectTransform iconRt = iconGo.GetComponent<RectTransform>();
+        iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+        iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+        iconRt.pivot = new Vector2(0.5f, 0.5f);
+        iconRt.anchoredPosition = new Vector2(0f, -2f);
+        iconRt.sizeDelta = new Vector2(56f, 56f);
+
+        iconImg = iconGo.GetComponent<Image>();
+        iconImg.sprite = iconSprite;
+        iconImg.preserveAspect = true;
+        iconImg.raycastTarget = false;
+
+        Outline iconOl = iconGo.GetComponent<Outline>();
+        iconOl.effectColor = new Color(0.1f, 0.12f, 0.18f, 0.95f);
+        iconOl.effectDistance = new Vector2(1.2f, -1.2f);
+
+        // 3. Mô tả sát thương / hiệu ứng ở phía dưới
+        GameObject descGo = new GameObject("DescText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        descGo.transform.SetParent(go.transform, false);
+        RectTransform descRt = descGo.GetComponent<RectTransform>();
+        descRt.anchorMin = new Vector2(0f, 0f);
+        descRt.anchorMax = new Vector2(1f, 0f);
+        descRt.pivot = new Vector2(0.5f, 0f);
+        descRt.anchoredPosition = new Vector2(0f, 5f);
+        descRt.sizeDelta = new Vector2(-10f, 32f);
+
+        descTmp = descGo.GetComponent<TextMeshProUGUI>();
+        descTmp.fontSize = 11f;
+        descTmp.alignment = TextAlignmentOptions.Center;
+        descTmp.color = new Color(0.9f, 0.93f, 0.98f, 1f);
+        descTmp.raycastTarget = false;
 
         return btn;
     }
@@ -257,7 +299,7 @@ public class CharacterSkillBarUI : MonoBehaviour
                 int cost = playerEntity.GetEffectiveSkillCost(combatManager.normalSkillBaseCost);
                 int lvl = GameManager.Instance != null ? GameManager.Instance.normalSkillLevel : 1;
                 combatManager.ShowCustomBannerTooltip(
-                    $"<b>KỸ NĂNG THƯỜNG (Lv.{lvl})</b> [{cost} NL]: Tiêu hao {cost} Năng lượng để gây ngay <b>{combatManager.normalSkillDamage} Sát thương</b> đơn vị lên đối thủ.");
+                    $"<b>KỸ NĂNG THƯỜNG (Lv.{lvl})</b> [{cost} NL]: Tiêu hao {cost} Năng lượng để gây ngay <b>{combatManager.normalSkillDamage} Sát thương</b> lên đối thủ.");
             }
         });
         trigger.triggers.Add(enterEntry);
@@ -278,28 +320,6 @@ public class CharacterSkillBarUI : MonoBehaviour
         int maxEnergy = playerEntity != null ? playerEntity.MaxEnergy : 10;
         int discount = playerEntity != null ? playerEntity.NextSkillCostReduction : 0;
 
-        if (energyHeaderText != null)
-        {
-            string discountStr = discount > 0 ? $"  <color=#fde047>(-{discount} NL)</color>" : "";
-            energyHeaderText.text = $"NĂNG LƯỢNG: <b>{curEnergy} / {maxEnergy}</b>{discountStr}";
-        }
-
-        for (int i = 0; i < energyPipImages.Count; i++)
-        {
-            Image pip = energyPipImages[i];
-            if (pip == null) continue;
-            if (i < curEnergy)
-            {
-                pip.color = i >= 6
-                    ? new Color(1f, 0.65f, 0.18f, 0.98f)
-                    : new Color(0.22f, 0.85f, 1f, 0.98f);
-            }
-            else
-            {
-                pip.color = new Color(0.14f, 0.18f, 0.26f, 0.78f);
-            }
-        }
-
         if (combatManager == null) return;
 
         int normalCost = playerEntity != null
@@ -316,21 +336,54 @@ public class CharacterSkillBarUI : MonoBehaviour
 
         if (normalSkillBtn != null)
         {
-            normalSkillBtn.interactable = canAct && curEnergy >= normalCost;
-        }
-        if (normalSkillText != null)
-        {
-            normalSkillText.text = $"SKILL THƯỜNG Lv.{normLvl} [{normalCost} NL]\n<size=11>Gây {combatManager.normalSkillDamage} Sát thương</size>";
+            bool canAffordNormal = canAct && curEnergy >= normalCost;
+            normalSkillBtn.interactable = canAffordNormal;
+
+            if (normalSkillTitleText != null)
+            {
+                string costTag = discount > 0
+                    ? $"<color=#7dd3fc>[{normalCost} NL]</color> <color=#fde047>(-{discount})</color>"
+                    : $"<color=#7dd3fc>[{normalCost} NL]</color>";
+                normalSkillTitleText.text = $"<b>SKILL THƯỜNG Lv.{normLvl}</b>\n{costTag}";
+            }
+
+            if (normalSkillDescText != null)
+            {
+                normalSkillDescText.text = canAffordNormal
+                    ? $"<color=#e2e8f0>Gây <b>{combatManager.normalSkillDamage} Sát thương</b></color>"
+                    : $"<color=#94a3b8>(Chưa đủ {normalCost} NL)</color>";
+            }
+
+            if (normalSkillIconImg != null)
+            {
+                normalSkillIconImg.color = canAffordNormal ? Color.white : new Color(0.5f, 0.5f, 0.55f, 0.65f);
+            }
         }
 
         if (ultimateSkillBtn != null)
         {
-            ultimateSkillBtn.interactable = canAct && curEnergy >= ultCost;
-        }
-        if (ultimateSkillText != null)
-        {
-            ultimateSkillText.text = $"TỐI THƯỢNG Lv.{ultLvl} [{ultCost} NL]\n<size=11>{combatManager.ultimateSkillDamage} ST + {combatManager.ultimateSkillBurnStacks} Cháy</size>";
+            bool canAffordUlt = canAct && curEnergy >= ultCost;
+            ultimateSkillBtn.interactable = canAffordUlt;
+
+            if (ultimateSkillTitleText != null)
+            {
+                string costTag = discount > 0
+                    ? $"<color=#fca5a5>[{ultCost} NL]</color> <color=#fde047>(-{discount})</color>"
+                    : $"<color=#fca5a5>[{ultCost} NL]</color>";
+                ultimateSkillTitleText.text = $"<b>TỐI THƯỢNG Lv.{ultLvl}</b>\n{costTag}";
+            }
+
+            if (ultimateSkillDescText != null)
+            {
+                ultimateSkillDescText.text = canAffordUlt
+                    ? $"<color=#fef08a><b>{combatManager.ultimateSkillDamage} ST</b> + <b>{combatManager.ultimateSkillBurnStacks} Cháy</b></color>"
+                    : $"<color=#94a3b8>(Chưa đủ {ultCost} NL)</color>";
+            }
+
+            if (ultimateSkillIconImg != null)
+            {
+                ultimateSkillIconImg.color = canAffordUlt ? Color.white : new Color(0.5f, 0.5f, 0.55f, 0.65f);
+            }
         }
     }
 }
-
