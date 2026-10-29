@@ -159,6 +159,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &82145692
 Transform:
   m_ObjectHideFlags: 0
@@ -366,7 +370,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 134853149}
-  - component: {fileID: 134853148}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -374,17 +377,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
-$170
-  playerCurrentHP: 70
-  currentDiceFaces:
-  - {fileID: 11400000, guid: e477a8d99acbe44c2b6b3eaaff323b6d, type: 2}
-  - {fileID: 11400000, guid: 89acd7fdf74644a0e91484de4bacdcfc, type: 2}
-  - {fileID: 11400000, guid: 86a2ec953fa184738a9a49506b105759, type: 2}
-  currentStageIndex: 1
-  stageEnemies:
-  - {fileID: 11400000, guid: 1ab2982321af744efa623965427a601b, type: 2}
-  - {fileID: 11400000, guid: 4c5cb8bb5476f43ff80b2a586545f143, type: 2}
-  - {fileID: 11400000, guid: e4fb22aa8a71b4819a29f0ecde2ef5dc, type: 2}
 --- !u!4 &134853149
 Transform:
   m_ObjectHideFlags: 0
@@ -440,6 +432,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &149821527
 Transform:
   m_ObjectHideFlags: 0
@@ -596,7 +592,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -609,7 +605,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -733,7 +729,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -746,7 +742,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -842,8 +838,8 @@ RectTransform:
   - {fileID: 556565799}
   m_Father: {fileID: 479334126}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1032,7 +1028,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278945464
   m_fontColor: {r: 0.72156864, g: 0.5254902, b: 0.043137256, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1045,7 +1041,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -1169,7 +1165,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1182,7 +1178,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -1280,6 +1276,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &279870417
 Transform:
   m_ObjectHideFlags: 0
@@ -1361,7 +1361,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1374,7 +1374,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -1472,6 +1472,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &286737922
 Transform:
   m_ObjectHideFlags: 0
@@ -1642,7 +1646,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1655,7 +1659,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -1919,7 +1923,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1932,7 +1936,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -2028,8 +2032,8 @@ RectTransform:
   - {fileID: 638707488}
   m_Father: {fileID: 133679080}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2232,7 +2236,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2245,7 +2249,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -2369,7 +2373,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2382,7 +2386,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -2506,7 +2510,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2519,7 +2523,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -2732,7 +2736,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2745,7 +2749,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -2869,7 +2873,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278945464
   m_fontColor: {r: 0.72156864, g: 0.5254902, b: 0.043137256, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2882,7 +2886,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -3006,7 +3010,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -3019,7 +3023,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -3236,8 +3240,8 @@ RectTransform:
   - {fileID: 1378483590}
   m_Father: {fileID: 479334126}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3426,7 +3430,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -3439,7 +3443,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -3616,6 +3620,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &1057646521
 Transform:
   m_ObjectHideFlags: 0
@@ -3697,7 +3705,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -3710,7 +3718,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -4049,6 +4057,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &1124467618
 Transform:
   m_ObjectHideFlags: 0
@@ -4130,7 +4142,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -4143,7 +4155,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -4391,6 +4403,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &1186954257
 Transform:
   m_ObjectHideFlags: 0
@@ -4472,7 +4488,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -4485,7 +4501,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -4609,7 +4625,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -4622,7 +4638,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -4746,7 +4762,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -4759,7 +4775,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -4883,7 +4899,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -4896,7 +4912,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -4992,8 +5008,8 @@ RectTransform:
   - {fileID: 1854950031}
   m_Father: {fileID: 133679080}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5182,7 +5198,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278945464
   m_fontColor: {r: 0.72156864, g: 0.5254902, b: 0.043137256, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5195,7 +5211,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -5321,7 +5337,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5334,7 +5350,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -5608,7 +5624,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294934727
   m_fontColor: {r: 0.78, g: 0.5, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5621,7 +5637,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -5745,7 +5761,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5758,7 +5774,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -5882,7 +5898,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5895,7 +5911,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -6624,8 +6640,8 @@ RectTransform:
   - {fileID: 1426381548}
   m_Father: {fileID: 133679080}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -6788,6 +6804,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &1494666272
 Transform:
   m_ObjectHideFlags: 0
@@ -6918,6 +6938,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &1577233818
 Transform:
   m_ObjectHideFlags: 0
@@ -7001,7 +7025,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -7014,7 +7038,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -7110,8 +7134,8 @@ RectTransform:
   - {fileID: 1059796480}
   m_Father: {fileID: 133679080}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7272,8 +7296,8 @@ RectTransform:
   - {fileID: 1214693596}
   m_Father: {fileID: 479334126}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7436,6 +7460,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &1656579075
 Transform:
   m_ObjectHideFlags: 0
@@ -7491,6 +7519,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &1660853871
 Transform:
   m_ObjectHideFlags: 0
@@ -7572,7 +7604,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -7585,7 +7617,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -7723,7 +7755,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278945464
   m_fontColor: {r: 0.72156864, g: 0.5254902, b: 0.043137256, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -7736,7 +7768,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -7902,7 +7934,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291878372
   m_fontColor: {r: 0.89411765, g: 0.8666667, b: 0.8156863, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -7915,7 +7947,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -8114,8 +8146,8 @@ RectTransform:
   - {fileID: 738150802}
   m_Father: {fileID: 133679080}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -8304,7 +8336,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -8317,7 +8349,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -8443,7 +8475,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4286935674
   m_fontColor: {r: 0.47843137, g: 0.44705883, b: 0.52156866, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -8456,7 +8488,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -8552,8 +8584,8 @@ RectTransform:
   - {fileID: 200623122}
   m_Father: {fileID: 133679080}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -8716,6 +8748,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &1997768614
 Transform:
   m_ObjectHideFlags: 0
@@ -8886,7 +8922,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 2567669432
   m_fontColor: {r: 0.72156864, g: 0.5254902, b: 0.043137256, a: 0.6}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -8899,7 +8935,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -8997,6 +9033,10 @@ MonoBehaviour:
   diceFaceShieldSprite: {fileID: 21300000, guid: 903ee7d694c93cf4999b2d7a3e540b90, type: 3}
   diceFacePoisonSprite: {fileID: 21300000, guid: 0eb15238b5bc92148a13c7fbc993b7e3, type: 3}
   diceFaceFireSprite: {fileID: 21300000, guid: 57df83eb1f331644c8e8bdb81528eb9f, type: 3}
+  diceFaceEnergySprite: {fileID: 0}
+  diceFaceHealSprite: {fileID: 0}
+  diceFaceLightningSprite: {fileID: 0}
+  diceFaceBlankSprite: {fileID: 0}
 --- !u!4 &2133654615
 Transform:
   m_ObjectHideFlags: 0

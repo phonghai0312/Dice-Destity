@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!29 &1
 OcclusionCullingSettings:
@@ -1347,6 +1347,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleEntity
   maxHP: 20
+  currentHP: 0
+  currentShield: 0
+  retainHalfShieldNextTurn: 0
+  maxEnergy: 10
+  currentEnergy: 0
+  nextSkillCostReduction: 0
+  poisonStacks: 0
+  burnStacks: 0
+  stunStacks: 0
+  weakStacks: 0
+  bonusAttack: 0
 --- !u!1 &479334125
 GameObject:
   m_ObjectHideFlags: 0
@@ -2190,6 +2201,13 @@ MonoBehaviour:
   diceFaceHealSprite: {fileID: 21300000, guid: 4b1a2c3d5e6f7a8b9c0d1e2f3a4b5c12, type: 3}
   diceFaceLightningSprite: {fileID: 21300000, guid: 4b1a2c3d5e6f7a8b9c0d1e2f3a4b5c13, type: 3}
   diceFaceBlankSprite: {fileID: 21300000, guid: 4b1a2c3d5e6f7a8b9c0d1e2f3a4b5c14, type: 3}
+  normalSkillBaseCost: 2
+  normalSkillDamage: 5
+  ultimateSkillBaseCost: 6
+  ultimateSkillDamage: 14
+  ultimateSkillBurnStacks: 4
+  currentPhase: 0
+  currentRound: 0
 --- !u!4 &599374761
 Transform:
   m_ObjectHideFlags: 0
@@ -3924,54 +3942,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1029332787}
   m_CullTransparentMesh: 1
---- !u!1 &1057646519
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1057646521}
-  - component: {fileID: 1057646520}
-  m_Layer: 0
-  m_Name: CombatManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1057646520
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1057646519}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c6ba9e4216714bc0a68b43012bd0ab5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CombatController
-  background: {fileID: 0}
-  enemySpriteRenderer: {fileID: 0}
-  enemyEntity: {fileID: 0}
-  playerEntity: {fileID: 0}
---- !u!4 &1057646521
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1057646519}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1059796479
 GameObject:
   m_ObjectHideFlags: 0
@@ -5478,6 +5448,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleEntity
   maxHP: 70
+  currentHP: 0
+  currentShield: 0
+  retainHalfShieldNextTurn: 0
+  maxEnergy: 10
+  currentEnergy: 0
+  nextSkillCostReduction: 0
+  poisonStacks: 0
+  burnStacks: 0
+  stunStacks: 0
+  weakStacks: 0
+  bonusAttack: 0
 --- !u!1 &1356431969
 GameObject:
   m_ObjectHideFlags: 0
@@ -7989,11 +7970,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   playerMaxHP: 70
   playerCurrentHP: 70
+  maxRerollsPerTurn: 1
+  normalSkillLevel: 1
+  normalSkillBaseCost: 2
+  normalSkillBaseDamage: 5
+  ultimateSkillLevel: 1
+  ultimateSkillBaseCost: 6
+  ultimateSkillBaseDamage: 14
+  ultimateSkillBaseBurnStacks: 4
+  playerDiceBag: []
   currentDiceFaces:
   - {fileID: 11400000, guid: e477a8d99acbe44c2b6b3eaaff323b6d, type: 2}
   - {fileID: 11400000, guid: 89acd7fdf74644a0e91484de4bacdcfc, type: 2}
   - {fileID: 11400000, guid: 86a2ec953fa184738a9a49506b105759, type: 2}
   currentStageIndex: 1
+  heroMapStageIndex: 1
+  highestUnlockedStageIndex: 1
+  lastClearedStageIndex: 0
+  pendingForgeUpgrades: 0
+  isRunVictory: 0
   stageEnemies:
   - {fileID: 11400000, guid: 1ab2982321af744efa623965427a601b, type: 2}
   - {fileID: 11400000, guid: 4c5cb8bb5476f43ff80b2a586545f143, type: 2}
@@ -8464,4 +8459,3 @@ SceneRoots:
   - {fileID: 1556541914}
   - {fileID: 1997768614}
   - {fileID: 599374761}
-  - {fileID: 1057646521}
