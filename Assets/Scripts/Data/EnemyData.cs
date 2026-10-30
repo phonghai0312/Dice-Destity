@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 
 /// <summary>
@@ -6,11 +6,12 @@ using System;
 /// </summary>
 public enum EnemyIntentType
 {
-    Attack,             // Tấn công gây V sát thương
+    Attack,             // Chém thường / Tấn công gây V sát thương
     Defend,             // Phòng thủ cộng V giáp
-    AttackAndPoison,    // Tấn công gây V sát thương + cộng secondaryValue tầng Độc (Ải 2 Orc T3)
-    ChargeBuffAttack,   // Tích tụ: Buff +V sát thương cho đòn kế tiếp (Ải 3 Minotaur T1)
-    AttackAndHeal       // Tấn công gây V sát thương + Hồi secondaryValue HP (Ải 3 Minotaur T3)
+    AttackAndPoison,    // Tấn công gây V sát thương + cộng secondaryValue tầng Độc (Ải 2 Orc)
+    ChargeBuffAttack,   // Tích tụ: Buff +V sát thương cho đòn kế tiếp (Ải 3 Minotaur)
+    AttackAndHeal,      // Tấn công gây V sát thương + Hồi secondaryValue HP (Ải 3 Minotaur)
+    DetonatePoison      // Tuyệt kỹ Kích Nổ Độc: Gây sát thương xuyên giáp dựa trên số Độc của mục tiêu!
 }
 
 [Serializable]
@@ -49,6 +50,8 @@ public struct EnemyIntentStep
             case EnemyIntentType.AttackAndHeal:
                 int totalSweepAtk = primaryValue + bonusAtk;
                 return $"Ý định: {intentTitle} ({totalSweepAtk} ST + Hồi {secondaryValue} HP)";
+            case EnemyIntentType.DetonatePoison:
+                return $"Tuyệt Kỹ: {intentTitle} ({primaryValue} ST Nổ Độc Xuyên Giáp!)";
             default:
                 return intentTitle;
         }
@@ -94,10 +97,22 @@ public class EnemyData : ScriptableObject
     }
 
     /// <summary>
-    /// Lấy hành động dự báo (Intent) của quái ở lượt thứ turnIndex (bắt đầu từ 1) theo đúng bảng GDD mục 4.
+    /// Lấy hành động dự báo (Intent) của quái ở lượt thứ turnNumber (bắt đầu từ 1).
+    /// Hỗ trợ kiểm tra điều kiện đặc biệt:
+    /// - Quái nào cũng có đòn đánh cơ bản (Chém thường).
+    /// - Kỹ năng Tuyệt Kỹ: "Kích Nổ Kịch Độc" tự động kích hoạt khi người chơi bị tích lũy từ 3 tầng Độc trở lên!
     /// </summary>
-    public EnemyIntentStep GetIntentForTurn(int turnNumber, int stageIndex)
+    public EnemyIntentStep GetIntentForTurn(int turnNumber, int stageIndex, BattleEntity enemy = null, BattleEntity player = null)
     {
+        string lower = (enemyName ?? string.Empty).ToLowerInvariant();
+
+        // [CƠ CHẾ KÍCH NỔ ĐỘC]: Nếu mục tiêu bị tích lũy từ 3 tầng Độc trở lên, Orc chuyển sang Tuyệt Kỹ "Kích Nổ Kịch Độc"
+        if ((stageIndex == 2 || lower.Contains("orc")) && player != null && player.PoisonStacks >= 3)
+        {
+            int burstDmg = Mathf.Max(4, Mathf.RoundToInt(player.PoisonStacks * 1.5f));
+            return new EnemyIntentStep("Kích Nổ Kịch Độc", EnemyIntentType.DetonatePoison, burstDmg, player.PoisonStacks);
+        }
+
         int zeroBasedTurn = Mathf.Max(0, turnNumber - 1);
 
         if (customIntentCycle != null && customIntentCycle.Length > 0)
@@ -113,32 +128,43 @@ public class EnemyData : ScriptableObject
     {
         string lower = (nameHint ?? string.Empty).ToLowerInvariant();
 
-        // Ải 3: Minotaur Boss (60 HP) — T1: Tích tụ (+3 Atk) | T2: Bổ củi (12 dmg) | T3: Lan 6 dmg + Hồi 4 HP
+        // Ải 3: Minotaur Boss (60 HP) — Chu kỳ 4 lượt:
+        // T1: Quét Rìu Cơ Bản (Chém thường 7 dmg)
+        // T2: Tích Tụ Cuồng Nộ (Gồng +3 Atk)
+        // T3: Bổ Củi Hủy Diệt (12 dmg + 3 Atk = 15 dmg)
+        // T4: Quét Rìu Hút Máu (6 dmg + Hồi 4 HP - bị khắc chế giảm 50% hồi nếu dính Thiêu đốt)
         if (stageIndex == 3 || lower.Contains("minotaur") || lower.Contains("boss"))
         {
             return new EnemyIntentStep[]
             {
+                new EnemyIntentStep("Quét Rìu Cơ Bản", EnemyIntentType.Attack, 7, 0),
                 new EnemyIntentStep("Tích Tụ Cuồng Nộ", EnemyIntentType.ChargeBuffAttack, 3, 0),
                 new EnemyIntentStep("Bổ Củi Hủy Diệt", EnemyIntentType.Attack, 12, 0),
                 new EnemyIntentStep("Quét Rìu Hút Máu", EnemyIntentType.AttackAndHeal, 6, 4)
             };
         }
 
-        // Ải 2: Armored Orc (35 HP, +5 Shield) — T1: 6 dmg | T2: Buff 6 giáp | T3: 4 dmg + Độc 2
+        // Ải 2: Armored Orc (35 HP, +5 Shield) — Chu kỳ 3 lượt (hoặc Nổ Độc khi người chơi dính >= 3 Độc):
+        // T1: Chém Thường (Chém cơ bản 5 dmg)
+        // T2: Lưỡi Đao Tẩm Độc (4 dmg + 2 tầng Độc)
+        // T3: Giáp Sắt Kiên Cố (Buff +6 giáp)
         if (stageIndex == 2 || lower.Contains("orc"))
         {
             return new EnemyIntentStep[]
             {
-                new EnemyIntentStep("Chém Trọng Kích", EnemyIntentType.Attack, 6, 0),
-                new EnemyIntentStep("Giáp Sắt Kiên Cố", EnemyIntentType.Defend, 6, 0),
-                new EnemyIntentStep("Lưỡi Đao Tẩm Độc", EnemyIntentType.AttackAndPoison, 4, 2)
+                new EnemyIntentStep("Chém Thường", EnemyIntentType.Attack, 5, 0),
+                new EnemyIntentStep("Lưỡi Đao Tẩm Độc", EnemyIntentType.AttackAndPoison, 4, 2),
+                new EnemyIntentStep("Giáp Sắt Kiên Cố", EnemyIntentType.Defend, 6, 0)
             };
         }
 
-        // Ải 1: Goblin Scout (20 HP) — T1: 3 dmg | T2: 4 dmg | T3: Buff 3 giáp
+        // Ải 1: Goblin Scout (20 HP) — Chu kỳ 3 lượt:
+        // T1: Chém Nhỏ (Chém cơ bản 3 dmg)
+        // T2: Chém Nhanh (Đòn liên kích 4 dmg)
+        // T3: Núp Khiên Gỗ (Kỹ năng +3 giáp)
         return new EnemyIntentStep[]
         {
-            new EnemyIntentStep("Đâm Lén", EnemyIntentType.Attack, 3, 0),
+            new EnemyIntentStep("Chém Nhỏ", EnemyIntentType.Attack, 3, 0),
             new EnemyIntentStep("Chém Nhanh", EnemyIntentType.Attack, 4, 0),
             new EnemyIntentStep("Núp Khiên Gỗ", EnemyIntentType.Defend, 3, 0)
         };

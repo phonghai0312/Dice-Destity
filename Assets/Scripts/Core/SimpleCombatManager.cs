@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
@@ -1322,12 +1322,20 @@ public class SimpleCombatManager : MonoBehaviour
 
         if (currentEnemyData != null)
         {
-            currentEnemyIntent = currentEnemyData.GetIntentForTurn(currentRound, currentStage);
+            currentEnemyIntent = currentEnemyData.GetIntentForTurn(currentRound, currentStage, enemyEntity, playerEntity);
         }
         else
         {
-            EnemyIntentStep[] cycle = EnemyData.GetDefaultCycleForStage(currentStage);
-            currentEnemyIntent = cycle[(currentRound - 1) % cycle.Length];
+            if (currentStage == 2 && playerEntity != null && playerEntity.PoisonStacks >= 3)
+            {
+                int burstDmg = Mathf.Max(4, Mathf.RoundToInt(playerEntity.PoisonStacks * 1.5f));
+                currentEnemyIntent = new EnemyIntentStep("Kích Nổ Kịch Độc", EnemyIntentType.DetonatePoison, burstDmg, playerEntity.PoisonStacks);
+            }
+            else
+            {
+                EnemyIntentStep[] cycle = EnemyData.GetDefaultCycleForStage(currentStage);
+                currentEnemyIntent = cycle[(currentRound - 1) % cycle.Length];
+            }
         }
 
         UpdateEnemyIntentUI();
@@ -2034,6 +2042,11 @@ public class SimpleCombatManager : MonoBehaviour
                     eAnim.PlayVampiricAttack(playerVisualTr);
                     yield return new WaitForSeconds(0.22f);
                     break;
+
+                case EnemyIntentType.DetonatePoison:
+                    eAnim.PlayPoisonStrike(playerVisualTr);
+                    yield return new WaitForSeconds(0.22f);
+                    break;
             }
         }
 
@@ -2077,7 +2090,22 @@ public class SimpleCombatManager : MonoBehaviour
             {
                 int dmg = enemyEntity.CalculateOutgoingDamage(currentEnemyIntent.primaryValue);
                 playerEntity.TakeDamage(dmg);
-                enemyEntity.Heal(currentEnemyIntent.secondaryValue);
+                int actualHealed = enemyEntity.Heal(currentEnemyIntent.secondaryValue);
+                if (enemyEntity.BurnStacks > 0)
+                {
+                    SpawnCustomFloatingText(enemyEntity.transform, $"BỎNG LỬA (HỒI -50%: +{actualHealed} HP)", new Color(1f, 0.5f, 0.15f));
+                }
+                break;
+            }
+            case EnemyIntentType.DetonatePoison:
+            {
+                int stacks = playerEntity.PoisonStacks;
+                // Nếu người chơi đã kịp thời dùng Purify giải độc ở lượt trước, chiêu nổ độc mất tác dụng và chỉ gây 2 sát thương cào cấu
+                int burstDmg = stacks > 0 ? Mathf.Max(4, Mathf.RoundToInt(stacks * 1.5f)) : 2;
+                playerEntity.TakeDirectDamage(burstDmg);
+                playerEntity.ClearPoison();
+                SpawnCustomFloatingText(playerEntity.transform, $"KÍCH NỔ ĐỘC -{burstDmg} MÁU!", new Color(0.85f, 0.2f, 0.95f));
+                if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.35f, 15f);
                 break;
             }
         }
@@ -2438,6 +2466,9 @@ public class SimpleCombatManager : MonoBehaviour
                     break;
                 case EnemyIntentType.AttackAndPoison:
                     enemyIntentOutline.effectColor = new Color(0.75f, 0.35f, 1f, 0.9f);
+                    break;
+                case EnemyIntentType.DetonatePoison:
+                    enemyIntentOutline.effectColor = new Color(0.92f, 0.2f, 0.95f, 1f); // Tím đậm cảnh báo Tuyệt Kỹ Nổ Độc
                     break;
                 case EnemyIntentType.ChargeBuffAttack:
                     enemyIntentOutline.effectColor = new Color(1f, 0.6f, 0.15f, 0.95f);

@@ -277,10 +277,17 @@ public class BattleEntity : MonoBehaviour
 
     /// <summary>
     /// Hồi máu theo công thức GDD 3.3: HP_new = min(HP_max, HP_current + amount).
+    /// Khắc chế bởi Thiêu Đốt (Burn): Khi đang bị thiêu đốt, vết thương bị tổn thương sâu làm giảm 50% lượng hồi máu.
     /// </summary>
     public int Heal(int amount)
     {
         if (amount <= 0 || currentHP <= 0) return 0;
+
+        // Khắc chế từ Thiêu đốt (Burn): Lửa thiêu đốt làm giảm 50% khả năng hồi máu
+        if (burnStacks > 0)
+        {
+            amount = Mathf.Max(1, Mathf.FloorToInt(amount * 0.5f));
+        }
 
         int previousHP = currentHP;
         currentHP = Mathf.Min(maxHP, currentHP + amount);
@@ -380,6 +387,17 @@ public class BattleEntity : MonoBehaviour
         weakStacks = 0;
         stunStacks = 0;
         OnStatusChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Xóa toàn bộ số tầng Độc (dùng khi chiêu Kích Nổ Độc - Venom Burst phát tác tiêu thụ độc).
+    /// </summary>
+    public int ClearPoison()
+    {
+        int prev = poisonStacks;
+        poisonStacks = 0;
+        OnStatusChanged?.Invoke();
+        return prev;
     }
 
     public void ClearAllStatuses()

@@ -96,14 +96,15 @@ Mỗi viên xúc xắc gồm đúng 6 mặt. Mỗi mặt định nghĩa bởi: N
 
 > * **Suy yếu (Weak):** Sát thương thực tế nếu bị dính Weak \= max(1, D\_raw \* 0.75).  
 > * **Giáp (Shield):** Sát thương đâm vào máu \= Sát thương thực tế \- Lượng giáp bị vỡ.  
-> * **Hồi máu:** HP mới \= min(HP\_max, HP\_current \+ Lượng hồi).  
-> * **Độc (Poison) & Thiêu đốt (Burn):** Trừ máu trực tiếp ở cuối mỗi round, số tầng (stack) giảm dần 1 đơn vị mỗi lượt.
+> * **Hồi máu:** HP mới = min(HP_max, HP_current + Lượng hồi). Nếu mục tiêu đang bị **Thiêu đốt (Burn)**, lượng hồi máu bị suy giảm 50%.  
+> * **Độc (Poison) & Thiêu đốt (Burn):** Trừ máu trực tiếp ở cuối mỗi round, số tầng (stack) giảm dần 1 đơn vị mỗi lượt.  
+> * **Kích Nổ Độc (Venom Burst):** Khi kẻ địch tích lũy từ 3 tầng Độc trở lên vào mục tiêu, chuyển sang Tuyệt kỹ nổ độc trừ thẳng vào máu và giải phóng độc.
 
 ### **3.4. Máy Trạng Thái Trận Đấu (Turn-based State Machine)**
 
 Vòng lặp điều phối bởi một hệ thống máy trạng thái hữu hạn tuần tự:
 
-> 1. **RoundStart:** Đặt lại Shield Player về 0\. Quái chọn Intent mới. Khôi phục lượt re-roll cho người chơi.  
+> 1. **RoundStart:** Đặt lại Shield Player về 0. Quái chọn Intent mới (kiểm tra điều kiện đặc biệt như Nổ Độc hoặc hành động tuần tự). Khôi phục lượt re-roll cho người chơi.  
 > 2. **PlayerRoll:** Tung ngẫu nhiên các xúc xắc. Player được phép thao tác Re-roll nếu còn lượt.  
 > 3. **PlayerAction:** Kéo thả xúc xắc dùng kỹ năng hoặc kích hoạt Kỹ năng Thường / Kỹ năng Tối thượng khi đủ Năng lượng. Các lệnh đưa vào Command Stack (hỗ trợ Undo). Kết thúc bằng nút "End Turn".  
 > 4. **EnemyExecution:** Kiểm tra Stun (bỏ qua lượt nếu có, gỡ Stun). Nếu bình thường, thực thi chính xác Intent đã báo trước.  
@@ -113,9 +114,9 @@ Vòng lặp điều phối bởi một hệ thống máy trạng thái hữu h�
 
 | Ải đấu | Máu (HP) & Giáp | Chu kỳ hành vi Intent | Ý đồ thiết kế (Design Intent) |
 | :---- | :---- | :---- | :---- |
-| Ải 1: Goblin Scout | 20 HP | T1: 3 dmg T2: 4 dmg T3: Buff 3 giáp | Làm quen tính toán giáp, tích Năng lượng và dứt điểm mục tiêu yếu. |
-| Ải 2: Armored Orc | 35 HP (+5 Shield) | T1: 6 dmg T2: Buff 6 giáp T3: 4 dmg \+ Độc 2 | Ép người chơi tích lũy giáp lớn hoặc dùng Độc / Thiêu đốt bào máu qua khiên. |
-| Ải 3: Minotaur Boss | 60 HP | T1: Tích tụ (Buff \+3 Atk) T2: Bổ củi (12 dmg) T3: Lan 6 dmg \+ Hồi 4 HP | Thử thách sống sót, yêu cầu tối ưu bộ xúc xắc và tung Kỹ năng Tối thượng đúng thời điểm. |
+| Ải 1: Goblin Scout | 20 HP | T1: Chém Nhỏ (3 dmg)<br>T2: Chém Nhanh (4 dmg)<br>T3: Núp Khiên Gỗ (+3 giáp) | Đòn đánh cơ bản làm quen tính toán giáp, tích Năng lượng và dứt điểm mục tiêu yếu. |
+| Ải 2: Armored Orc | 35 HP (+5 Shield) | T1: Chém Thường (5 dmg)<br>T2: Lưỡi Đao Tẩm Độc (4 dmg + 2 Độc)<br>T3: Giáp Sắt Kiên Cố (+6 giáp)<br>*(Tuyệt Kỹ: Kích Nổ Độc khi Player dính ≥3 Độc)* | Ép người chơi tích lũy giáp hoặc dùng Purify giải độc kịp thời trước khi bị Kích Nổ Độc xuyên giáp. |
+| Ải 3: Minotaur Boss | 60 HP | T1: Quét Rìu Cơ Bản (7 dmg)<br>T2: Tích tụ (+3 Atk)<br>T3: Bổ củi hủy diệt (12 dmg + 3 = 15 dmg)<br>T4: Quét Rìu Hút Máu (6 dmg + Hồi 4 HP) | Thử thách toàn diện, đòn hồi máu bị khắc chế giảm 50% bởi Thiêu đốt (Burn) từ Kỹ năng Tối thượng của người chơi. |
 
 ## **5\. HƯỚNG ĐI NGHỆ THUẬT & ÂM THANH (ART & AUDIO)**
 
