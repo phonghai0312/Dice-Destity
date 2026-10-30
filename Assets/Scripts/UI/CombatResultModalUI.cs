@@ -29,8 +29,10 @@ public class CombatResultModalUI : MonoBehaviour
     private Outline dialogOutline;
 
     private readonly List<GameObject> spawnedRewardCardGos = new List<GameObject>();
+    private readonly List<DiceFaceData> rolledRewardOptions = new List<DiceFaceData>();
     private bool hasPickedReward = false;
     private int selectedRewardIdx = -1;
+    private bool rewardFinalized = false;
 
     public static CombatResultModalUI ShowOrCreate(Transform parentCanvas)
     {
@@ -259,26 +261,37 @@ public class CombatResultModalUI : MonoBehaviour
                 BuildRewardCardsUI(clearedStage, gm);
             }
 
-            // 3. Nút điều hướng (khóa cho tới khi chọn phần thưởng)
-            primaryActionBtn.interactable = false;
+            // 3. Nút điều hướng
             primaryActionBtn.onClick.RemoveAllListeners();
-            primaryActionText.text = "VỀ BẢN ĐỒ HÀNH TRÌNH";
             primaryActionBtn.onClick.AddListener(() =>
             {
-                if (gm != null) gm.LoadStageMapScene();
+                FinalizeRewardSelection();
+                GameManager activeGm = GameManager.ResolveInstance();
+                if (activeGm != null) activeGm.LoadStageMapScene();
                 else SceneManager.LoadScene("StageMap");
             });
 
-            secondaryActionBtn.interactable = false;
             secondaryActionBtn.onClick.RemoveAllListeners();
-            secondaryActionText.text = "VÀO LÒ RÈN ĐỂ DÁN MẶT";
             secondaryActionBtn.onClick.AddListener(() =>
             {
-                if (gm != null) gm.LoadForgeScene();
+                FinalizeRewardSelection();
+                GameManager activeGm = GameManager.ResolveInstance();
+                if (activeGm != null) activeGm.LoadForgeScene();
                 else SceneManager.LoadScene("TheForge");
             });
 
-            SetActionButtonsHighlighted(false);
+            // Tự động chọn sẵn Thẻ đầu tiên (card 0) để người chơi có thể bấm Tiếp Tục ngay,
+            // hoặc thoải mái bấm chọn thẻ 1, 2 để đổi bất cứ lúc nào:
+            if (rolledRewardOptions != null && rolledRewardOptions.Count > 0)
+            {
+                OnRewardCardClicked(0);
+            }
+            else
+            {
+                primaryActionBtn.interactable = true;
+                secondaryActionBtn.interactable = true;
+                SetActionButtonsHighlighted(true);
+            }
         }
     }
 
@@ -290,16 +303,21 @@ public class CombatResultModalUI : MonoBehaviour
             if (c != null) Destroy(c);
         }
         spawnedRewardCardGos.Clear();
+        rolledRewardOptions.Clear();
+        selectedRewardIdx = -1;
+        hasPickedReward = false;
+        rewardFinalized = false;
 
         List<DiceFaceData> options = DiceCatalog.RollStageRewardOptions(clearedStage, 3);
         if (options == null || options.Count == 0) return;
+        rolledRewardOptions.AddRange(options);
 
         float[] xPositions = new float[] { -255f, 0f, 255f };
 
-        for (int i = 0; i < options.Count && i < 3; i++)
+        for (int i = 0; i < rolledRewardOptions.Count && i < 3; i++)
         {
             int cardIndex = i;
-            DiceFaceData face = options[i];
+            DiceFaceData face = rolledRewardOptions[i];
 
             GameObject cardGo = new GameObject($"RewardCard_{i}", typeof(RectTransform), typeof(Image), typeof(Outline), typeof(Button));
             cardGo.transform.SetParent(rewardCardsContainer.transform, false);
@@ -323,7 +341,9 @@ public class CombatResultModalUI : MonoBehaviour
             RectTransform tbRt = topBadge.GetComponent<RectTransform>();
             tbRt.anchoredPosition = new Vector2(0f, 72f);
             tbRt.sizeDelta = new Vector2(215f, 24f);
-            topBadge.GetComponent<Image>().color = new Color(0.18f, 0.16f, 0.28f, 0.9f);
+            Image tbImg = topBadge.GetComponent<Image>();
+            tbImg.color = new Color(0.18f, 0.16f, 0.28f, 0.9f);
+            tbImg.raycastTarget = false;
             string rarityName = face.rarity == DiceFaceRarity.Epic ? "SỬ THI" : (face.rarity == DiceFaceRarity.Rare ? "HIẾM" : "THƯỜNG");
             TextMeshProUGUI tbText = CreateTMP(topBadge.transform, "BadgeText", Vector2.zero, new Vector2(205f, 22f), 12f, rarityBorderColor);
             tbText.text = $"{rarityName} • CẤP {face.level}";
@@ -334,7 +354,7 @@ public class CombatResultModalUI : MonoBehaviour
             nameTmp.text = face.faceName;
             nameTmp.fontStyle = FontStyles.Bold;
 
-            // Stat Display (e.g., ⚔ +5 ST)
+            // Stat Display (e.g., +5 ST)
             string statString = GetStatDisplayString(face);
             Color statColor = GetFaceTypeColor(face.type);
             TextMeshProUGUI statTmp = CreateTMP(cardGo.transform, "Stat", new Vector2(0f, 10f), new Vector2(215f, 26f), 17f, statColor);
@@ -346,39 +366,45 @@ public class CombatResultModalUI : MonoBehaviour
             descTmp.text = GetSkillDescription(face.skillKind, face.valueV);
 
             // Button label at bottom of card
-            GameObject btnLabelGo = new GameObject("BtnLabel", typeof(RectTransform), typeof(Image));
+            GameObject btnLabelGo = new GameObject("BtnLabel", typeof(RectTransform), typeof(Image), typeof(Button));
             btnLabelGo.transform.SetParent(cardGo.transform, false);
             RectTransform blRt = btnLabelGo.GetComponent<RectTransform>();
             blRt.anchoredPosition = new Vector2(0f, -66f);
             blRt.sizeDelta = new Vector2(200f, 28f);
             Image blImg = btnLabelGo.GetComponent<Image>();
             blImg.color = new Color(0.18f, 0.35f, 0.22f, 0.95f);
+            blImg.raycastTarget = true;
+
+            Button blBtn = btnLabelGo.GetComponent<Button>();
+            blBtn.targetGraphic = blImg;
+            blBtn.onClick.AddListener(() =>
+            {
+                OnRewardCardClicked(cardIndex);
+            });
 
             TextMeshProUGUI blText = CreateTMP(btnLabelGo.transform, "Text", Vector2.zero, new Vector2(190f, 24f), 13f, Color.white);
             blText.text = "CHỌN MẶT NÀY";
             blText.fontStyle = FontStyles.Bold;
 
-            // Click Handler
+            // Click Handler: Hỗ trợ nhấp chọn và đổi lại thoải mái nếu chọn nhầm
             Button cardBtn = cardGo.GetComponent<Button>();
             cardBtn.targetGraphic = cImg;
             cardBtn.onClick.AddListener(() =>
             {
-                OnRewardCardSelected(cardIndex, face, gm);
+                OnRewardCardClicked(cardIndex);
             });
         }
     }
 
-    private void OnRewardCardSelected(int cardIndex, DiceFaceData face, GameManager gm)
+    /// <summary>
+    /// Cho phép người chơi nhấp chọn bất kỳ thẻ nào trong 3 thẻ và có thể nhấp lại thẻ khác để đổi nếu chọn nhầm.
+    /// Thẻ được chọn sẽ sáng viền vàng nổi bật, 2 thẻ còn lại vẫn tương tác được.
+    /// </summary>
+    private void OnRewardCardClicked(int cardIndex)
     {
-        if (hasPickedReward) return;
-        hasPickedReward = true;
+        if (rewardFinalized) return;
         selectedRewardIdx = cardIndex;
-
-        // Thêm mặt vào Pool dự trữ
-        if (gm != null)
-        {
-            gm.AddFaceToPool(face.Clone());
-        }
+        hasPickedReward = true;
 
         // Cập nhật giao diện 3 thẻ
         for (int i = 0; i < spawnedRewardCardGos.Count; i++)
@@ -387,46 +413,95 @@ public class CombatResultModalUI : MonoBehaviour
             if (cGo == null) continue;
 
             Outline cOl = cGo.GetComponent<Outline>();
-            Button cBtn = cGo.GetComponent<Button>();
             Image cImg = cGo.GetComponent<Image>();
             Transform btnLabel = cGo.transform.Find("BtnLabel");
+            DiceFaceData face = (i < rolledRewardOptions.Count) ? rolledRewardOptions[i] : null;
+            Color rarityBorderColor = face != null ? GetRarityColor(face.rarity) : Color.white;
 
             if (i == cardIndex)
             {
-                // Thẻ đã chọn: Viền vàng sáng, nền đậm, badge check
+                // Thẻ đang được chọn: Viền vàng nổi bật, nền hổ phách, hiển thị ĐÃ CHỌN
                 if (cOl != null)
                 {
                     cOl.effectColor = new Color(1f, 0.88f, 0.25f, 1f);
                     cOl.effectDistance = new Vector2(3f, -3f);
                 }
                 if (cImg != null) cImg.color = new Color(0.18f, 0.16f, 0.08f, 1f);
+                cGo.transform.localScale = new Vector3(1.04f, 1.04f, 1f);
+
                 if (btnLabel != null)
                 {
                     btnLabel.GetComponent<Image>().color = new Color(0.16f, 0.58f, 0.28f, 1f);
                     TextMeshProUGUI t = btnLabel.GetComponentInChildren<TextMeshProUGUI>();
-                    if (t != null) t.text = "[ ĐÃ CHỌN THÀNH CÔNG ]";
+                    if (t != null)
+                    {
+                        t.text = "[ ĐÃ CHỌN ] (Nhấp đổi nếu muốn)";
+                        t.color = Color.white;
+                    }
                 }
             }
             else
             {
-                // Thẻ còn lại: Làm mờ
-                if (cImg != null) cImg.color = new Color(0.06f, 0.06f, 0.09f, 0.65f);
-                if (cOl != null) cOl.effectColor = new Color(0.3f, 0.3f, 0.3f, 0.4f);
+                // Thẻ còn lại: Vẫn giữ màu sắc chuẩn, sẵn sàng để bấm đổi nếu muốn
+                if (cOl != null)
+                {
+                    cOl.effectColor = rarityBorderColor;
+                    cOl.effectDistance = new Vector2(2f, -2f);
+                }
+                if (cImg != null) cImg.color = new Color(0.11f, 0.10f, 0.18f, 0.98f);
+                cGo.transform.localScale = Vector3.one;
+
                 if (btnLabel != null)
                 {
-                    btnLabel.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.1f, 0.6f);
+                    btnLabel.GetComponent<Image>().color = new Color(0.18f, 0.24f, 0.35f, 0.95f);
                     TextMeshProUGUI t = btnLabel.GetComponentInChildren<TextMeshProUGUI>();
-                    if (t != null) { t.text = "BỎ QUA"; t.color = new Color(0.5f, 0.5f, 0.5f, 0.6f); }
+                    if (t != null)
+                    {
+                        t.text = "CHỌN MẶT NÀY";
+                        t.color = new Color(0.85f, 0.92f, 1f, 1f);
+                    }
                 }
             }
 
-            if (cBtn != null) cBtn.interactable = false;
+            // ĐẢM BẢO CẢ 3 THẺ ĐỀU CÓ THỂ NHẤP TIẾP ĐỂ ĐỔI NẾU CHỌN NHẦM
+            Button cBtn = cGo.GetComponent<Button>();
+            if (cBtn != null) cBtn.interactable = true;
         }
 
-        // Kích hoạt 2 nút hành động
+        // Kích hoạt các nút hành động xác nhận
         primaryActionBtn.interactable = true;
+        primaryActionText.text = "XÁC NHẬN & VỀ BẢN ĐỒ";
         secondaryActionBtn.interactable = true;
+        secondaryActionText.text = "XÁC NHẬN & VÀO LÒ RÈN";
         SetActionButtonsHighlighted(true);
+    }
+
+    /// <summary>
+    /// Chính thức thêm mặt xúc xắc đã chọn vào Pool dự trữ của GameManager khi người chơi bấm nút điều hướng.
+    /// </summary>
+    private void FinalizeRewardSelection()
+    {
+        if (rewardFinalized) return;
+        rewardFinalized = true;
+
+        if (hasPickedReward && rolledRewardOptions != null && rolledRewardOptions.Count > 0)
+        {
+            int idxToPick = (selectedRewardIdx >= 0 && selectedRewardIdx < rolledRewardOptions.Count)
+                ? selectedRewardIdx
+                : 0;
+            DiceFaceData chosenFace = rolledRewardOptions[idxToPick];
+            GameManager activeGm = GameManager.ResolveInstance();
+            if (activeGm != null && chosenFace != null)
+            {
+                activeGm.AddFaceToPool(chosenFace.Clone());
+                Debug.Log($"[CombatResult] Đã xác nhận chọn mặt '{chosenFace.faceName}' Lv.{chosenFace.level} vào Pool dự trữ.");
+            }
+        }
+    }
+
+    private void OnRewardCardSelected(int cardIndex, DiceFaceData face, GameManager gm)
+    {
+        OnRewardCardClicked(cardIndex);
     }
 
     private void SetActionButtonsHighlighted(bool active)

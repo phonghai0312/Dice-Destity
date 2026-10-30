@@ -8,33 +8,40 @@ public class GameManager : MonoBehaviour
 
     public static GameManager ResolveInstance()
     {
-        GameManager sceneManager = FindAnyObjectByType<GameManager>();
-
-        // A stale, unconfigured manager can survive scene changes. Prefer the
-        // configured manager serialized in the active scene over that instance.
-        if (sceneManager != null && sceneManager.HasStageConfiguration())
-        {
-            if (Instance != sceneManager)
-            {
-                if (Instance != null)
-                {
-                    Destroy(Instance.gameObject);
-                }
-
-                Instance = sceneManager;
-                DontDestroyOnLoad(sceneManager.gameObject);
-            }
-        }
-        else if (Instance == null)
-        {
-            Instance = sceneManager;
-        }
-
         if (Instance != null)
         {
+            // Nếu có bản sao GameManager thứ hai trong scene hiện tại (do đặt sẵn trong Scene Editor), dọn dẹp nó
+            GameManager[] allGms = FindObjectsByType<GameManager>();
+            for (int i = 0; i < allGms.Length; i++)
+            {
+                if (allGms[i] != null && allGms[i] != Instance)
+                {
+                    // Nếu Instance hiện tại chưa có stageEnemies, kế thừa từ scene trước khi hủy bản sao thừa
+                    if ((Instance.stageEnemies == null || Instance.stageEnemies.Length == 0) && allGms[i].HasStageConfiguration())
+                    {
+                        Instance.stageEnemies = allGms[i].stageEnemies;
+                    }
+                    Destroy(allGms[i].gameObject);
+                }
+            }
+
             Instance.EnsureDiceBagInitialized();
+            return Instance;
         }
 
+        GameManager sceneManager = FindAnyObjectByType<GameManager>();
+        if (sceneManager != null)
+        {
+            Instance = sceneManager;
+            DontDestroyOnLoad(sceneManager.gameObject);
+            Instance.EnsureDiceBagInitialized();
+            return Instance;
+        }
+
+        GameObject go = new GameObject("GameManager");
+        Instance = go.AddComponent<GameManager>();
+        DontDestroyOnLoad(go);
+        Instance.EnsureDiceBagInitialized();
         return Instance;
     }
 
@@ -77,15 +84,16 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            if (!Instance.HasStageConfiguration() && HasStageConfiguration())
+            // Đã có Singleton đang hoạt động (chứa túi xúc xắc, pool mặt và tiến trình chơi của game thủ)
+            // Kế thừa stageEnemies nếu Singleton chưa có
+            if ((Instance.stageEnemies == null || Instance.stageEnemies.Length == 0) && HasStageConfiguration())
             {
-                Destroy(Instance.gameObject);
+                Instance.stageEnemies = stageEnemies;
             }
-            else
-            {
-                Destroy(gameObject);
-                return;
-            }
+
+            // Hủy bản sao thừa trong scene này để TUYỆT ĐỐI KHÔNG làm mất dữ liệu người chơi
+            Destroy(gameObject);
+            return;
         }
 
         Instance = this;
