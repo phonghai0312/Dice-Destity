@@ -100,16 +100,16 @@ public class EnemyData : ScriptableObject
     /// Lấy hành động dự báo (Intent) của quái ở lượt thứ turnNumber (bắt đầu từ 1).
     /// Hỗ trợ kiểm tra điều kiện đặc biệt:
     /// - Quái nào cũng có đòn đánh cơ bản (Chém thường).
-    /// - Kỹ năng Tuyệt Kỹ: "Kích Nổ Kịch Độc" tự động kích hoạt khi người chơi bị tích lũy từ 3 tầng Độc trở lên!
+    /// - Kỹ năng Tuyệt Kỹ: "Kích Nổ Kịch Độc" tự động kích hoạt khi người chơi bị tích lũy từ 2 tầng Độc trở lên!
     /// </summary>
     public EnemyIntentStep GetIntentForTurn(int turnNumber, int stageIndex, BattleEntity enemy = null, BattleEntity player = null)
     {
         string lower = (enemyName ?? string.Empty).ToLowerInvariant();
 
-        // [CƠ CHẾ KÍCH NỔ ĐỘC]: Nếu mục tiêu bị tích lũy từ 3 tầng Độc trở lên, Orc chuyển sang Tuyệt Kỹ "Kích Nổ Kịch Độc"
-        if ((stageIndex == 2 || lower.Contains("orc")) && player != null && player.PoisonStacks >= 3)
+        // [CƠ CHẾ KÍCH NỔ ĐỘC]: Nếu mục tiêu bị tích lũy từ 2 tầng Độc trở lên, Orc chuyển sang Tuyệt Kỹ "Kích Nổ Kịch Độc"
+        if ((stageIndex == 2 || lower.Contains("orc")) && player != null && player.PoisonStacks >= 2)
         {
-            int burstDmg = Mathf.Max(4, Mathf.RoundToInt(player.PoisonStacks * 1.5f));
+            int burstDmg = Mathf.Max(4, Mathf.RoundToInt(player.PoisonStacks * 2f));
             return new EnemyIntentStep("Kích Nổ Kịch Độc", EnemyIntentType.DetonatePoison, burstDmg, player.PoisonStacks);
         }
 
@@ -144,16 +144,16 @@ public class EnemyData : ScriptableObject
             };
         }
 
-        // Ải 2: Armored Orc (35 HP, +5 Shield) — Chu kỳ 3 lượt (hoặc Nổ Độc khi người chơi dính >= 3 Độc):
-        // T1: Chém Thường (Chém cơ bản 5 dmg)
-        // T2: Lưỡi Đao Tẩm Độc (4 dmg + 2 tầng Độc)
+        // Ải 2: Armored Orc (35 HP, +5 Shield) — Chu kỳ 3 lượt (hoặc Nổ Độc khi người chơi dính >= 2 Độc):
+        // T1: Chém Tẩm Độc (Đòn cơ bản có tẩm độc 5 dmg + 2 tầng Độc)
+        // T2: Lưỡi Đao Kịch Độc (4 dmg + 2 tầng Độc)
         // T3: Giáp Sắt Kiên Cố (Buff +6 giáp)
         if (stageIndex == 2 || lower.Contains("orc"))
         {
             return new EnemyIntentStep[]
             {
-                new EnemyIntentStep("Chém Thường", EnemyIntentType.Attack, 5, 0),
-                new EnemyIntentStep("Lưỡi Đao Tẩm Độc", EnemyIntentType.AttackAndPoison, 4, 2),
+                new EnemyIntentStep("Chém Tẩm Độc", EnemyIntentType.AttackAndPoison, 5, 2),
+                new EnemyIntentStep("Lưỡi Đao Kịch Độc", EnemyIntentType.AttackAndPoison, 4, 2),
                 new EnemyIntentStep("Giáp Sắt Kiên Cố", EnemyIntentType.Defend, 6, 0)
             };
         }

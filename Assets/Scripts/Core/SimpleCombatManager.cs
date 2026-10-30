@@ -1326,9 +1326,9 @@ public class SimpleCombatManager : MonoBehaviour
         }
         else
         {
-            if (currentStage == 2 && playerEntity != null && playerEntity.PoisonStacks >= 3)
+            if (currentStage == 2 && playerEntity != null && playerEntity.PoisonStacks >= 2)
             {
-                int burstDmg = Mathf.Max(4, Mathf.RoundToInt(playerEntity.PoisonStacks * 1.5f));
+                int burstDmg = Mathf.Max(4, Mathf.RoundToInt(playerEntity.PoisonStacks * 2f));
                 currentEnemyIntent = new EnemyIntentStep("Kích Nổ Kịch Độc", EnemyIntentType.DetonatePoison, burstDmg, playerEntity.PoisonStacks);
             }
             else
@@ -2101,7 +2101,7 @@ public class SimpleCombatManager : MonoBehaviour
             {
                 int stacks = playerEntity.PoisonStacks;
                 // Nếu người chơi đã kịp thời dùng Purify giải độc ở lượt trước, chiêu nổ độc mất tác dụng và chỉ gây 2 sát thương cào cấu
-                int burstDmg = stacks > 0 ? Mathf.Max(4, Mathf.RoundToInt(stacks * 1.5f)) : 2;
+                int burstDmg = stacks > 0 ? Mathf.Max(4, Mathf.RoundToInt(stacks * 2f)) : 2;
                 playerEntity.TakeDirectDamage(burstDmg);
                 playerEntity.ClearPoison();
                 SpawnCustomFloatingText(playerEntity.transform, $"KÍCH NỔ ĐỘC -{burstDmg} MÁU!", new Color(0.85f, 0.2f, 0.95f));

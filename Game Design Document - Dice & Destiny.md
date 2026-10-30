@@ -98,7 +98,7 @@ Mỗi viên xúc xắc gồm đúng 6 mặt. Mỗi mặt định nghĩa bởi: N
 > * **Giáp (Shield):** Sát thương đâm vào máu \= Sát thương thực tế \- Lượng giáp bị vỡ.  
 > * **Hồi máu:** HP mới = min(HP_max, HP_current + Lượng hồi). Nếu mục tiêu đang bị **Thiêu đốt (Burn)**, lượng hồi máu bị suy giảm 50%.  
 > * **Độc (Poison) & Thiêu đốt (Burn):** Trừ máu trực tiếp ở cuối mỗi round, số tầng (stack) giảm dần 1 đơn vị mỗi lượt.  
-> * **Kích Nổ Độc (Venom Burst):** Khi kẻ địch tích lũy từ 3 tầng Độc trở lên vào mục tiêu, chuyển sang Tuyệt kỹ nổ độc trừ thẳng vào máu và giải phóng độc.
+> * **Kích Nổ Độc (Venom Burst):** Khi kẻ địch tích lũy từ 2 tầng Độc trở lên vào mục tiêu, chuyển sang Tuyệt kỹ nổ độc trừ thẳng vào máu và giải phóng độc.
 
 ### **3.4. Máy Trạng Thái Trận Đấu (Turn-based State Machine)**
 
@@ -115,7 +115,7 @@ Vòng lặp điều phối bởi một hệ thống máy trạng thái hữu h�
 | Ải đấu | Máu (HP) & Giáp | Chu kỳ hành vi Intent | Ý đồ thiết kế (Design Intent) |
 | :---- | :---- | :---- | :---- |
 | Ải 1: Goblin Scout | 20 HP | T1: Chém Nhỏ (3 dmg)<br>T2: Chém Nhanh (4 dmg)<br>T3: Núp Khiên Gỗ (+3 giáp) | Đòn đánh cơ bản làm quen tính toán giáp, tích Năng lượng và dứt điểm mục tiêu yếu. |
-| Ải 2: Armored Orc | 35 HP (+5 Shield) | T1: Chém Thường (5 dmg)<br>T2: Lưỡi Đao Tẩm Độc (4 dmg + 2 Độc)<br>T3: Giáp Sắt Kiên Cố (+6 giáp)<br>*(Tuyệt Kỹ: Kích Nổ Độc khi Player dính ≥3 Độc)* | Ép người chơi tích lũy giáp hoặc dùng Purify giải độc kịp thời trước khi bị Kích Nổ Độc xuyên giáp. |
+| Ải 2: Armored Orc | 35 HP (+5 Shield) | T1: Chém Tẩm Độc (5 dmg + 2 Độc)<br>T2: Lưỡi Đao Kịch Độc (4 dmg + 2 Độc)<br>T3: Giáp Sắt Kiên Cố (+6 giáp)<br>*(Tuyệt Kỹ: Kích Nổ Độc khi Player dính ≥2 Độc)* | Ép người chơi tích lũy giáp hoặc dùng Purify giải độc kịp thời trước khi bị Kích Nổ Độc xuyên giáp. |
 | Ải 3: Minotaur Boss | 60 HP | T1: Quét Rìu Cơ Bản (7 dmg)<br>T2: Tích tụ (+3 Atk)<br>T3: Bổ củi hủy diệt (12 dmg + 3 = 15 dmg)<br>T4: Quét Rìu Hút Máu (6 dmg + Hồi 4 HP) | Thử thách toàn diện, đòn hồi máu bị khắc chế giảm 50% bởi Thiêu đốt (Burn) từ Kỹ năng Tối thượng của người chơi. |
 
 ## **5\. HƯỚNG ĐI NGHỆ THUẬT & ÂM THANH (ART & AUDIO)**
