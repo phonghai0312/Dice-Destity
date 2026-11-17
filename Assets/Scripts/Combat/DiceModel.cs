@@ -149,14 +149,14 @@ public class DiceInstance
     }
 
     /// <summary>
-    /// Tung ngẫu nhiên trong các mặt KHẢ DỤNG (chưa bị khoá) của viên xúc xắc.
+    /// Tung ngẫu nhiên trên cả 6 mặt của viên xúc xắc (bao gồm cả các mặt Trống bị khoá nếu chưa mở khoá & rèn đè).
     /// </summary>
     public DiceFaceData Roll()
     {
         List<int> availableIndices = new List<int>();
         for (int i = 0; i < FACES_COUNT; i++)
         {
-            if (!IsSlotLocked(i) && faces[i] != null)
+            if (faces[i] != null)
             {
                 availableIndices.Add(i);
             }

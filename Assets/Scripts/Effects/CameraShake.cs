@@ -12,6 +12,7 @@ public class CameraShake : MonoBehaviour
 
     public void Shake(float duration, float magnitude)
     {
+        if (!AudioManager.IsScreenShakeEnabled) return;
         StartCoroutine(DoShake(duration, magnitude));
     }
 

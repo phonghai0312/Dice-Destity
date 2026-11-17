@@ -1404,6 +1404,7 @@ public class SimpleCombatManager : MonoBehaviour
         }
 
         // Hiệu ứng lắc và nhảy số ngẫu nhiên (0.35s)
+        AudioManager.ResolveInstance().PlayDiceRoll();
         float duration = 0.35f;
         float elapsed = 0f;
         while (elapsed < duration)
@@ -1463,6 +1464,21 @@ public class SimpleCombatManager : MonoBehaviour
         if (slotIndex < diceUsed.Count && diceUsed[slotIndex]) return false;
         if (slotIndex >= rolledFaces.Count || rolledFaces[slotIndex] == null) return false;
         return true;
+    }
+
+    public bool IsBlankDiceSlot(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= rolledFaces.Count || rolledFaces[slotIndex] == null) return false;
+        return rolledFaces[slotIndex].GetResolvedSkillKind() == DiceSkillKind.Blank;
+    }
+
+    public void NotifyBlankDiceBlocked(int slotIndex)
+    {
+        if (tooltipLabel != null)
+        {
+            SetTMPText(tooltipLabel, "Mặt <b>TRỐNG (Bị khoá)</b> — Không thể dùng! Hãy chọn để <b>RE-ROLL</b> hoặc <b>END TURN</b>.");
+        }
+        AudioManager.ResolveInstance().PlayButtonClick();
     }
 
     /// <summary>
@@ -1527,6 +1543,12 @@ public class SimpleCombatManager : MonoBehaviour
         if (!CanInteractWithDiceSlot(slotIndex)) return;
 
         DiceFaceData face = rolledFaces[slotIndex];
+        if (face.GetResolvedSkillKind() == DiceSkillKind.Blank)
+        {
+            NotifyBlankDiceBlocked(slotIndex);
+            return;
+        }
+
         DropTarget.TargetType naturalTarget = face.TargetsEnemy()
             ? DropTarget.TargetType.Enemy
             : DropTarget.TargetType.Player;
@@ -1541,6 +1563,11 @@ public class SimpleCombatManager : MonoBehaviour
 
         DiceFaceData face = rolledFaces[slotIndex];
         if (face == null) return false;
+        if (face.GetResolvedSkillKind() == DiceSkillKind.Blank)
+        {
+            NotifyBlankDiceBlocked(slotIndex);
+            return false;
+        }
 
         BattleEntity resolvedTarget = face.TargetsEnemy() ? enemyEntity : playerEntity;
 
@@ -1621,58 +1648,71 @@ public class SimpleCombatManager : MonoBehaviour
             ? enemyPortraitImage.transform
             : (enemyEntity != null ? enemyEntity.transform : null);
 
+        AudioManager am = AudioManager.ResolveInstance();
         DiceSkillKind kind = face.GetResolvedSkillKind();
         switch (kind)
         {
             case DiceSkillKind.Strike:
+                am.PlayAttack();
                 pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: false);
                 break;
 
             case DiceSkillKind.HeavySlash:
+                am.PlayAttack();
                 pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: true);
                 if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.28f, 14f);
                 break;
 
             case DiceSkillKind.Vampiric:
+                am.PlayAttack();
                 pAnim.PlayVampiricAttack(enemyVisualTr);
                 break;
 
             case DiceSkillKind.Block:
+                am.PlayShield();
                 pAnim.PlayGuardBrace(isIronWall: false);
                 break;
 
             case DiceSkillKind.IronWall:
+                am.PlayShield();
                 pAnim.PlayGuardBrace(isIronWall: true);
                 break;
 
             case DiceSkillKind.Regenerate:
+                am.PlayHeal();
                 pAnim.PlayHealPowerUp(isPurify: false);
                 break;
 
             case DiceSkillKind.Purify:
+                am.PlayHeal();
                 pAnim.PlayHealPowerUp(isPurify: true);
                 break;
 
             case DiceSkillKind.PoisonSting:
+                am.PlayPoison();
                 pAnim.PlayPoisonStrike(enemyVisualTr);
                 break;
 
             case DiceSkillKind.ShockStun:
+                am.PlayLightning();
                 pAnim.PlayShockStunStrike(enemyVisualTr);
                 if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.24f, 11f);
                 break;
 
             case DiceSkillKind.Ignite:
+                am.PlayFire();
                 pAnim.PlaySlashAttack(enemyVisualTr, isHeavySlash: true);
                 break;
 
             case DiceSkillKind.ManaSpark:
             case DiceSkillKind.ArcaneSurge:
             case DiceSkillKind.Overcharge:
+                am.PlayHeal();
                 pAnim.PlayHealPowerUp(isPurify: true);
                 break;
 
             case DiceSkillKind.Blank:
+                am.PlayButtonClick();
                 pAnim.PlayMissFumble();
                 break;
         }
@@ -1705,6 +1745,7 @@ public class SimpleCombatManager : MonoBehaviour
 
         int finalDmg = playerEntity.CalculateOutgoingDamage(normalSkillDamage);
         enemyEntity.TakeDamage(finalDmg);
+        AudioManager.ResolveInstance().PlayAttack();
 
         if (commandManager != null)
         {
@@ -1780,6 +1821,7 @@ public class SimpleCombatManager : MonoBehaviour
         }
 
         if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.32f, 16f);
+        AudioManager.ResolveInstance().PlayFire();
         SpawnCustomFloatingText(playerEntity.transform, $"TỐI THƯỢNG! (-{cost} NL)", new Color(1f, 0.55f, 0.15f));
         SpawnCustomFloatingText(enemyEntity.transform, $"+{ultimateSkillBurnStacks} THIÊU ĐỐT!", new Color(1f, 0.42f, 0.12f));
         UpdateControlButtonsUI();
@@ -2218,7 +2260,7 @@ public class SimpleCombatManager : MonoBehaviour
             case DiceSkillKind.Overcharge:
                 return $"+{face.valueV}";
             case DiceSkillKind.Blank:
-                return "0";
+                return "✕";
             default:
                 return face.valueV.ToString();
         }
@@ -2665,6 +2707,7 @@ public class SimpleCombatManager : MonoBehaviour
         }
 
         // Hiệp sĩ gồng ăn mừng chiến thắng
+        AudioManager.ResolveInstance().PlayVictory();
         if (playerPortraitImage != null)
         {
             CharacterSpriteAnimator pAnim = playerPortraitImage.GetComponent<CharacterSpriteAnimator>();
@@ -2726,6 +2769,7 @@ public class SimpleCombatManager : MonoBehaviour
         UpdateControlButtonsUI();
 
         UpdateEnemyIntentUI();
+        AudioManager.ResolveInstance().PlayDefeat();
         if (enemyIntentLabel != null)
         {
             SetTMPText(enemyIntentLabel, "HIỆP SĨ ĐÃ NGÃ XUỐNG — HÀNH TRÌNH KHÉP LẠI!");

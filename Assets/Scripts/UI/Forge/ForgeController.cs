@@ -462,6 +462,7 @@ public class ForgeController : MonoBehaviour
             {
                 gm.UpgradeNormalSkill();
                 gm.ConsumeForgeUpgrade();
+                AudioManager.ResolveInstance().PlayForge();
                 RefreshAllUI();
                 ShowToast($"[CẢI TIẾN] Đã nâng cấp Kỹ năng Thường lên Cấp {gm.normalSkillLevel} (+{gm.GetNormalSkillDamage()} ST)!");
             }
@@ -481,6 +482,7 @@ public class ForgeController : MonoBehaviour
             {
                 gm.UpgradeUltimateSkill();
                 gm.ConsumeForgeUpgrade();
+                AudioManager.ResolveInstance().PlayForge();
                 RefreshAllUI();
                 ShowToast($"[CẢI TIẾN] Đã nâng cấp Kỹ năng Tối thượng lên Cấp {gm.ultimateSkillLevel} ({gm.GetUltimateSkillDamage()} ST + {gm.GetUltimateSkillBurnStacks()} Cháy)!");
             }

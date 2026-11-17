@@ -117,7 +117,7 @@ public class PauseMenuUI : MonoBehaviour
         RectTransform boxRt = box.GetComponent<RectTransform>();
         boxRt.anchorMin = new Vector2(0.5f, 0.5f);
         boxRt.anchorMax = new Vector2(0.5f, 0.5f);
-        boxRt.sizeDelta = new Vector2(500f, 440f);
+        boxRt.sizeDelta = new Vector2(500f, 500f);
         boxRt.anchoredPosition = Vector2.zero;
 
         box.GetComponent<Image>().color = new Color(0.08f, 0.07f, 0.13f, 0.98f);
@@ -128,7 +128,7 @@ public class PauseMenuUI : MonoBehaviour
         GameObject titleGo = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));
         titleGo.transform.SetParent(box.transform, false);
         RectTransform tRt = titleGo.GetComponent<RectTransform>();
-        tRt.anchoredPosition = new Vector2(0f, 155f);
+        tRt.anchoredPosition = new Vector2(0f, 195f);
         tRt.sizeDelta = new Vector2(440f, 44f);
         TextMeshProUGUI tTmp = titleGo.GetComponent<TextMeshProUGUI>();
         tTmp.text = "⚙ TẠM DỪNG TRÒ CHƠI";
@@ -142,55 +142,82 @@ public class PauseMenuUI : MonoBehaviour
             box.transform,
             "ResumeButton",
             "▶ TIẾP TỤC CHIẾN ĐẤU [ESC]",
-            new Vector2(0f, 75f),
-            new Vector2(360f, 50f),
+            new Vector2(0f, 120f),
+            new Vector2(360f, 48f),
             new Color(0.14f, 0.38f, 0.24f, 0.98f),
             new Color(0.35f, 0.92f, 0.58f, 0.9f),
             16f);
-        resumeBtn.onClick.AddListener(TogglePauseModal);
+        resumeBtn.onClick.AddListener(() =>
+        {
+            AudioManager.ResolveInstance().PlayButtonClick();
+            TogglePauseModal();
+        });
 
-        // 2. Xem Bách Khoa Xúc Xắc & Túi Đồ
+        // 2. Cài đặt Âm thanh & Game
+        Button settingsBtn = CreateButton(
+            box.transform,
+            "SettingsInPauseButton",
+            "⚙ CÀI ĐẶT ÂM THANH & GAME",
+            new Vector2(0f, 56f),
+            new Vector2(360f, 48f),
+            new Color(0.24f, 0.18f, 0.38f, 0.98f),
+            new Color(0.76f, 0.58f, 0.98f, 0.9f),
+            15f);
+        settingsBtn.onClick.AddListener(() =>
+        {
+            AudioManager.ResolveInstance().PlayButtonClick();
+            pauseModalObject.SetActive(false);
+            SettingsModalUI.ToggleOrCreate(canvasTransform, showCodexButton: false);
+        });
+
+        // 3. Xem Bách Khoa Xúc Xắc & Túi Đồ
         Button codexBtn = CreateButton(
             box.transform,
             "CodexInPauseButton",
             "BÁCH KHOA 13 MẶT XÚC XẮC & TÚI ĐỒ",
-            new Vector2(0f, 10f),
-            new Vector2(360f, 50f),
+            new Vector2(0f, -8f),
+            new Vector2(360f, 48f),
             new Color(0.14f, 0.26f, 0.46f, 0.98f),
             new Color(0.38f, 0.78f, 1f, 0.9f),
             15f);
-        codexBtn.onClick.AddListener(OpenCodex);
+        codexBtn.onClick.AddListener(() =>
+        {
+            AudioManager.ResolveInstance().PlayButtonClick();
+            OpenCodex();
+        });
 
-        // 3. Chơi lại từ đầu (Restart Run)
+        // 4. Chơi lại từ đầu (Restart Run)
         Button restartBtn = CreateButton(
             box.transform,
             "RestartRunButton",
             "CHƠI LẠI HÀNH TRÌNH MỚI (ẢI 1)",
-            new Vector2(0f, -55f),
-            new Vector2(360f, 50f),
+            new Vector2(0f, -72f),
+            new Vector2(360f, 48f),
             new Color(0.48f, 0.26f, 0.08f, 0.98f),
             new Color(1f, 0.78f, 0.25f, 0.9f),
             15f);
         restartBtn.onClick.AddListener(() =>
         {
+            AudioManager.ResolveInstance().PlayButtonClick();
             pauseModalObject.SetActive(false);
             GameManager gm = GameManager.ResolveInstance();
             if (gm != null) gm.StartNewRun();
             else SceneManager.LoadScene("CombatScene");
         });
 
-        // 4. Về Menu Chính
+        // 5. Về Menu Chính
         Button mainMenuBtn = CreateButton(
             box.transform,
             "ReturnMainMenuButton",
             "VỀ MENU CHÍNH (MAIN MENU)",
-            new Vector2(0f, -120f),
-            new Vector2(360f, 50f),
+            new Vector2(0f, -136f),
+            new Vector2(360f, 48f),
             new Color(0.52f, 0.14f, 0.16f, 0.98f),
             new Color(1f, 0.45f, 0.45f, 0.9f),
             15f);
         mainMenuBtn.onClick.AddListener(() =>
         {
+            AudioManager.ResolveInstance().PlayButtonClick();
             pauseModalObject.SetActive(false);
             GameManager gm = GameManager.ResolveInstance();
             if (gm != null) gm.LoadMainMenu();

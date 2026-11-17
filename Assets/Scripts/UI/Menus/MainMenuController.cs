@@ -85,6 +85,10 @@ public class MainMenuController : MonoBehaviour
         {
             audioSource.PlayOneShot(buttonClickSound);
         }
+        else
+        {
+            AudioManager.ResolveInstance().PlayButtonClick();
+        }
     }
 
     // 1. New Game
@@ -136,14 +140,14 @@ public class MainMenuController : MonoBehaviour
     {
         PlayClickSound();
         Debug.Log("[MainMenu] Settings button clicked!");
-        if (settingsPanel == null)
-        {
-            settingsPanel = BuildRuntimeSettingsPanel();
-        }
         if (settingsPanel != null)
         {
             settingsPanel.SetActive(!settingsPanel.activeSelf);
+            return;
         }
+
+        Canvas canvas = FindAnyObjectByType<Canvas>();
+        SettingsModalUI.ToggleOrCreate(canvas != null ? canvas.transform : null, showCodexButton: true);
     }
 
     // Backward compatibility for existing OnSettingsClicked

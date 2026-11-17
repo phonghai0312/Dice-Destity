@@ -18,5 +18,8 @@ public class GameBootstrap : MonoBehaviour
             gm.AddComponent<GameManager>();
             DontDestroyOnLoad(gm);
         }
+
+        // Đảm bảo AudioManager luôn tồn tại
+        AudioManager.ResolveInstance();
     }
 }

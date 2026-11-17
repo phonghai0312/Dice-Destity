@@ -39,6 +39,13 @@ public class DraggableDice : MonoBehaviour,
             return;
         }
 
+        if (combatManager != null && combatManager.IsBlankDiceSlot(slotIndex))
+        {
+            combatManager.NotifyBlankDiceBlocked(slotIndex);
+            eventData.pointerDrag = null;
+            return;
+        }
+
         if (canvas == null)
         {
             canvas = GetComponentInParent<Canvas>();
